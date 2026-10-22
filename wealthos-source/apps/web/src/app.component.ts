@@ -12,7 +12,6 @@ interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget
 type View = 'dashboard'|'transactions'|'accounts'|'budgets'|'goals'|'stocks'|'profile';
 @Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent],templateUrl:'./app.component.html'})
 export class AppComponent {
-  private readonly storageKey = 'wealthos:demo:v1';
   MathRound = Math.round;
   theme:'light'|'dark'=document.documentElement.dataset['theme']==='dark'?'dark':'light';
   stockTab:'market'|'portfolio'|'detail'|'indices'|'crypto'='market';
@@ -37,18 +36,14 @@ export class AppComponent {
   quoteChange(q:StockQuote){return q.changes[this.stockPeriod];}
   signedPercent(value:number|null){return value===null?'Indisponível':(value>0?'+':'')+new Intl.NumberFormat('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(value)+'%';}
   optionalMoney(value:number|null){return value===null?'Indisponível':this.money(value);}
-  toggleTheme(){this.theme=this.theme==='dark'?'light':'dark';document.documentElement.dataset['theme']=this.theme;try{localStorage.setItem('wealthos:theme',this.theme);}catch{}if(this.view==='profile')setTimeout(()=>void this.renderGoogle());}
+  toggleTheme(){this.theme=this.theme==='dark'?'light':'dark';document.documentElement.dataset['theme']=this.theme;try{localStorage.setItem('wealthos:theme',this.theme);}catch{}}
   openHolding(holding?:Holding){if(!this.portfolioReady){this.notify('Carregue sua carteira antes de editar.');this.navigate('profile');return;}this.openModal('holding');this.holdingDraft=holding?{id:holding.id,ticker:holding.ticker,quantity:String(holding.quantity),averagePrice:holding.averagePriceCents===null?'':(holding.averagePriceCents/100).toFixed(2).replace('.',','),unknownCost:holding.averagePriceCents===null}:{id:'',ticker:'',quantity:'',averagePrice:'',unknownCost:true};}
   askDeleteHolding(holding:Holding){this.openModal('deleteHolding');this.pendingDelete=holding;}
   exportPortfolio(){const blob=new Blob([JSON.stringify({schemaVersion:1,quotes:'brapi-when-available',holdings:this.holdings},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='wealthos-minha-carteira.json';a.click();URL.revokeObjectURL(url);this.notify('Carteira exportada.');}
-  private loadHoldings():Holding[]{try{const raw=localStorage.getItem('wealthos:holdings:v1');if(!raw)return [];const values:Holding[]=JSON.parse(raw);if(!Array.isArray(values))return [];const ids=new Set<string>(),tickers=new Set<string>();for(const h of values){if(typeof h.id!=='string'||!h.id||ids.has(h.id)||typeof h.ticker!=='string'||!/^[A-Z][A-Z0-9]{3}\d{1,2}F?$/.test(h.ticker)||tickers.has(h.ticker))return [];stockPosition(h);ids.add(h.id);tickers.add(h.ticker);}return values;}catch{return [];}}
 
-  user:SiteUser|null=null;portfolioReady=true;
+  user:SiteUser|null=null;portfolioReady=false;dataReady=false;revision=0;authNotice='';showPassword=false;
   authConfig:AuthConfig|null=null;
   authLoading=true;authBusy=false;authError='';userEmail='';userPassword='';userName='';userRegister=false;
-  googleLoading=false;private googleScript:Promise<void>|null=null;
-  legacyHoldings:Holding[]=this.loadHoldings();
-  importedLocal=false;
   marketLoading=false;marketLoaded=false;marketError='';marketAsOf:string|null=null;
   marketResponses:Record<string,StockResponse>={};sampleResponses:Record<string,StockResponse>={};sampleQuotes:StockQuote[]=[];
   financeQuestion='';financeQuestionError='';
@@ -72,16 +67,34 @@ export class AppComponent {
   usdBrl(value:number|null){return value===null?'Indisponível':this.money(Math.round(value*100));}
   usd(value:number|null){return value===null?'Indisponível':this.hideValues?'••••••':new Intl.NumberFormat('pt-BR',{style:'currency',currency:'USD',maximumFractionDigits:value<1?6:2}).format(value);}
   historyDate(value:string){const date=new Date(/^\d{4}-\d{2}-\d{2}$/.test(value)?value+'T12:00:00Z':value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeZone:'UTC'}).format(date):'Data indisponível';}
-  async initializeAuth(){this.authLoading=true;this.authError='';try{const [config,session]=await Promise.all([siteAuth.config(),siteAuth.me()]);this.authConfig=config;if(session.user)await this.applyUser(session.user);}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível verificar a sessão.';}finally{this.authLoading=false;if(this.view==='profile')setTimeout(()=>void this.renderGoogle());}}
-  async applyUser(user:SiteUser){this.user=user;this.holdings=[];this.importedLocal=false;this.portfolioReady=false;try{const data=await siteAuth.portfolio();this.validateHoldings(data.holdings);this.holdings=data.holdings;this.portfolioReady=true;void this.loadPortfolioQuotes();}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível carregar a carteira.';throw e;}}
+  async initializeAuth(){
+    this.authLoading=true;this.authError='';
+    const authError=new URLSearchParams(window.location.search).get('auth_error');
+    if(authError)this.authError=authError==='google'?'Não foi possível entrar com Google. Tente novamente ou use e-mail e senha.':'Não foi possível confirmar o acesso. Tente entrar novamente.';
+    try{const [config,session]=await Promise.all([siteAuth.config(),siteAuth.me()]);this.authConfig=config;if(!config.supabaseConfigured)this.authError='O acesso está temporariamente indisponível. Tente novamente mais tarde.';if(session.user)await this.applyUser(session.user);else history.replaceState(null,'','/login');}
+    catch(e){this.authError=e instanceof Error?e.message:'Não foi possível verificar a sessão.';}
+    finally{this.authLoading=false;}
+  }
+  async applyUser(user:SiteUser){
+    this.user=user;this.state={accounts:[],transactions:[],budgets:[],goals:[]};this.holdings=[];this.dataReady=false;this.portfolioReady=false;
+    const [finance,portfolio]=await Promise.all([siteAuth.finance<State>(),siteAuth.portfolio()]);
+    this.validateHoldings(portfolio.holdings);this.state=finance.state;this.revision=finance.revision;this.holdings=portfolio.holdings;this.dataReady=true;this.portfolioReady=true;this.authError='';
+    history.replaceState(null,'','/dashboard');this.view='dashboard';void this.loadPortfolioQuotes();
+  }
   private validateHoldings(holdings:Holding[]){if(!Array.isArray(holdings))throw new Error('Resposta da carteira inválida.');const tickers=new Set<string>();for(const h of holdings){stockPosition(h);if(tickers.has(h.ticker))throw new Error('Ticker duplicado na carteira.');tickers.add(h.ticker);}}
-  async submitUser(){if(this.authBusy)return;this.authBusy=true;this.authError='';try{const email=this.userEmail.trim();if(!email||!this.userPassword)throw new Error('Informe e-mail e senha.');const data=this.userRegister?await siteAuth.register(this.userName.trim(),email,this.userPassword):await siteAuth.login(email,this.userPassword);await this.applyUser(data.user);this.notify(this.userRegister?'Conta criada. Sua carteira está pronta.':'Bem-vindo! Sua carteira foi carregada.');}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível entrar.';}finally{this.userPassword='';this.authBusy=false;}}
-  async reloadUserPortfolio(){if(!this.user||this.authBusy)return;this.authBusy=true;this.authError='';try{await this.applyUser(this.user);}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível carregar a carteira.';}finally{this.authBusy=false;}}
-  async logoutUser(){if(this.authBusy)return;this.authBusy=true;this.authError='';try{await siteAuth.logout();this.user=null;this.holdings=[];this.importedLocal=false;this.portfolioReady=true;this.userPassword='';this.notify('Sessão encerrada.');}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível sair.';}finally{this.authBusy=false;setTimeout(()=>void this.renderGoogle());}}
-  async renderGoogle(){if(!this.authConfig?.googleClientId||this.user||this.view!=='profile')return;const element=document.getElementById('google-signin');if(!element)return;this.googleLoading=true;try{if(!this.googleScript)this.googleScript=new Promise<void>((resolve,reject)=>{const existing=(window as any).google?.accounts?.id;if(existing){resolve();return;}const script=document.createElement('script');script.src='https://accounts.google.com/gsi/client';script.async=true;script.onload=()=>resolve();script.onerror=()=>reject(new Error('Não foi possível carregar o Google.'));document.head.append(script);});await this.googleScript;const google=(window as any).google?.accounts?.id;if(!google)throw new Error('Login Google indisponível.');google.initialize({client_id:this.authConfig.googleClientId,callback:(result:{credential:string})=>this.zone.run(()=>void this.signInGoogle(result.credential)),auto_select:false});element.replaceChildren();google.renderButton(element,{theme:this.theme==='dark'?'filled_black':'outline',size:'large',text:'continue_with',shape:'rectangular',width:300,locale:'pt-BR'});}catch(e){this.authError=e instanceof Error?e.message:'Google indisponível.';}finally{this.googleLoading=false;}}
-  private async signInGoogle(credential:string){if(this.authBusy)return;this.authBusy=true;this.authError='';try{const data=await siteAuth.google(credential);await this.applyUser(data.user);this.notify('Conectado com sua conta Google.');}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível entrar com Google.';}finally{this.authBusy=false;}}
-  async importLocalPortfolio(){if(this.busy)return;this.busy=true;this.error='';try{const merged=[...this.holdings];for(const h of this.legacyHoldings){if(!merged.some(p=>p.ticker===h.ticker))merged.push(h);}await this.commitHoldings(merged);this.importedLocal=true;this.busy=false;this.closeModal();this.notify('Carteira local importada. Posições existentes foram preservadas.');await this.loadPortfolioQuotes();}catch(e){this.error=e instanceof Error?e.message:'Não foi possível importar.';}finally{this.busy=false;}}
-  private async commitHoldings(next:Holding[]){if(!this.portfolioReady)throw new Error('Carregue sua carteira antes de editar.');this.validateHoldings(next);if(this.user){const saved=await siteAuth.savePortfolio(next);this.validateHoldings(saved.holdings);this.holdings=saved.holdings;}else{localStorage.setItem('wealthos:holdings:v1',JSON.stringify(next));this.holdings=next;this.legacyHoldings=next;this.importedLocal=true;}}
+  async submitUser(){
+    if(this.authBusy)return;this.authBusy=true;this.authError='';this.authNotice='';
+    try{const email=this.userEmail.trim();if(!email||!this.userPassword)throw new Error('Informe e-mail e senha.');
+      const data=this.userRegister?await siteAuth.register(this.userName.trim(),email,this.userPassword):await siteAuth.login(email,this.userPassword);
+      if(!data.user){this.authNotice='message' in data&&data.message?data.message:'Confira seu e-mail para confirmar a conta e entrar.';this.userRegister=false;return;}
+      await this.applyUser(data.user);this.notify('Bem-vindo! Seus dados foram carregados.');
+    }catch(e){this.authError=e instanceof Error?e.message:'Não foi possível entrar.';}
+    finally{this.userPassword='';this.authBusy=false;}
+  }
+  async reloadUserPortfolio(){if(!this.user||this.authBusy)return;this.authBusy=true;this.authError='';try{await this.applyUser(this.user);}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível carregar seus dados.';}finally{this.authBusy=false;}}
+  async logoutUser(){if(this.authBusy)return;this.authBusy=true;this.authError='';try{await siteAuth.logout();this.user=null;this.holdings=[];this.state={accounts:[],transactions:[],budgets:[],goals:[]};this.dataReady=false;this.portfolioReady=false;this.userPassword='';this.view='dashboard';this.modal=null;this.quotes=[];this.revision=0;history.replaceState(null,'','/login');}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível sair.';}finally{this.authBusy=false;}}
+  beginGoogle(){if(this.authBusy)return;this.authBusy=true;window.location.assign('/auth/google');}
+  private async commitHoldings(next:Holding[]){if(!this.user||!this.portfolioReady)throw new Error('Entre na sua conta e carregue a carteira antes de editar.');this.validateHoldings(next);const saved=await siteAuth.savePortfolio(next);this.validateHoldings(saved.holdings);this.holdings=saved.holdings;}
   async refreshMarket(){if(this.marketLoading)return;this.marketLoading=true;this.marketError='';let fails=0;for(const ticker of this.sandboxTickers){try{await this.fetchQuote(ticker,'1mo','brapi');}catch(e){fails++;this.marketError=e instanceof Error?e.message:'Cotações indisponíveis.';}}this.marketLoaded=true;this.marketLoading=false;if(fails===0)this.marketError='';}
   private async fetchQuote(ticker:string,range='1mo',provider:'google'|'brapi'='google'){
     const response=provider==='google'?await marketApi.googleFinance(ticker,range):await marketApi.stock(ticker,range);
@@ -105,9 +118,9 @@ export class AppComponent {
   get month(){return this._month;}
   set month(value:string){if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value)&&value>='2000-01'&&value<='2100-12')this._month=value;}
   search=''; filterType='ALL'; filterAccount='ALL'; hideValues=false; mobileMenu=false;
-  state:State=this.load();
-  modal:'transaction'|'account'|'budget'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|'importHoldings'|null=null;
-  error=''; toast=''; busy=false; mode:'demo'|'api'='demo';
+  state:State={accounts:[],transactions:[],budgets:[],goals:[]};
+  modal:'transaction'|'account'|'budget'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|null=null;
+  error=''; toast=''; busy=false;
 
   draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:'',date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:''};
   private transactionKey = this.uuid();
@@ -128,11 +141,11 @@ export class AppComponent {
   money(value:number){return this.hideValues?'••••••':new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value/100);}
   dateLabel(date:string){return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));}
   accountName(id:string){return this.state.accounts.find(a=>a.id===id)?.name||'Conta indisponível';}
-  accountBalance(a:Account){if(this.mode==='api'&&Number.isSafeInteger(a.balanceCents))return a.balanceCents!;return balance(a.openingBalanceCents,this.state.transactions.filter(t=>t.accountId===a.id));}
+  accountBalance(a:Account){return balance(a.openingBalanceCents,this.state.transactions.filter(t=>t.accountId===a.id));}
   spent(category:string){return this.state.transactions.filter(t=>t.type==='EXPENSE'&&t.category===category&&!t.reversedAt&&t.date.startsWith(this.month)).reduce((sum,t)=>sum+t.amountCents,0);}
   percent(value:number,total:number){return total>0?Math.min(100,Math.round(value/total*100)):0;}
   categoryIcon(c:string){return ({'Alimentação':'⌑','Moradia':'⌂','Transporte':'↗','Compras':'▢','Saúde':'♡','Lazer':'✦','Educação':'▤','Salário':'↓','Freelance':'⌘'} as Record<string,string>)[c]||'·';}
-  navigate(v:View){this.view=v;this.mobileMenu=false;this.search='';this.filterType='ALL';this.filterAccount='ALL';if(v==='stocks'&&!this.marketLoaded)void this.refreshMarket();if(v==='profile')setTimeout(()=>void this.renderGoogle());}
+  navigate(v:View){if(!this.user||!this.dataReady)return;this.view=v;this.mobileMenu=false;this.search='';this.filterType='ALL';this.filterAccount='ALL';if(v==='stocks'&&!this.marketLoaded)void this.refreshMarket();}
   changeMonth(delta:number){const d=new Date(this.month+'-02T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+delta);this.month=d.toISOString().slice(0,7);}
   chooseMonth(){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(this.month))this.month=this.localToday().slice(0,7);}
   openModal(kind:NonNullable<AppComponent['modal']>,item?:Budget|Goal){
@@ -145,16 +158,16 @@ export class AppComponent {
   closeModal(){if(this.busy)return;this.modal=null;this.error='';this.returnFocus?.focus();}
   @HostListener('document:keydown',['$event']) onKey(event:KeyboardEvent){if(event.key==='Escape'){this.closeModal();this.mobileMenu=false;}if(event.key==='Tab'&&this.modal){const items=Array.from(document.querySelectorAll<HTMLElement>('.dialog button:not([disabled]),.dialog input,.dialog select')).filter(el=>el.offsetParent!==null);const first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}}
   notify(message:string){this.toast=message;clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>this.toast='',4500);}
-  private persist(){if(this.mode==='demo'){try{localStorage.setItem(this.storageKey,JSON.stringify(this.state));}catch{this.notify('Não foi possível salvar neste navegador. Exporte seus dados.');}}}
-  async save(){if(this.busy)return;this.error='';this.busy=true;try{
-    if(this.modal==='importHoldings'){this.busy=false;await this.importLocalPortfolio();return;}else if(this.modal==='holding'){
+  private async persist(){if(!this.user||!this.dataReady)throw new Error('Entre na sua conta e carregue os dados antes de salvar.');const saved=await siteAuth.saveFinance(this.state,this.revision);this.state=saved.state;this.revision=saved.revision;}
+  async save(){if(this.busy||!this.user||!this.dataReady)return;const previous=this.state;this.error='';this.busy=true;try{
+    if(this.modal==='holding'){
       const ticker=this.holdingDraft.ticker.trim().toUpperCase();if(!/^[A-Z][A-Z0-9]{3}\d{1,2}F?$/.test(ticker))throw new Error('Use um ticker brasileiro, como PETR4, TAEE11 ou PETR4F.');
       if(!/^\d+$/.test(this.holdingDraft.quantity.trim()))throw new Error('Informe uma quantidade inteira de ações.');
       const quantity=Number(this.holdingDraft.quantity);if(!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)throw new Error('A quantidade deve ser de 1 a 1.000.000 de ações.');
       const averagePriceCents=this.holdingDraft.unknownCost?null:parseMoneyToCents(this.holdingDraft.averagePrice);
       if(this.holdings.some(h=>h.ticker===ticker&&h.id!==this.holdingDraft.id))throw new Error('Este ticker já está na carteira. Edite a posição existente.');
       const holding:Holding={id:this.holdingDraft.id||this.uuid(),ticker,quantity,averagePriceCents};stockPosition(holding,this.quotes.find(q=>q.ticker===ticker));
-      const next=this.holdingDraft.id?this.holdings.map(h=>h.id===holding.id?holding:h):[...this.holdings,holding];await this.commitHoldings(next);this.busy=false;this.closeModal();this.notify(this.user?'Posição sincronizada com sua conta.':'Posição salva neste navegador. Entre para sincronizar.');void this.loadPortfolioQuotes();return;
+      const next=this.holdingDraft.id?this.holdings.map(h=>h.id===holding.id?holding:h):[...this.holdings,holding];await this.commitHoldings(next);this.busy=false;this.closeModal();this.notify('Posição salva na sua conta.');void this.loadPortfolioQuotes();return;
     }else if(this.modal==='deleteHolding'){
       await this.commitHoldings(this.holdings.filter(h=>h.id!==this.pendingDelete?.id));this.pendingDelete=null;this.busy=false;this.closeModal();this.notify('Posição removida da carteira.');return;
     }else if(this.modal==='transaction'){
@@ -175,12 +188,9 @@ export class AppComponent {
       const amount=parseMoneyToCents(this.draft.amount);validateAmount(amount);const g=this.state.goals.find(g=>g.id===this.draft.goalId)!;if(g.savedCents+amount>g.targetCents)throw new Error('O aporte ultrapassa o valor da meta.');this.state={...this.state,goals:this.state.goals.map(goal=>goal.id===g.id?{...goal,savedCents:goal.savedCents+amount}:goal)};
     }
 
-    this.persist();this.busy=false;this.closeModal();this.notify('Tudo certo! Alteração salva.');
-  }catch(error){this.error=error instanceof Error?error.message:'Não foi possível salvar. Tente novamente.';}finally{this.busy=false;}}
-  async reverse(t:Transaction){if(t.reversedAt||this.busy)return;this.busy=true;try{const updated:Transaction={...t,reversedAt:new Date().toISOString()};this.state={...this.state,transactions:this.state.transactions.map(item=>item.id===t.id?updated:item)};this.persist();this.notify('Lançamento estornado. Saldo atualizado.');}catch(error){this.notify(error instanceof Error?error.message:'Não foi possível estornar.');}finally{this.busy=false;}}
-  disconnect(){this.mode='demo';this.state=this.load();}
-  exportData(){const data=JSON.stringify({exportedAt:new Date().toISOString(),mode:this.mode,...this.state},null,2);const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='wealthos-'+this.mode+'-'+this.localToday()+'.json';a.click();URL.revokeObjectURL(url);this.notify('Exportação concluída.');}
+    await this.persist();this.busy=false;this.closeModal();this.notify('Tudo certo! Alteração salva na sua conta.');
+  }catch(error){this.state=previous;this.error=error instanceof Error?error.message:'Não foi possível salvar. Tente novamente.';}finally{this.busy=false;}}
+  async reverse(t:Transaction){if(t.reversedAt||this.busy||!this.user)return;const previous=this.state;this.busy=true;try{const updated:Transaction={...t,reversedAt:new Date().toISOString()};this.state={...this.state,transactions:this.state.transactions.map(item=>item.id===t.id?updated:item)};await this.persist();this.notify('Lançamento estornado. Saldo atualizado.');}catch(error){this.state=previous;this.notify(error instanceof Error?error.message:'Não foi possível estornar.');}finally{this.busy=false;}}
+  exportData(){const data=JSON.stringify({exportedAt:new Date().toISOString(),...this.state},null,2);const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='wealthos-'+this.localToday()+'.json';a.click();URL.revokeObjectURL(url);this.notify('Exportação concluída.');}
   private parseAllowZero(input:string){return /^(?:0+)(?:,0{1,2})?$/.test(input.trim())?0:parseMoneyToCents(input);}
-  private load():State{try{const raw=localStorage.getItem(this.storageKey);if(raw){const s=JSON.parse(raw) as State;if(!Array.isArray(s.accounts)||!Array.isArray(s.transactions)||!Array.isArray(s.goals)||!Array.isArray(s.budgets))throw new Error();for(const a of s.accounts){if(!a.id||!a.name||!Number.isSafeInteger(a.openingBalanceCents))throw new Error();}assertNoDuplicate(s.transactions);for(const t of s.transactions){validateAmount(t.amountCents);validateDate(t.date);if(!s.accounts.some(a=>a.id===t.accountId)||!['INCOME','EXPENSE'].includes(t.type))throw new Error();}for(const b of s.budgets)validateAmount(b.limitCents);for(const g of s.goals){validateAmount(g.targetCents);if(!Number.isSafeInteger(g.savedCents)||g.savedCents<0||g.savedCents>g.targetCents)throw new Error();}return s;}}catch{}return this.seed();}
-  private seed():State{const month=this.localToday().slice(0,7);let index=0;const t=(description:string,amountCents:number,type:'INCOME'|'EXPENSE',category:string,day:number,accountId='nubank',m=month):Transaction=>({id:'demo-'+index++,accountId,description,amountCents,type,category,date:m+'-'+String(day).padStart(2,'0'),idempotencyKey:'seed-'+index});const transactions:Transaction[]=[t('Salário mensal',640000,'INCOME','Salário',5,'itau'),t('Projeto freelance',180000,'INCOME','Freelance',12),t('Aluguel do apartamento',185000,'EXPENSE','Moradia',7,'itau'),t('Supermercado',34280,'EXPENSE','Alimentação',18),t('Café com os amigos',4850,'EXPENSE','Lazer',19),t('Uber · volta para casa',3290,'EXPENSE','Transporte',20),t('Academia',12990,'EXPENSE','Saúde',10),t('Restaurante',8990,'EXPENSE','Alimentação',21),t('Livraria',7990,'EXPENSE','Educação',17),t('Internet',9990,'EXPENSE','Moradia',15,'itau'),t('Tênis de corrida',28990,'EXPENSE','Compras',16)];for(let i=1;i<6;i++){const d=new Date(month+'-02T12:00:00Z');d.setUTCMonth(d.getUTCMonth()-i);const m=d.toISOString().slice(0,7);transactions.push(t('Receitas do mês',640000+i*11000,'INCOME','Salário',5,'itau',m),t('Despesas do mês',370000+i*16000,'EXPENSE','Outros',15,'itau',m));}return{accounts:[{id:'nubank',name:'Conta principal',institution:'Nubank',color:'#8052cb',openingBalanceCents:520000},{id:'itau',name:'Conta do dia a dia',institution:'Itaú',color:'#ed7b3a',openingBalanceCents:315000},{id:'reserva',name:'Reserva de emergência',institution:'Banco Inter',color:'#2d9478',openingBalanceCents:890000}],transactions,budgets:[{id:'food',category:'Alimentação',limitCents:85000},{id:'home',category:'Moradia',limitCents:230000},{id:'transport',category:'Transporte',limitCents:40000},{id:'fun',category:'Lazer',limitCents:30000}],goals:[{id:'reserve',name:'Reserva de emergência',targetCents:2000000,savedCents:890000,icon:'◇'},{id:'travel',name:'Próxima viagem',targetCents:1000000,savedCents:325000,icon:'↗'},{id:'pc',name:'Meu novo computador',targetCents:700000,savedCents:420000,icon:'▣'}]};}
 }

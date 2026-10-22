@@ -1,21 +1,13 @@
-# WealthOS — estado da versão para Vercel
+# WealthOS — login e Supabase
 
-## Implementado e verificado
+## Implementado
 
-- Interface Angular com temas claro e escuro, ações, gráficos, índices e criptomoedas.
-- Rotas Next.js sobre Node.js 24 para autenticação, carteira e mercados.
-- Adaptador PostgreSQL com consultas parametrizadas, transações e migração versionada.
-- Configuração de build Vercel e workflow CI do GitHub.
-- 48 testes aprovados; testes PostgreSQL executados em PGlite.
-- Build completo Angular/TypeScript/Next.js aprovado.
-- Smoke HTTP local validou interface 200, configuração 200, visitante sem sessão e carteira protegida 401.
+Tela de login como entrada da aplicação, bloqueio do painel sem sessão, cadastro/e-mail/senha via Supabase e fluxo Google OAuth/PKCE. Novos usuários começam sem dados de exemplo. Contas, lançamentos, orçamentos, metas e carteira usam persistência por usuário com RLS. Não se importam os antigos dados de demonstração do navegador.
 
-## Configurações pendentes
+## Validação local
 
-- Publicação na Vercel e teste no domínio final.
-- Provisionamento de PostgreSQL, configuração de DATABASE_URL e aplicação da migração.
-- Exportação e importação dos usuários/carteiras da hospedagem anterior, se desejada. Nenhum registro foi transferido.
-- GOOGLE_CLIENT_ID e origens autorizadas para ativar login Google.
-- BRAPI_TOKEN opcional, sujeito aos limites do plano escolhido.
+59 testes aprovados, incluindo testes da migração e das políticas RLS em PostgreSQL/PGlite. Build Angular/Next.js aprovado. A validação do banco remoto e do login Google depende da configuração externa.
 
-A ausência de banco desativa o cadastro por senha e não simula persistência. Nenhuma assinatura paga foi criada.
+## Configuração necessária
+
+Conectar um projeto Supabase do WealthOS, aplicar `supabase/migrations/202610220001_wealthos.sql`, configurar SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY e APP_URL na Vercel e habilitar Google no Supabase com as credenciais OAuth apropriadas. Nenhuma assinatura paga nem banco remoto foi criado sem conexão/autorização do serviço.

@@ -1,62 +1,73 @@
-# WealthOS — GitHub + Vercel
+# WealthOS
 
-Versão portátil da aplicação WealthOS: interface Angular, rotas Next.js para autenticação e dados de mercado e persistência PostgreSQL. Preserva os temas azul claro/escuro, busca de ações, gráficos, índices, criptomoedas e carteira por usuário.
+Gestão financeira pessoal com interface Angular, API Next.js e **Supabase Auth + PostgreSQL**. A aplicação começa em `/login`; o painel e os dados pessoais exigem sessão válida.
 
-## Estrutura
+Site: https://wealthos-two-pi.vercel.app
 
-- `wealthos-source/apps/web`: fonte Angular que produz a interface.
-- `wealthos-source/packages/finance`: cálculos financeiros compartilhados.
-- `public/app`: distribuição compilada da interface, atualizada por `npm run build:web`.
-- `app/api`: rotas da aplicação; `lib/auth-core.ts`: autenticação e autorização.
-- `lib/postgres.ts`: adaptador com consultas parametrizadas e transações.
-- `db/postgres`: migrações versionadas para o banco da Vercel.
-- `wealthos-source/apps/api`: NestJS/Prisma original, preservado como código de referência; não é o servidor desta implantação Vercel.
+## Funcionalidades
 
-## Executar
+- Login e cadastro por e-mail/senha, confirmação de e-mail e entrada Google por OAuth/PKCE.
+- Contas, lançamentos, estornos, orçamentos, metas e carteira de ações salvos por usuário no Supabase.
+- Usuários novos começam com dados vazios. Dados da antiga demonstração não são carregados nem importados.
+- Temas azul claro/escuro, busca de ações, gráficos, índices e criptomoedas.
+- Valores monetários em centavos, validação no servidor, RLS e controle de versão para impedir sobrescritas por abas desatualizadas.
 
-Use Node.js 24 e npm.
+## Configuração do Supabase
+
+1. Crie ou selecione um projeto Supabase exclusivo para o WealthOS.
+2. Aplique `supabase/migrations/202610220001_wealthos.sql` nesse projeto. A migração cria apenas tabelas novas, políticas RLS e a função de gravação; não remove registros existentes.
+3. Configure na Vercel, para o projeto WealthOS:
+
+| Variável | Valor |
+| --- | --- |
+| `SUPABASE_URL` | URL HTTPS do projeto Supabase |
+| `SUPABASE_PUBLISHABLE_KEY` | Chave publishable (ou anon legada) desse projeto |
+| `APP_URL` | `https://wealthos-two-pi.vercel.app` |
+| `BRAPI_TOKEN` | Opcional, limitado pelo plano usado |
+
+A aplicação usa somente a chave publishable e os tokens do usuário com RLS. **Não precisa de service role nem secret key administrativa.** Nenhuma chave real deve ser incluída no GitHub. Os cookies de autenticação são HttpOnly, SameSite=Lax e Secure em produção.
+
+4. Em Supabase Auth → URL Configuration, use o domínio de produção como Site URL e permita `https://wealthos-two-pi.vercel.app/auth/callback` e `/auth/confirm`. Cadastre separadamente as URLs de desenvolvimento que realmente usar.
+5. Habilite o provedor de e-mail. A aplicação trata confirmação pendente e não inventa uma sessão quando o cadastro exige confirmação de e-mail.
+6. Para Google, crie um cliente OAuth Web no Google Cloud e habilite o provedor Google no Supabase com seu Client ID e Client Secret. O redirect URI registrado no Google deve ser a URL de callback exibida pelo Supabase, não a URL do painel WealthOS. Mantenha o Client Secret somente na configuração do provedor.
+7. Publique novamente e valide cadastro, confirmação, login, dados persistidos após recarregar, logout e isolamento entre duas contas. O OAuth Google deve ser verificado com uma conta real após ativar o provedor.
+
+Sem Supabase configurado, a tela de login aparece e informa indisponibilidade. Sem Google habilitado no provedor, o botão aparece indisponível. Não há fallback de visitante, armazenamento financeiro no navegador nem autenticação simulada.
+
+## Desenvolvimento
+
+Node.js 24:
 
 ```bash
 npm ci
 npm ci --prefix wealthos-source --ignore-scripts
 ```
 
-Copie `.env.example` para `.env.local` e configure `DATABASE_URL` com a conexão PostgreSQL. A URL permanece somente no servidor. O provedor deve oferecer conexão apropriada para aplicações serverless, preferencialmente com pool.
-
-A migração usa variáveis do processo. Com Node.js 24, carregue o arquivo local explicitamente:
+Copie `.env.example` para `.env.local` e preencha as variáveis do projeto correto antes de usar autenticação ou executar migrações. As migrações Supabase são aplicadas pelo painel, CLI vinculada ao projeto ou integração de gerenciamento. O script legado `scripts/migrate.mjs` corresponde ao backend anterior; não é a migração desta versão.
 
 ```bash
-node --env-file=.env.local scripts/migrate.mjs
 npm run dev
-```
-
-Acesse http://localhost:3000. Não há criação automática de schema durante requisições ou build.
-
-## Vercel
-
-1. Use o repositório `matheusaaguirra/WealthOS`, com esta raiz e seus lockfiles. Não envie `.env`, `.vercel`, caches, dados locais ou `node_modules`.
-2. Importe esse repositório na Vercel, com raiz `./`. `vercel.json` define Next.js e os comandos de instalação e build. Não selecione a subpasta Angular como raiz.
-3. Conecte um PostgreSQL e configure `DATABASE_URL` na Vercel. Opcionalmente configure `BRAPI_TOKEN` e `GOOGLE_CLIENT_ID`. Nenhuma assinatura paga foi criada.
-4. Execute a migração para esse banco antes de liberar cadastro e carteira. Com `DATABASE_URL` já definida no processo: `npm run db:migrate`.
-5. Publique e valide cadastro, login, gravação/leitura da carteira, logout e uma consulta de mercado pelo domínio publicado.
-
-A integração GitHub da Vercel deve ser autorizada para o repositório escolhido; commits na branch de produção podem então disparar novos deploys.
-
-## Verificação
-
-```bash
 npm test
 npm run build
 ```
 
-A suíte cobre autenticação, autorização, sessão, rollback, dados de mercado e extração Google Finance. Os testes adicionais PostgreSQL usam PGlite, um PostgreSQL em WebAssembly. Conexão real, migração e fluxos no domínio Vercel só podem ser confirmados depois do provisionamento.
+`npm run build` recompila o frontend Angular e depois o servidor Next.js. A Vercel usa a raiz do repositório, com as configurações de `vercel.json`. A conexão GitHub publica a branch `main`.
 
-## Dados existentes e limites
+## Estrutura
 
-A base PostgreSQL começa vazia. Usuários e carteiras do D1 anterior **não foram migrados**. O site anterior foi mantido; antes de qualquer transferência de dados, exporte e confira os registros de origem e destino. A migração inicial não apaga tabelas nem inclui dados de usuários.
+- `wealthos-source/apps/web/src`: interface Angular.
+- `wealthos-source/packages/finance`: cálculos financeiros compartilhados.
+- `app/api/finance` e `app/api/portfolio`: dados privados do usuário.
+- `app/api/auth` e `app/auth`: login, cadastro, logout e callbacks.
+- `lib/supabase`: cliente SSR e integração de autenticação.
+- `proxy.ts`: bloqueio do painel e da entrada HTML antiga sem sessão.
+- `supabase/migrations`: esquema, políticas RLS e controle de concorrência.
+- `test`: testes de validação, persistência, isolamento e provedores.
 
-Google OAuth requer um Client ID válido e o domínio Vercel em origens JavaScript autorizadas no Google Cloud; sem isso, o site oferece e-mail/senha. Ainda faltam recuperação de senha e confirmação de e-mail. Os demais módulos financeiros seguem em demonstração local.
+O NestJS/Prisma original e os adaptadores anteriores foram preservados como referência; não atendem o login ou os dados da versão atual. Os testes antigos desses módulos são regressões históricas. Os testes atuais de RLS usam PostgreSQL em WebAssembly/PGlite, com papéis `authenticated` e `anon`, e não substituem a verificação do projeto Supabase remoto.
 
-Google Finance depende do HTML público e pode falhar se houver alterações ou limitação de acesso. BRAPI mantém as restrições do plano contratado; sem token, há somente os ativos de teste. As cotações não são estimadas em caso de indisponibilidade.
+## Limites
 
-Para reverter código, use o deployment anterior da Vercel. Não apague o banco para reverter uma publicação; a migração inicial é aditiva. Qualquer reversão de schema ou importação de dados exige backup e validação próprios.
+O cadastro de contas e posições é manual; não há conexão a banco ou corretora e nenhuma compra ou venda é executada. A consulta Google Finance depende do HTML público e pode ficar indisponível. Não há estimativa de preços em caso de erro. A amostra BRAPI mantém as restrições do plano. A recuperação de senha não foi incluída nesta entrega.
+
+A integração remota só deve ser considerada concluída após aplicar a migração e verificar os fluxos no domínio publicado. Para rollback, restaure o código anterior sem apagar as tabelas de usuário. Qualquer limpeza de dados reais precisa de backup e autorização próprios.
