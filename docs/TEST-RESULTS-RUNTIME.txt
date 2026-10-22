@@ -1,0 +1,44 @@
+▶ Validação de autenticação e posições
+  ✔ normaliza e-mail e valida senha por caracteres e bytes UTF-8 (2.328644ms)
+  ✔ valida limites financeiros, duplicidade, IDs e ticker de lote fracionário (3.139972ms)
+  ✔ exige JSON de origem idêntica e limita payload, inclusive sem Content-Length (19.919226ms)
+  ✔ verificação Google exige exp/iat/sub/email, audiência e assinatura RS256 (84.014057ms)
+  ✔ cookies são HttpOnly, SameSite Lax e Secure apenas em HTTPS (2.351383ms)
+✔ Validação de autenticação e posições (115.02107ms)
+▶ Contas e sessão persistente sobre SQLite com migração real
+  ✔ cadastro salva bcrypt12 e somente hash SHA256 da sessão; cookie restaura usuário (1151.346244ms)
+  ✔ login valida senha, normaliza e-mail, gira sessão e rejeita senha errada (1533.750778ms)
+  ✔ cadastro duplicado retorna conflito e não duplica usuário (454.865068ms)
+  ✔ sessão expira após sete dias e logout remove a sessão persistida (1000.773711ms)
+  ✔ rate limit é persistente entre instâncias e se renova na janela seguinte (3.698077ms)
+  ✔ Google ausente retorna 503; não autentica usando uma credencial fictícia (1.228689ms)
+  ✔ Google cria conta com identidade verificada injetada e repete o mesmo usuário (5.129819ms)
+  ✔ Google não vincula automaticamente um e-mail já cadastrado com senha (542.546759ms)
+✔ Contas e sessão persistente sobre SQLite com migração real (4695.416977ms)
+▶ Carteira isolada por sessão e gravação atômica
+  ✔ usuário sem sessão recebe 401; IDs de usuário no body são rejeitados (498.14885ms)
+  ✔ gravação e leitura não misturam usuários e apagar uma carteira não altera outra (929.379717ms)
+  ✔ validação falha antes da exclusão da carteira existente (465.211252ms)
+  ✔ uma falha do banco no meio do lote reverte exclusão e inserções (446.502251ms)
+  ✔ erros desconhecidos não expõem SQL ou credenciais ao cliente (0.770922ms)
+✔ Carteira isolada por sessão e gravação atômica (2340.566519ms)
+▶ dados financeiros de fontes externas
+  ✔ valida ticker e período sem aceitar URL arbitrária (2.611425ms)
+  ✔ converte cotação BRL para centavos e preserva timestamps e pontos reais ordenados (8.873451ms)
+  ✔ não transforma zero, missing ou moeda estrangeira em cotação brasileira válida (0.255995ms)
+  ✔ não chama o provedor para ativo fora do sandbox sem chave (0.496142ms)
+  ✔ envia chave apenas no header e nunca em URL (4.073242ms)
+  ✔ propaga limite do plano sem fallback fictício (0.581933ms)
+  ✔ deriva preço USD das taxas reais e deixa variação desconhecida nula (0.796232ms)
+  ✔ conserva indisponibilidade da fonte cripto (0.756107ms)
+  ✔ cache reutiliza resultado e coalesce leituras simultâneas (1.903822ms)
+  ✔ serializa requisições e não fica bloqueado após erro (1.463469ms)
+✔ dados financeiros de fontes externas (24.137808ms)
+ℹ tests 28
+ℹ suites 4
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7533.56976

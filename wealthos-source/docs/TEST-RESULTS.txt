@@ -1,0 +1,155 @@
+
+> wealthos@0.1.0 test
+> npm run build -w @wealthos/finance && node --import tsx --test packages/finance/test/*.test.ts && npm run test -w @wealthos/api
+
+
+> @wealthos/finance@0.1.0 build
+> tsc -p tsconfig.json
+
+▶ conversão monetária sem perda de centavos
+  ✔ converte 0,01 em 1 centavos (1.486434ms)
+  ✔ converte 0,10 em 10 centavos (0.335915ms)
+  ✔ converte 1 em 100 centavos (0.136686ms)
+  ✔ converte 1,5 em 150 centavos (0.086707ms)
+  ✔ converte 1,50 em 150 centavos (0.489786ms)
+  ✔ converte 1234,56 em 123456 centavos (1.609426ms)
+  ✔ converte 1.234,56 em 123456 centavos (0.089117ms)
+  ✔ converte 10.000.000,00 em 1000000000 centavos (0.076044ms)
+  ✔ rejeita entrada monetária inválida "" (0.322653ms)
+  ✔ rejeita entrada monetária inválida "abc" (0.202501ms)
+  ✔ rejeita entrada monetária inválida "1,001" (0.144693ms)
+  ✔ rejeita entrada monetária inválida "1,999" (0.09004ms)
+  ✔ rejeita entrada monetária inválida "-1,00" (0.04879ms)
+  ✔ rejeita entrada monetária inválida "1e3" (0.043867ms)
+  ✔ rejeita entrada monetária inválida "Infinity" (0.047191ms)
+  ✔ rejeita entrada monetária inválida "NaN" (0.041261ms)
+  ✔ rejeita entrada monetária inválida "10.000.000,01" (0.073684ms)
+  ✔ não arredonda silenciosamente valores com mais de duas casas (0.178279ms)
+✔ conversão monetária sem perda de centavos (9.474713ms)
+▶ invariantes do valor em centavos
+  ✔ aceita os limites positivos (0.228527ms)
+  ✔ rejeita centavos inválidos 0 (0.073327ms)
+  ✔ rejeita centavos inválidos -1 (0.093436ms)
+  ✔ rejeita centavos inválidos 0.1 (0.05334ms)
+  ✔ rejeita centavos inválidos 1.5 (0.086042ms)
+  ✔ rejeita centavos inválidos NaN (0.066313ms)
+  ✔ rejeita centavos inválidos Infinity (0.041269ms)
+  ✔ rejeita centavos inválidos -Infinity (0.044628ms)
+  ✔ rejeita centavos inválidos 9007199254740992 (0.040193ms)
+  ✔ rejeita centavos inválidos 1000000001 (0.04165ms)
+✔ invariantes do valor em centavos (1.001707ms)
+▶ saldo e estorno
+  ✔ mantém saldo inicial na ausência de lançamentos (0.19845ms)
+  ✔ adiciona receitas e subtrai despesas, com exatidão em centavos (0.750847ms)
+  ✔ permite que as despesas deixem a conta negativa (0.107208ms)
+  ✔ exclui receitas e despesas estornadas sem modificar os dados originais (1.074998ms)
+✔ saldo e estorno (2.39089ms)
+▶ resumo mensal
+  ✔ soma apenas lançamentos ativos no mês escolhido (0.515489ms)
+  ✔ retorna totais zero para um mês vazio (0.193153ms)
+  ✔ separa o mesmo mês de anos distintos (0.504888ms)
+✔ resumo mensal (1.400382ms)
+▶ parcelamento conserva valor total
+  ✔ distribui o resto nas primeiras parcelas (0.540734ms)
+  ✔ mantém uma parcela única sem alterações (0.209222ms)
+  ✔ produz parcelas inteiras cuja soma é exata em vários cenários (0.342532ms)
+  ✔ rejeita quantidade de parcelas inválida 0 (0.165865ms)
+  ✔ rejeita quantidade de parcelas inválida -1 (0.063997ms)
+  ✔ rejeita quantidade de parcelas inválida 1.5 (0.077697ms)
+  ✔ rejeita quantidade de parcelas inválida NaN (0.072219ms)
+  ✔ rejeita quantidade de parcelas inválida Infinity (0.111486ms)
+  ✔ rejeita total negativo, fracionário e acima do limite (0.461634ms)
+✔ parcelamento conserva valor total (2.306314ms)
+▶ duplicidade de lançamento
+  ✔ aceita coleção vazia e IDs distintos, mesmo com dados iguais (0.259081ms)
+  ✔ rejeita o mesmo ID mesmo que o valor, a conta ou o estorno sejam diferentes (0.205182ms)
+✔ duplicidade de lançamento (0.552521ms)
+▶ datas civis brasileiras sem normalização silenciosa
+  ✔ aceita data real 2000-01-01 (0.345781ms)
+  ✔ aceita data real 2000-02-29 (0.051485ms)
+  ✔ aceita data real 2024-02-29 (0.034923ms)
+  ✔ aceita data real 2026-10-22 (0.030574ms)
+  ✔ aceita data real 2100-12-31 (0.112874ms)
+  ✔ rejeita data inválida "1999-12-31" (0.097006ms)
+  ✔ rejeita data inválida "2101-01-01" (0.047958ms)
+  ✔ rejeita data inválida "2026-02-29" (0.043765ms)
+  ✔ rejeita data inválida "2100-02-29" (0.043368ms)
+  ✔ rejeita data inválida "2026-04-31" (0.130626ms)
+  ✔ rejeita data inválida "2026-13-01" (0.044831ms)
+  ✔ rejeita data inválida "2026-00-01" (0.041878ms)
+  ✔ rejeita data inválida "2026-10-00" (0.036718ms)
+  ✔ rejeita data inválida "2026-10-32" (0.03473ms)
+  ✔ rejeita data inválida "2026-1-1" (0.040733ms)
+  ✔ rejeita data inválida "22/10/2026" (0.036611ms)
+  ✔ rejeita data inválida "2026-10-22T00:00:00Z" (0.037698ms)
+  ✔ rejeita data inválida "" (0.033012ms)
+✔ datas civis brasileiras sem normalização silenciosa (1.74466ms)
+ℹ tests 64
+ℹ suites 7
+ℹ pass 64
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 262.950831
+
+> @wealthos/api@0.1.0 test
+> node --import tsx --test test/*.test.ts
+
+▶ AuthService
+  ✔ cadastra workspace/usuário juntos, salva hash e devolve sessão sem senha (877.750582ms)
+  ✔ rejeita senha UTF-8 acima de 72 bytes sem truncar silenciosamente (1.934562ms)
+  ✔ converte e-mail duplicado em conflito e não emite sessão (434.992227ms)
+  ✔ autentica senha correta e usa workspace persistido no token (5.57329ms)
+  ✔ senha incorreta não emite token (5.047898ms)
+  ✔ usuário inexistente recebe mensagem genérica de credenciais inválidas (410.174751ms)
+✔ AuthService (1737.940943ms)
+▶ AuthGuard
+  ✔ rejeita falta de autenticação antes de verificar JWT (0.636215ms)
+  ✔ rejeita esquema diferente de Bearer (0.232779ms)
+  ✔ valida assinatura e claims e atribui identidade mínima à requisição (0.476238ms)
+  ✔ token expirado ou assinatura inválida não define usuário (0.376405ms)
+  ✔ rejeita claims sem UUIDs válidos para usuário ou workspace (0.428624ms)
+✔ AuthGuard (2.521551ms)
+▶ FinanceService — isolamento e saldos
+  ✔ lista somente contas do workspace e não expõe a relação interna (1.8289ms)
+  ✔ cadastra conta no workspace autenticado e normaliza espaços (1.247706ms)
+  ✔ filtra histórico por workspace e mês (0.518732ms)
+  ✔ rejeita mês inválido antes de consultar o banco (1.04708ms)
+  ✔ não cria lançamento para uma conta de outro workspace (0.963177ms)
+  ✔ rejeita data civil inexistente e valor fracionário antes de consultar o banco (0.368569ms)
+  ✔ inclui o workspace autenticado no lançamento salvo (0.522191ms)
+  ✔ calcula resumo com todos os lançamentos e leitura consistente (0.885987ms)
+✔ FinanceService — isolamento e saldos (9.217269ms)
+▶ FinanceService — idempotência
+  ✔ repetição idêntica retorna o registro existente sem inserir outro (0.558783ms)
+  ✔ mesma chave com outro valor exige conflito (0.531108ms)
+  ✔ mesma chave com outra conta, categoria, tipo, data ou descrição exige conflito (0.99155ms)
+  ✔ recupera repetição equivalente após colisão UNIQUE concorrente (0.452427ms)
+  ✔ colisão UNIQUE com payload diferente exige conflito (0.367684ms)
+  ✔ falha inesperada do banco é propagada sem aparentar sucesso (0.207888ms)
+✔ FinanceService — idempotência (3.722007ms)
+▶ FinanceService — estorno
+  ✔ condiciona atualização ao workspace e ao estado ainda não estornado (0.385639ms)
+  ✔ repetição de estorno mantém a data anterior (0.189982ms)
+  ✔ ID desconhecido ou de outro workspace não vaza o lançamento (0.166817ms)
+✔ FinanceService — estorno (0.916506ms)
+▶ configuração de segurança
+  ✔ recusa segredo ausente, curto e placeholders do exemplo (2.598382ms)
+  ✔ aceita um segredo de teste com pelo menos 32 bytes (0.403351ms)
+  ✔ exige CORS explícito em produção (0.936668ms)
+  ✔ rejeita wildcard, caminho e esquema sem HTTP em CORS (0.335342ms)
+  ✔ aceita uma origem HTTPS exata (0.192242ms)
+✔ configuração de segurança (6.920244ms)
+▶ rate limit local
+  ✔ limita autenticação, compartilha limite login/cadastro e informa nova tentativa (0.963208ms)
+  ✔ renova limite depois de um minuto (0.870802ms)
+✔ rate limit local (2.246722ms)
+ℹ tests 35
+ℹ suites 7
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2412.629441

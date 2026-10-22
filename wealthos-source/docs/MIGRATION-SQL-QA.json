@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-22",
+  "engine": "PGlite PostgreSQL WASM",
+  "nativePrismaIntegration": false,
+  "checks": [
+    "Migração inicial SQL aplicada em PostgreSQL WASM PGlite (não substitui Prisma/PostgreSQL nativo).",
+    "UNIQUE de idempotência rejeita chave duplicada no mesmo workspace.",
+    "A mesma chave pode existir em workspaces diferentes.",
+    "FK composta rejeita conta de outro workspace.",
+    "CHECK rejeita valores zero, negativos e acima do limite."
+  ]
+}

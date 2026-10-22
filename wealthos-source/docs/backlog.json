@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "note": "Backlog proposto; status não representa comprovação de execução. Atualizar somente após evidências.",
+  "tasks": [
+    {
+      "id": "WOS-001",
+      "title": "Validar problema e público inicial",
+      "description": "Planejado para avaliação. Critérios: Entrevistar pessoas do público definido e registrar consentimento. Documentar problemas observados e hipóteses refutadas; não registrar inferências como pesquisa.",
+      "team": "product",
+      "assignee": "camila",
+      "priority": "Alta",
+      "status": "todo",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Entrevistar pessoas do público definido e registrar consentimento.",
+        "Documentar problemas observados e hipóteses refutadas; não registrar inferências como pesquisa."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-002",
+      "title": "Construir núcleo financeiro em centavos",
+      "description": "Planejado para avaliação. Critérios: Testar saldo, duplicidade, estorno e arredondamento. Parcelas devem somar exatamente o valor original.",
+      "team": "engineering",
+      "assignee": "iris",
+      "priority": "Alta",
+      "status": "todo",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Testar saldo, duplicidade, estorno e arredondamento.",
+        "Parcelas devem somar exatamente o valor original."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-003",
+      "title": "Estabelecer autenticação e isolamento por workspace",
+      "description": "Planejado para avaliação. Critérios: Tokens verificados; segredo de configuração obrigatório. Tentativa de acesso cruzado a conta/lançamento retorna erro sem revelar dados.",
+      "team": "engineering",
+      "assignee": "lara",
+      "priority": "Alta",
+      "status": "todo",
+      "dependencies": [],
+      "acceptanceCriteria": [
+        "Tokens verificados; segredo de configuração obrigatório.",
+        "Tentativa de acesso cruzado a conta/lançamento retorna erro sem revelar dados."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-004",
+      "title": "Cadastrar e listar contas",
+      "description": "Planejado para avaliação. Critérios: Saldo inicial em centavos e dados validados. Listagem restrita ao workspace autenticado.",
+      "team": "engineering",
+      "assignee": "lara",
+      "priority": "Alta",
+      "status": "todo",
+      "dependencies": [
+        "WOS-003"
+      ],
+      "acceptanceCriteria": [
+        "Saldo inicial em centavos e dados validados.",
+        "Listagem restrita ao workspace autenticado."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-005",
+      "title": "Criar lançamentos idempotentes e estornar",
+      "description": "Planejado para avaliação. Critérios: Repetir mesma chave e payload não duplica lançamento. Mesma chave com payload diferente deve ser rejeitada. Estorno repetido não altera saldo uma segunda vez.",
+      "team": "engineering",
+      "assignee": "lara",
+      "priority": "Alta",
+      "status": "todo",
+      "dependencies": [
+        "WOS-002",
+        "WOS-004"
+      ],
+      "acceptanceCriteria": [
+        "Repetir mesma chave e payload não duplica lançamento.",
+        "Mesma chave com payload diferente deve ser rejeitada.",
+        "Estorno repetido não altera saldo uma segunda vez."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-006",
+      "title": "Construir interface financeira responsiva",
+      "description": "Planejado para avaliação. Critérios: Dashboard, lançamentos e contas com estados de erro e vazio. Dados fictícios claramente identificados e separados da API real.",
+      "team": "design",
+      "assignee": "theo",
+      "priority": "Alta",
+      "status": "todo",
+      "dependencies": [
+        "WOS-002"
+      ],
+      "acceptanceCriteria": [
+        "Dashboard, lançamentos e contas com estados de erro e vazio.",
+        "Dados fictícios claramente identificados e separados da API real."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-007",
+      "title": "Verificar integração PostgreSQL e contratos",
+      "description": "Planejado para avaliação. Critérios: Executar migração em banco descartável. Validar concorrência de idempotência e estorno com evidências.",
+      "team": "quality",
+      "assignee": "valentina",
+      "priority": "Alta",
+      "status": "todo",
+      "dependencies": [
+        "WOS-003",
+        "WOS-005"
+      ],
+      "acceptanceCriteria": [
+        "Executar migração em banco descartável.",
+        "Validar concorrência de idempotência e estorno com evidências."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-008",
+      "title": "Integrar e validar interface com API",
+      "description": "Planejado para avaliação. Critérios: Fluxo cadastro/login/contas/lançamentos/estorno funciona com API. Não existe fallback silencioso para demonstração quando API falhar.",
+      "team": "engineering",
+      "assignee": "nicolas",
+      "priority": "Alta",
+      "status": "todo",
+      "dependencies": [
+        "WOS-005",
+        "WOS-006"
+      ],
+      "acceptanceCriteria": [
+        "Fluxo cadastro/login/contas/lançamentos/estorno funciona com API.",
+        "Não existe fallback silencioso para demonstração quando API falhar."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-009",
+      "title": "Preparar pipeline e recuperação",
+      "description": "Planejado para avaliação. Critérios: Build e testes obrigatórios no pipeline. Estratégia de backup/restore e rollback documentada e exercitada.",
+      "team": "platform",
+      "assignee": "bruno",
+      "priority": "Alta",
+      "status": "todo",
+      "dependencies": [
+        "WOS-007"
+      ],
+      "acceptanceCriteria": [
+        "Build e testes obrigatórios no pipeline.",
+        "Estratégia de backup/restore e rollback documentada e exercitada."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-010",
+      "title": "Persistir orçamentos e metas no servidor",
+      "description": "Planejado para avaliação. Critérios: CRUD autenticado e validação por workspace. Progresso não soma movimentos estornados.",
+      "team": "engineering",
+      "assignee": "lara",
+      "priority": "Média",
+      "status": "todo",
+      "dependencies": [
+        "WOS-008"
+      ],
+      "acceptanceCriteria": [
+        "CRUD autenticado e validação por workspace.",
+        "Progresso não soma movimentos estornados."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-011",
+      "title": "Implementar cartões e parcelamentos",
+      "description": "Planejado para avaliação. Critérios: Definir fechamento/vencimento e mudança de mês. Cobrir restos de centavos, cancelamento e fatura sem duplicidade.",
+      "team": "engineering",
+      "assignee": "iris",
+      "priority": "Média",
+      "status": "todo",
+      "dependencies": [
+        "WOS-007"
+      ],
+      "acceptanceCriteria": [
+        "Definir fechamento/vencimento e mudança de mês.",
+        "Cobrir restos de centavos, cancelamento e fatura sem duplicidade."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-012",
+      "title": "Definir retenção e direitos de privacidade",
+      "description": "Planejado para avaliação. Critérios: Mapear dados, finalidades e retenção. Preparar exportação/exclusão com validação da identidade; política revisada.",
+      "team": "platform",
+      "assignee": "otavio",
+      "priority": "Alta",
+      "status": "todo",
+      "dependencies": [
+        "WOS-001"
+      ],
+      "acceptanceCriteria": [
+        "Mapear dados, finalidades e retenção.",
+        "Preparar exportação/exclusão com validação da identidade; política revisada."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-013",
+      "title": "Validar onboarding e monetização",
+      "description": "Planejado para avaliação. Critérios: Testar compreensão do produto sem cobrar valores reais. Preço e critérios de ativação aprovados pelo fundador antes de implementar cobrança.",
+      "team": "product",
+      "assignee": "marina",
+      "priority": "Média",
+      "status": "todo",
+      "dependencies": [
+        "WOS-001",
+        "WOS-008"
+      ],
+      "acceptanceCriteria": [
+        "Testar compreensão do produto sem cobrar valores reais.",
+        "Preço e critérios de ativação aprovados pelo fundador antes de implementar cobrança."
+      ],
+      "evidence": ""
+    },
+    {
+      "id": "WOS-014",
+      "title": "Preparar piloto privado autorizado",
+      "description": "Planejado para avaliação. Critérios: Sem falhas críticas abertas; testes e restauração comprovados. Autorização humana explícita antes de deploy e acesso a sistemas externos.",
+      "team": "platform",
+      "assignee": "miguel",
+      "priority": "Média",
+      "status": "todo",
+      "dependencies": [
+        "WOS-009",
+        "WOS-012"
+      ],
+      "acceptanceCriteria": [
+        "Sem falhas críticas abertas; testes e restauração comprovados.",
+        "Autorização humana explícita antes de deploy e acesso a sistemas externos."
+      ],
+      "evidence": ""
+    }
+  ]
+}

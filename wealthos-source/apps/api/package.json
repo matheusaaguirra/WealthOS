@@ -1,0 +1,33 @@
+{
+  "name": "@wealthos/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "node scripts/dev.cjs",
+    "start": "node dist/main.js",
+    "test": "node --import tsx --test test/*.test.ts",
+    "db:generate": "node scripts/db.cjs generate",
+    "db:migrate": "node scripts/db.cjs migrate deploy",
+    "db:seed": "node --import tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.0",
+    "@nestjs/core": "^11.1.0",
+    "@nestjs/platform-express": "^11.1.0",
+    "@nestjs/jwt": "^11.0.0",
+    "@prisma/client": "6.19.0",
+    "@wealthos/finance": "0.1.0",
+    "bcryptjs": "^3.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "dotenv": "^16.6.1",
+    "helmet": "^8.1.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "prisma": "6.19.0",
+    "@types/express": "^5.0.0"
+  }
+}

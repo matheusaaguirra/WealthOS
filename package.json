@@ -1,0 +1,35 @@
+{
+  "name": "wealthos",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "npm run build:web && next build",
+    "start": "next start",
+    "test": "node --import tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node scripts/migrate.mjs",
+    "build:web": "node scripts/build-frontend.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "jose": "^6.2.12",
+    "next": "16.3.4",
+    "pg": "^8.16.3",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.19",
+    "@types/pg": "^8.15.5",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "tsx": "^4.23.15",
+    "typescript": "5.9.3",
+    "@electric-sql/pglite": "^0.3.14"
+  }
+}

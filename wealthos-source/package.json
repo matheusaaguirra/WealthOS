@@ -1,0 +1,28 @@
+{
+  "name": "wealthos",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev:web": "npm run start -w @wealthos/web",
+    "dev:api": "npm run dev -w @wealthos/api",
+    "build": "npm run build -w @wealthos/finance && npm run build -w @wealthos/web && node tools/copy-static.cjs",
+    "test": "npm run build -w @wealthos/finance && node --import tsx --test packages/finance/test/*.test.ts && npm run test -w @wealthos/api",
+    "db:generate": "npm run db:generate -w @wealthos/api",
+    "db:migrate": "npm run db:migrate -w @wealthos/api",
+    "db:seed": "npm run db:seed -w @wealthos/api",
+    "preview": "node tools/preview.cjs",
+    "build:all": "npm run build -w @wealthos/finance && npm run build -w @wealthos/api && npm run build -w @wealthos/web"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "tsx": "^4.20.0",
+    "@types/node": "^22.0.0"
+  }
+}

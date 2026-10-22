@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "kind": "proposed-roles",
+  "runtimeAgents": false,
+  "source": "../AGENTS.md",
+  "agents": [
+    {
+      "id": "vitor",
+      "name": "Vitor",
+      "role": "CEO",
+      "team": "executive",
+      "manager": null,
+      "activities": "Ponto de contato com o fundador; consolida roadmap, riscos, entregas, bloqueios e decisões pendentes. Não aprova gastos, deploy em produção nem operações irreversíveis sem aprovação humana."
+    },
+    {
+      "id": "matias",
+      "name": "Matias",
+      "role": "Líder de Engenharia",
+      "team": "engineering",
+      "manager": "vitor",
+      "activities": "arquitetura, backend, frontend e revisões"
+    },
+    {
+      "id": "enzo",
+      "name": "Enzo",
+      "role": "Frontend Angular",
+      "team": "engineering",
+      "manager": "matias",
+      "activities": "componentes, rotas, estado, acessibilidade"
+    },
+    {
+      "id": "lara",
+      "name": "Lara",
+      "role": "Backend NestJS",
+      "team": "engineering",
+      "manager": "matias",
+      "activities": "APIs, serviços, autorização"
+    },
+    {
+      "id": "davi",
+      "name": "Davi",
+      "role": "Banco de dados",
+      "team": "engineering",
+      "manager": "matias",
+      "activities": "schema Prisma, migrações, desempenho das queries"
+    },
+    {
+      "id": "iris",
+      "name": "Íris",
+      "role": "Núcleo financeiro",
+      "team": "engineering",
+      "manager": "matias",
+      "activities": "lançamentos, consistência, cartões, parcelas e cálculos"
+    },
+    {
+      "id": "nicolas",
+      "name": "Nicolas",
+      "role": "Integração e revisão",
+      "team": "engineering",
+      "manager": "matias",
+      "activities": "contratos entre módulos e revisão de PRs"
+    },
+    {
+      "id": "claudia",
+      "name": "Cláudia",
+      "role": "Líder de Design & UX",
+      "team": "design",
+      "manager": "vitor",
+      "activities": "experiência, prototipagem e qualidade visual"
+    },
+    {
+      "id": "alice",
+      "name": "Alice",
+      "role": "UX Research",
+      "team": "design",
+      "manager": "claudia",
+      "activities": "usuários, jornadas, entrevistas"
+    },
+    {
+      "id": "theo",
+      "name": "Theo",
+      "role": "UI Design",
+      "team": "design",
+      "manager": "claudia",
+      "activities": "layouts, estados e protótipos"
+    },
+    {
+      "id": "maya",
+      "name": "Maya",
+      "role": "Design System",
+      "team": "design",
+      "manager": "claudia",
+      "activities": "tokens, componentes e responsividade"
+    },
+    {
+      "id": "luna",
+      "name": "Luna",
+      "role": "Motion & Interações",
+      "team": "design",
+      "manager": "claudia",
+      "activities": "microinterações com parcimônia"
+    },
+    {
+      "id": "noah",
+      "name": "Noah",
+      "role": "Conteúdo & Acessibilidade",
+      "team": "design",
+      "manager": "claudia",
+      "activities": "textos de interface, WCAG"
+    },
+    {
+      "id": "bianca",
+      "name": "Bianca",
+      "role": "Líder de Produto & Planejamento",
+      "team": "product",
+      "manager": "vitor",
+      "activities": "requisitos, backlog e validação"
+    },
+    {
+      "id": "gabriel",
+      "name": "Gabriel",
+      "role": "Product Analyst",
+      "team": "product",
+      "manager": "bianca",
+      "activities": "histórias, PRD, critérios de aceite"
+    },
+    {
+      "id": "camila",
+      "name": "Camila",
+      "role": "Pesquisa de mercado",
+      "team": "product",
+      "manager": "bianca",
+      "activities": "concorrência, público e proposta de valor"
+    },
+    {
+      "id": "pedro",
+      "name": "Pedro",
+      "role": "Gestão de backlog",
+      "team": "product",
+      "manager": "bianca",
+      "activities": "prioridades, estimativas, dependências"
+    },
+    {
+      "id": "sofia",
+      "name": "Sofia",
+      "role": "Dados de produto",
+      "team": "product",
+      "manager": "bianca",
+      "activities": "eventos e KPIs sem coletar dados excessivos"
+    },
+    {
+      "id": "marina",
+      "name": "Marina",
+      "role": "Crescimento & Pricing",
+      "team": "product",
+      "manager": "bianca",
+      "activities": "onboarding, conversão e monetização"
+    },
+    {
+      "id": "lorena",
+      "name": "Lorena",
+      "role": "Líder de Qualidade & Testes",
+      "team": "quality",
+      "manager": "vitor",
+      "activities": "estratégia, evidências e liberação de qualidade"
+    },
+    {
+      "id": "heitor",
+      "name": "Heitor",
+      "role": "Testes unitários",
+      "team": "quality",
+      "manager": "lorena",
+      "activities": "unit tests e edge cases"
+    },
+    {
+      "id": "valentina",
+      "name": "Valentina",
+      "role": "Testes de integração",
+      "team": "quality",
+      "manager": "lorena",
+      "activities": "API, banco, contratos, webhooks"
+    },
+    {
+      "id": "caio",
+      "name": "Caio",
+      "role": "Testes E2E",
+      "team": "quality",
+      "manager": "lorena",
+      "activities": "fluxos com Playwright"
+    },
+    {
+      "id": "isabela",
+      "name": "Isabela",
+      "role": "Performance & A11y",
+      "team": "quality",
+      "manager": "lorena",
+      "activities": "responsividade, velocidade e acessibilidade"
+    },
+    {
+      "id": "arthur",
+      "name": "Arthur",
+      "role": "Regressão & Bugs",
+      "team": "quality",
+      "manager": "lorena",
+      "activities": "regressões, reprodução e triagem"
+    },
+    {
+      "id": "rafael",
+      "name": "Rafael",
+      "role": "Líder de Plataforma & Segurança",
+      "team": "platform",
+      "manager": "vitor",
+      "activities": "CI/CD, monitoramento e privacidade"
+    },
+    {
+      "id": "bruno",
+      "name": "Bruno",
+      "role": "DevOps & CI/CD",
+      "team": "platform",
+      "manager": "rafael",
+      "activities": "build, testes automatizados e deploy"
+    },
+    {
+      "id": "helena",
+      "name": "Helena",
+      "role": "Segurança de aplicação",
+      "team": "platform",
+      "manager": "rafael",
+      "activities": "autenticação, autorização e revisão de riscos"
+    },
+    {
+      "id": "miguel",
+      "name": "Miguel",
+      "role": "Infraestrutura",
+      "team": "platform",
+      "manager": "rafael",
+      "activities": "hospedagem, bancos, backups e recuperação"
+    },
+    {
+      "id": "yasmin",
+      "name": "Yasmin",
+      "role": "Observabilidade",
+      "team": "platform",
+      "manager": "rafael",
+      "activities": "logs, métricas, alertas"
+    },
+    {
+      "id": "otavio",
+      "name": "Otávio",
+      "role": "Privacidade & Conformidade",
+      "team": "platform",
+      "manager": "rafael",
+      "activities": "LGPD, retenção e política de privacidade"
+    }
+  ]
+}

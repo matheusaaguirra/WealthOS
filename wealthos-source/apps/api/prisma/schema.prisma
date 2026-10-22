@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.VarChar(254)
+  name         String   @db.VarChar(100)
+  passwordHash String
+  workspaceId  String   @db.Uuid
+  workspace    Workspace @relation(fields: [workspaceId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model Workspace {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String        @db.VarChar(100)
+  users        User[]
+  accounts     Account[]
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+}
+
+model Account {
+  id                  String        @id @default(uuid()) @db.Uuid
+  workspaceId         String        @db.Uuid
+  workspace           Workspace     @relation(fields: [workspaceId], references: [id])
+  name                String        @db.VarChar(100)
+  institution         String        @db.VarChar(100)
+  color               String        @default("#8b5cf6") @db.VarChar(7)
+  openingBalanceCents Int           @default(0)
+  transactions        Transaction[]
+  createdAt           DateTime      @default(now())
+  @@unique([id, workspaceId])
+  @@index([workspaceId])
+}
+
+model Transaction {
+  id             String          @id @default(uuid()) @db.Uuid
+  workspaceId    String          @db.Uuid
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id])
+  accountId      String          @db.Uuid
+  account        Account         @relation(fields: [accountId, workspaceId], references: [id, workspaceId])
+  description    String          @db.VarChar(200)
+  amountCents    Int
+  type           TransactionType
+  category       String          @db.VarChar(80)
+  date           String          @db.VarChar(10)
+  idempotencyKey  String          @db.VarChar(100)
+  reversedAt     DateTime?
+  createdAt      DateTime        @default(now())
+  @@unique([workspaceId, idempotencyKey])
+  @@index([workspaceId, date])
+  @@index([accountId])
+}

@@ -1,0 +1,60 @@
+▶ Validação de autenticação e posições
+  ✔ normaliza e-mail e valida senha por caracteres e bytes UTF-8 (1.942267ms)
+  ✔ valida limites financeiros, duplicidade, IDs e ticker de lote fracionário (2.761977ms)
+  ✔ exige JSON de origem idêntica e limita payload, inclusive sem Content-Length (16.81711ms)
+  ✔ verificação Google exige exp/iat/sub/email, audiência e assinatura RS256 (260.218141ms)
+  ✔ cookies são HttpOnly, SameSite Lax e Secure apenas em HTTPS (1.912417ms)
+✔ Validação de autenticação e posições (285.951065ms)
+▶ Contas e sessão persistente sobre SQLite com migração real
+  ✔ cadastro salva bcrypt12 e somente hash SHA256 da sessão; cookie restaura usuário (1006.211791ms)
+  ✔ login valida senha, normaliza e-mail, gira sessão e rejeita senha errada (1367.999529ms)
+  ✔ cadastro duplicado retorna conflito e não duplica usuário (474.086306ms)
+  ✔ sessão expira após sete dias e logout remove a sessão persistida (901.273921ms)
+  ✔ rate limit é persistente entre instâncias e se renova na janela seguinte (4.653775ms)
+  ✔ Google ausente retorna 503; não autentica usando uma credencial fictícia (1.172806ms)
+  ✔ Google cria conta com identidade verificada injetada e repete o mesmo usuário (7.456972ms)
+  ✔ Google não vincula automaticamente um e-mail já cadastrado com senha (425.644718ms)
+✔ Contas e sessão persistente sobre SQLite com migração real (4190.044292ms)
+▶ Carteira isolada por sessão e gravação atômica
+  ✔ usuário sem sessão recebe 401; IDs de usuário no body são rejeitados (544.929108ms)
+  ✔ gravação e leitura não misturam usuários e apagar uma carteira não altera outra (1321.691113ms)
+  ✔ validação falha antes da exclusão da carteira existente (472.64746ms)
+  ✔ uma falha do banco no meio do lote reverte exclusão e inserções (439.319995ms)
+  ✔ erros desconhecidos não expõem SQL ou credenciais ao cliente (0.950683ms)
+✔ Carteira isolada por sessão e gravação atômica (2780.538068ms)
+▶ Google Finance public HTML reader
+  ✔ validates the ticker and range and cannot accept an arbitrary URL (3.033086ms)
+  ✔ extracts JSON only, handles string brackets and never executes JavaScript (2.313223ms)
+  ✔ binds the quote to the requested ticker instead of a related stock (3.461378ms)
+  ✔ does not substitute missing, invalid or zero quote values (0.690128ms)
+  ✔ extracts the real requested monthly series and applies the source timezone (13.524118ms)
+  ✔ separates intraday data and derives 5 sessions from actual daily observations (1.235007ms)
+  ✔ does not absorb a different ticker nested inside the target history (0.784175ms)
+  ✔ also prunes foreign exchanges and incompatible currencies inside history (0.457125ms)
+  ✔ prefers recent history over a longer stale series for the same ticker (1.997666ms)
+  ✔ rejects malformed dates and never fabricates a monthly history from one day (0.8649ms)
+  ✔ treats unsupported devices, challenges and missing schema as unavailable (0.247183ms)
+  ✔ fetches only the fixed public quote URL without executing or returning remote markup (17.962874ms)
+  ✔ does not follow consent redirects or retry rate limits and blocked requests (1.455583ms)
+  ✔ bounds the response size and rejects non-HTML content (0.890981ms)
+✔ Google Finance public HTML reader (51.539501ms)
+▶ dados financeiros de fontes externas
+  ✔ valida ticker e período sem aceitar URL arbitrária (2.568458ms)
+  ✔ converte cotação BRL para centavos e preserva timestamps e pontos reais ordenados (11.344608ms)
+  ✔ não transforma zero, missing ou moeda estrangeira em cotação brasileira válida (0.697364ms)
+  ✔ não chama o provedor para ativo fora do sandbox sem chave (1.355185ms)
+  ✔ envia chave apenas no header e nunca em URL (4.691532ms)
+  ✔ propaga limite do plano sem fallback fictício (0.502004ms)
+  ✔ deriva preço USD das taxas reais e deixa variação desconhecida nula (0.554722ms)
+  ✔ conserva indisponibilidade da fonte cripto (0.670003ms)
+  ✔ cache reutiliza resultado e coalesce leituras simultâneas (2.355251ms)
+  ✔ serializa requisições e não fica bloqueado após erro (0.633809ms)
+✔ dados financeiros de fontes externas (28.383181ms)
+ℹ tests 42
+ℹ suites 5
+ℹ pass 42
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7813.755641
