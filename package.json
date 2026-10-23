@@ -13,7 +13,8 @@
     "test": "node --import tsx --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "build:web": "node scripts/build-frontend.mjs",
-    "db:migrate:legacy": "node scripts/migrate.mjs"
+    "db:migrate:legacy": "node scripts/migrate.mjs",
+    "pretest": "npm run build --prefix wealthos-source -w @wealthos/finance"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

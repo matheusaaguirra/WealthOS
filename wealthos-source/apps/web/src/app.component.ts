@@ -2,6 +2,9 @@ import { Component, HostListener, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TradingChartComponent } from './trading-chart.component';
+import { IconComponent } from './icon.component';
+import { StockAutocompleteComponent } from './stock-autocomplete.component';
+import { createAccountFromDraft, defaultAccountId } from './account-setup';
 import {siteAuth,marketApi,SiteUser,AuthConfig,StockResponse,CryptoResponse} from './services/site-api';
 import { balance, summarize, parseMoneyToCents, validateAmount, validateDate, assertNoDuplicate, Entry, stockPosition, sectorPerformance, StockQuote, Holding } from '@wealthos/finance';
 interface Account { id:string; name:string; institution:string; color:string; openingBalanceCents:number; balanceCents?:number; }
@@ -10,7 +13,7 @@ interface Budget { id:string; category:string; limitCents:number; }
 interface Goal { id:string; name:string; targetCents:number; savedCents:number; icon:string; }
 interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; }
 type View = 'dashboard'|'transactions'|'accounts'|'budgets'|'goals'|'stocks'|'profile';
-@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent],templateUrl:'./app.component.html'})
+@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,StockAutocompleteComponent],templateUrl:'./app.component.html'})
 export class AppComponent {
   MathRound = Math.round;
   theme:'light'|'dark'=document.documentElement.dataset['theme']==='dark'?'dark':'light';
@@ -76,10 +79,11 @@ export class AppComponent {
     finally{this.authLoading=false;}
   }
   async applyUser(user:SiteUser){
-    this.user=user;this.state={accounts:[],transactions:[],budgets:[],goals:[]};this.holdings=[];this.dataReady=false;this.portfolioReady=false;
+    this.modal=null;this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.user=user;this.state={accounts:[],transactions:[],budgets:[],goals:[]};this.holdings=[];this.dataReady=false;this.portfolioReady=false;
     const [finance,portfolio]=await Promise.all([siteAuth.finance<State>(),siteAuth.portfolio()]);
     this.validateHoldings(portfolio.holdings);this.state=finance.state;this.revision=finance.revision;this.holdings=portfolio.holdings;this.dataReady=true;this.portfolioReady=true;this.authError='';
     history.replaceState(null,'','/dashboard');this.view='dashboard';void this.loadPortfolioQuotes();
+    if(!this.state.accounts.length)this.openModal('account');
   }
   private validateHoldings(holdings:Holding[]){if(!Array.isArray(holdings))throw new Error('Resposta da carteira inválida.');const tickers=new Set<string>();for(const h of holdings){stockPosition(h);if(tickers.has(h.ticker))throw new Error('Ticker duplicado na carteira.');tickers.add(h.ticker);}}
   async submitUser(){
@@ -92,7 +96,7 @@ export class AppComponent {
     finally{this.userPassword='';this.authBusy=false;}
   }
   async reloadUserPortfolio(){if(!this.user||this.authBusy)return;this.authBusy=true;this.authError='';try{await this.applyUser(this.user);}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível carregar seus dados.';}finally{this.authBusy=false;}}
-  async logoutUser(){if(this.authBusy)return;this.authBusy=true;this.authError='';try{await siteAuth.logout();this.user=null;this.holdings=[];this.state={accounts:[],transactions:[],budgets:[],goals:[]};this.dataReady=false;this.portfolioReady=false;this.userPassword='';this.view='dashboard';this.modal=null;this.quotes=[];this.revision=0;history.replaceState(null,'','/login');}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível sair.';}finally{this.authBusy=false;}}
+  async logoutUser(){if(this.authBusy)return;this.authBusy=true;this.authError='';try{await siteAuth.logout();this.user=null;this.holdings=[];this.state={accounts:[],transactions:[],budgets:[],goals:[]};this.dataReady=false;this.portfolioReady=false;this.userPassword='';this.view='dashboard';this.modal=null;this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.quotes=[];this.revision=0;history.replaceState(null,'','/login');}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível sair.';}finally{this.authBusy=false;}}
   beginGoogle(){if(this.authBusy)return;this.authBusy=true;window.location.assign('/auth/google');}
   private async commitHoldings(next:Holding[]){if(!this.user||!this.portfolioReady)throw new Error('Entre na sua conta e carregue a carteira antes de editar.');this.validateHoldings(next);const saved=await siteAuth.savePortfolio(next);this.validateHoldings(saved.holdings);this.holdings=saved.holdings;}
   async refreshMarket(){if(this.marketLoading)return;this.marketLoading=true;this.marketError='';let fails=0;for(const ticker of this.sandboxTickers){try{await this.fetchQuote(ticker,'1mo','brapi');}catch(e){fails++;this.marketError=e instanceof Error?e.message:'Cotações indisponíveis.';}}this.marketLoaded=true;this.marketLoading=false;if(fails===0)this.marketError='';}
@@ -112,7 +116,7 @@ export class AppComponent {
   selectStockTab(tab:'market'|'portfolio'|'detail'|'indices'|'crypto'){this.stockTab=tab;if(tab==='market'&&!this.marketLoaded)void this.refreshMarket();if(tab==='portfolio')void this.loadPortfolioQuotes();if(tab==='detail'&&!this.stockDetail)void this.loadStockChart();if(tab==='crypto'&&!this.cryptoLoaded)void this.refreshCrypto();}
 
   view:View = 'dashboard';
-  navigation:{key:View;label:string;icon:string}[]=[{key:'dashboard',label:'Visão geral',icon:'▦'},{key:'transactions',label:'Lançamentos',icon:'⇄'},{key:'accounts',label:'Minhas contas',icon:'▣'},{key:'budgets',label:'Orçamentos',icon:'◷'},{key:'goals',label:'Metas e sonhos',icon:'⚑'},{key:'stocks',label:'Ações e mercados',icon:'↗'},{key:'profile',label:'Minha conta',icon:'◎'}];
+  navigation:{key:View;label:string;icon:string}[]=[{key:'dashboard',label:'Visão geral',icon:'dashboard'},{key:'transactions',label:'Lançamentos',icon:'transactions'},{key:'accounts',label:'Minhas contas',icon:'accounts'},{key:'budgets',label:'Orçamentos',icon:'budgets'},{key:'goals',label:'Metas e sonhos',icon:'goals'},{key:'stocks',label:'Ações e mercados',icon:'stocks'},{key:'profile',label:'Minha conta',icon:'profile'}];
   categories=['Alimentação','Moradia','Transporte','Compras','Saúde','Lazer','Educação','Salário','Freelance','Outros'];
   private _month = this.localToday().slice(0,7);
   get month(){return this._month;}
@@ -121,6 +125,8 @@ export class AppComponent {
   state:State={accounts:[],transactions:[],budgets:[],goals:[]};
   modal:'transaction'|'account'|'budget'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|null=null;
   error=''; toast=''; busy=false;
+  accountOnboarding=false;
+  private resumeTransactionAfterSetup=false;
 
   draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:'',date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:''};
   private transactionKey = this.uuid();
@@ -128,6 +134,7 @@ export class AppComponent {
   private toastTimer:ReturnType<typeof setTimeout>|undefined;
   get title(){return this.navigation.find(v=>v.key===this.view)!.label;}
   get summary(){return summarize(this.state.transactions,this.month);}
+  get mainAccount():Account|null{return this.state.accounts[0]??null;}
   get totalBalance(){return this.state.accounts.reduce((s,a)=>s+this.accountBalance(a),0);}
   get savingsRate(){return this.summary.incomeCents>0?Math.round((this.summary.incomeCents-this.summary.expenseCents)/this.summary.incomeCents*100):0;}
   get monthLabel(){return new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(this.month+'-02T12:00:00Z'));}
@@ -144,19 +151,23 @@ export class AppComponent {
   accountBalance(a:Account){return balance(a.openingBalanceCents,this.state.transactions.filter(t=>t.accountId===a.id));}
   spent(category:string){return this.state.transactions.filter(t=>t.type==='EXPENSE'&&t.category===category&&!t.reversedAt&&t.date.startsWith(this.month)).reduce((sum,t)=>sum+t.amountCents,0);}
   percent(value:number,total:number){return total>0?Math.min(100,Math.round(value/total*100)):0;}
-  categoryIcon(c:string){return ({'Alimentação':'⌑','Moradia':'⌂','Transporte':'↗','Compras':'▢','Saúde':'♡','Lazer':'✦','Educação':'▤','Salário':'↓','Freelance':'⌘'} as Record<string,string>)[c]||'·';}
+  categoryIcon(c:string){return ({'Alimentação':'food','Moradia':'home','Transporte':'car','Compras':'bag','Saúde':'heart','Lazer':'sparkles','Educação':'book','Salário':'income','Freelance':'briefcase'} as Record<string,string>)[c]||'circle';}
   navigate(v:View){if(!this.user||!this.dataReady)return;this.view=v;this.mobileMenu=false;this.search='';this.filterType='ALL';this.filterAccount='ALL';if(v==='stocks'&&!this.marketLoaded)void this.refreshMarket();}
   changeMonth(delta:number){const d=new Date(this.month+'-02T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+delta);this.month=d.toISOString().slice(0,7);}
   chooseMonth(){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(this.month))this.month=this.localToday().slice(0,7);}
   openModal(kind:NonNullable<AppComponent['modal']>,item?:Budget|Goal){
+    if(this.busy||!this.user||!this.dataReady)return;
+    this.resumeTransactionAfterSetup=kind==='transaction'&&!this.state.accounts.length;
+    if(this.resumeTransactionAfterSetup)kind='account';
+    this.accountOnboarding=kind==='account'&&!this.state.accounts.length;
     this.returnFocus=document.activeElement as HTMLElement;this.modal=kind;this.error='';if(kind==='transaction')this.transactionKey=this.uuid();
-    this.draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:this.state.accounts[0]?.id||'',date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:''};
+    this.draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:defaultAccountId(this.state.accounts),date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:''};
     if(kind==='budget'&&item&&'category'in item){this.draft.category=item.category;this.draft.amount=(item.limitCents/100).toFixed(2).replace('.',',');}
     if(kind==='progress'&&item&&'savedCents'in item){this.draft.goalId=item.id;this.draft.name=item.name;}
     setTimeout(()=>(document.querySelector<HTMLElement>('.dialog input, .dialog select')||document.querySelector<HTMLElement>('.dialog button'))?.focus());
   }
-  closeModal(){if(this.busy)return;this.modal=null;this.error='';this.returnFocus?.focus();}
-  @HostListener('document:keydown',['$event']) onKey(event:KeyboardEvent){if(event.key==='Escape'){this.closeModal();this.mobileMenu=false;}if(event.key==='Tab'&&this.modal){const items=Array.from(document.querySelectorAll<HTMLElement>('.dialog button:not([disabled]),.dialog input,.dialog select')).filter(el=>el.offsetParent!==null);const first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}}
+  closeModal(){if(this.busy)return;this.modal=null;this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.error='';const target=this.returnFocus;setTimeout(()=>{if(!this.modal&&target?.isConnected)target.focus();});}
+  @HostListener('document:keydown',['$event']) onKey(event:KeyboardEvent){if(event.key==='Escape'){this.closeModal();this.mobileMenu=false;}if(event.key==='Tab'&&this.modal){const items=Array.from(document.querySelectorAll<HTMLElement>('.dialog button:not([disabled]):not([tabindex="-1"]),.dialog input:not([disabled]),.dialog select:not([disabled]),.dialog a[href]')).filter(el=>el.offsetParent!==null);const first=items[0],last=items[items.length-1];if(!items.length){event.preventDefault();document.querySelector<HTMLElement>('.dialog')?.focus();}else if(event.shiftKey&&(document.activeElement===first||document.activeElement===document.querySelector('.dialog'))){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}}
   notify(message:string){this.toast=message;clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>this.toast='',4500);}
   private async persist(){if(!this.user||!this.dataReady)throw new Error('Entre na sua conta e carregue os dados antes de salvar.');const saved=await siteAuth.saveFinance(this.state,this.revision);this.state=saved.state;this.revision=saved.revision;}
   async save(){if(this.busy||!this.user||!this.dataReady)return;const previous=this.state;this.error='';this.busy=true;try{
@@ -176,19 +187,23 @@ export class AppComponent {
       const input={accountId:this.draft.accountId,description:this.draft.description.trim(),amountCents:cents,type:this.draft.type as 'INCOME'|'EXPENSE',category:this.draft.category,date:this.draft.date,idempotencyKey:this.transactionKey};
       const t:Transaction={id:this.uuid(),...input};this.state={...this.state,transactions:[...this.state.transactions.filter(item=>item.id!==t.id),t]};
     }else if(this.modal==='account'){
-      if(!this.draft.name.trim()||!this.draft.institution.trim())throw new Error('Informe o nome e a instituição.');
-      const negative=this.draft.opening.trim().startsWith('-');const openingBalanceCents=this.parseAllowZero(negative?this.draft.opening.trim().slice(1):this.draft.opening)*(negative?-1:1);
-      if(Math.abs(openingBalanceCents)>1000000000)throw new Error('Saldo fora do limite permitido.');
-      const input={name:this.draft.name.trim(),institution:this.draft.institution.trim(),color:this.draft.color,openingBalanceCents};const a:Account={id:this.uuid(),...input};this.state={...this.state,accounts:[...this.state.accounts,a]};
+      const account=createAccountFromDraft(this.draft,this.uuid());
+      this.state={...this.state,accounts:[...this.state.accounts,account]};
     }else if(this.modal==='budget'){
       const limitCents=parseMoneyToCents(this.draft.amount);validateAmount(limitCents);const existing=this.state.budgets.find(b=>b.category===this.draft.category);this.state={...this.state,budgets:existing?this.state.budgets.map(b=>b.id===existing.id?{...b,limitCents}:b):[...this.state.budgets,{id:this.uuid(),category:this.draft.category,limitCents}]};
     }else if(this.modal==='goal'){
-      if(!this.draft.name.trim())throw new Error('Dê um nome à sua meta.');const targetCents=parseMoneyToCents(this.draft.target);validateAmount(targetCents);const savedCents=this.parseAllowZero(this.draft.saved);if(savedCents<0||savedCents>targetCents)throw new Error('O valor guardado deve estar entre zero e o valor da meta.');this.state={...this.state,goals:[...this.state.goals,{id:this.uuid(),name:this.draft.name.trim(),targetCents,savedCents,icon:'⚑'}]};
+      if(!this.draft.name.trim())throw new Error('Dê um nome à sua meta.');const targetCents=parseMoneyToCents(this.draft.target);validateAmount(targetCents);const savedCents=this.parseAllowZero(this.draft.saved);if(savedCents<0||savedCents>targetCents)throw new Error('O valor guardado deve estar entre zero e o valor da meta.');this.state={...this.state,goals:[...this.state.goals,{id:this.uuid(),name:this.draft.name.trim(),targetCents,savedCents,icon:'goals'}]};
     }else if(this.modal==='progress'){
       const amount=parseMoneyToCents(this.draft.amount);validateAmount(amount);const g=this.state.goals.find(g=>g.id===this.draft.goalId)!;if(g.savedCents+amount>g.targetCents)throw new Error('O aporte ultrapassa o valor da meta.');this.state={...this.state,goals:this.state.goals.map(goal=>goal.id===g.id?{...goal,savedCents:goal.savedCents+amount}:goal)};
     }
 
-    await this.persist();this.busy=false;this.closeModal();this.notify('Tudo certo! Alteração salva na sua conta.');
+    await this.persist();
+    const resumeTransaction=this.modal==='account'&&this.resumeTransactionAfterSetup;
+    const createdPrincipal=this.modal==='account'&&this.accountOnboarding;
+    const returnFocus=this.returnFocus;
+    this.busy=false;this.closeModal();
+    this.notify(createdPrincipal?'Conta principal salva. Você já pode registrar seus lançamentos.':'Tudo certo! Alteração salva na sua conta.');
+    if(resumeTransaction){this.openModal('transaction');this.returnFocus=returnFocus;}
   }catch(error){this.state=previous;this.error=error instanceof Error?error.message:'Não foi possível salvar. Tente novamente.';}finally{this.busy=false;}}
   async reverse(t:Transaction){if(t.reversedAt||this.busy||!this.user)return;const previous=this.state;this.busy=true;try{const updated:Transaction={...t,reversedAt:new Date().toISOString()};this.state={...this.state,transactions:this.state.transactions.map(item=>item.id===t.id?updated:item)};await this.persist();this.notify('Lançamento estornado. Saldo atualizado.');}catch(error){this.state=previous;this.notify(error instanceof Error?error.message:'Não foi possível estornar.');}finally{this.busy=false;}}
   exportData(){const data=JSON.stringify({exportedAt:new Date().toISOString(),...this.state},null,2);const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='wealthos-'+this.localToday()+'.json';a.click();URL.revokeObjectURL(url);this.notify('Exportação concluída.');}
