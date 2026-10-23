@@ -3,27 +3,49 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TradingChartComponent } from './trading-chart.component';
 import { IconComponent } from './icon.component';
+import { NumericInputDirective } from './numeric-input.directive';
 import { StockAutocompleteComponent } from './stock-autocomplete.component';
 import { createAccountFromDraft, defaultAccountId } from './account-setup';
 import {siteAuth,marketApi,SiteUser,AuthConfig,StockResponse,CryptoResponse} from './services/site-api';
-import { balance, summarize, parseMoneyToCents, validateAmount, validateDate, assertNoDuplicate, Entry, stockPosition, sectorPerformance, StockQuote, Holding } from '@wealthos/finance';
+import { balance, summarize, parseMoneyToCents, validateAmount, validateDate, assertNoDuplicate, Entry, stockPosition, sectorPerformance, StockQuote, Holding, FIXED_INCOME_TYPES, FixedIncomeInvestment, FixedIncomeDraft, fixedIncomeFromDraft, summarizeFixedIncome } from '@wealthos/finance';
 interface Account { id:string; name:string; institution:string; color:string; openingBalanceCents:number; balanceCents?:number; }
 interface Transaction extends Entry { description:string; category:string; idempotencyKey:string; }
 interface Budget { id:string; category:string; limitCents:number; }
 interface Goal { id:string; name:string; targetCents:number; savedCents:number; icon:string; }
-interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; }
+interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; investments?:FixedIncomeInvestment[]; }
 type View = 'dashboard'|'transactions'|'accounts'|'budgets'|'goals'|'stocks'|'profile';
-@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,StockAutocompleteComponent],templateUrl:'./app.component.html'})
+@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,StockAutocompleteComponent,NumericInputDirective],templateUrl:'./app.component.html'})
 export class AppComponent {
   MathRound = Math.round;
   theme:'light'|'dark'=document.documentElement.dataset['theme']==='dark'?'dark':'light';
-  stockTab:'market'|'portfolio'|'detail'|'indices'|'crypto'='market';
+  stockTab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'='market';
   stockPeriod:'day'|'month'|'year'='day';
   stockSearch=''; stockSector='ALL';
   quotes:StockQuote[]=[];
   holdings:Holding[]=[];
   holdingDraft={id:'',ticker:'',quantity:'',averagePrice:'',unknownCost:true};
   pendingDelete:Holding|null=null;
+  readonly fixedIncomeTypes=FIXED_INCOME_TYPES;
+  investmentDraft:FixedIncomeDraft=this.emptyInvestmentDraft();
+  pendingDeleteInvestment:FixedIncomeInvestment|null=null;
+  get fixedIncomeInvestments(){return this.state.investments??[];}
+  get fixedIncomeSummary(){return summarizeFixedIncome(this.fixedIncomeInvestments);}
+  private emptyInvestmentDraft():FixedIncomeDraft{return{id:'',type:'TESOURO',name:'',institution:'',invested:'',currentValue:'',investedOn:this.localToday(),maturityOn:'',indexer:'',rate:'',valueUpdatedOn:this.localToday()};}
+  investmentTypeLabel(type:string){return this.fixedIncomeTypes.find(item=>item.value===type)?.label??type;}
+  investmentRateLabel(row:FixedIncomeInvestment){
+    if(!row.indexer)return 'Não informado';
+    if(row.rateBasisPoints===null)return row.indexer;
+    const rate=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:2}).format(row.rateBasisPoints/100);
+    return row.indexer==='CDI'||row.indexer==='SELIC'?rate+'% do '+row.indexer:row.indexer==='IPCA'?'IPCA + '+rate+'% a.a.':rate+'% a.a. prefixado';
+  }
+  openFixedIncome(row?:FixedIncomeInvestment){
+    if(this.busy||!this.user||!this.dataReady)return;
+    this.openModal('fixedIncome');
+    const money=(value:number|null)=>value===null?'':(value/100).toFixed(2).replace('.',',');
+    this.investmentDraft=row?{id:row.id,type:row.type,name:row.name,institution:row.institution,invested:money(row.investedCents),currentValue:money(row.currentValueCents),investedOn:row.investedOn,maturityOn:row.maturityOn??'',indexer:row.indexer??'',rate:money(row.rateBasisPoints),valueUpdatedOn:row.valueUpdatedOn??this.localToday()}:this.emptyInvestmentDraft();
+  }
+  askDeleteInvestment(row:FixedIncomeInvestment){if(this.busy||!this.user||!this.dataReady)return;this.openModal('deleteFixedIncome');this.pendingDeleteInvestment=row;}
+
   readonly stockPeriods:{key:'day'|'month'|'year';label:string}[]=[{key:'day',label:'Dia'}];
   get sectors(){return [...new Set(this.sampleQuotes.map(q=>q.sector))].sort();}
   get periodLabel(){return this.stockPeriods.find(p=>p.key===this.stockPeriod)!.label;}
@@ -113,17 +135,17 @@ export class AppComponent {
   get googleFinanceUrl(){const ticker=this.stockDetail?.ticker||this.selectedTicker;return 'https://www.google.com/finance/quote/'+encodeURIComponent(/^[A-Z][A-Z0-9]{3}\d{1,2}F?$/.test(ticker)?ticker:'PETR4')+':BVMF?hl=pt-BR';}
   metricFigure(value:number|string|null|undefined,currency=false){if(value===null||value===undefined||value==='')return 'Indisponível';if(this.hideValues)return '••••••';if(typeof value==='string')return value;return new Intl.NumberFormat('pt-BR',{notation:'compact',maximumFractionDigits:2,...(currency?{style:'currency',currency:'BRL'}:{})}).format(value);}
   async refreshCrypto(){if(this.cryptoLoading)return;this.cryptoLoading=true;this.cryptoError='';try{this.cryptoData=await marketApi.crypto();this.cryptoError=this.cryptoData.error||'';}catch(e){this.cryptoError=e instanceof Error?e.message:'Cotações de cripto indisponíveis.';this.cryptoData=null;}finally{this.cryptoLoaded=true;this.cryptoLoading=false;}}
-  selectStockTab(tab:'market'|'portfolio'|'detail'|'indices'|'crypto'){this.stockTab=tab;if(tab==='market'&&!this.marketLoaded)void this.refreshMarket();if(tab==='portfolio')void this.loadPortfolioQuotes();if(tab==='detail'&&!this.stockDetail)void this.loadStockChart();if(tab==='crypto'&&!this.cryptoLoaded)void this.refreshCrypto();}
+  selectStockTab(tab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'){this.stockTab=tab;if(tab==='market'&&!this.marketLoaded)void this.refreshMarket();if(tab==='portfolio')void this.loadPortfolioQuotes();if(tab==='detail'&&!this.stockDetail)void this.loadStockChart();if(tab==='crypto'&&!this.cryptoLoaded)void this.refreshCrypto();}
 
   view:View = 'dashboard';
-  navigation:{key:View;label:string;icon:string}[]=[{key:'dashboard',label:'Visão geral',icon:'dashboard'},{key:'transactions',label:'Lançamentos',icon:'transactions'},{key:'accounts',label:'Minhas contas',icon:'accounts'},{key:'budgets',label:'Orçamentos',icon:'budgets'},{key:'goals',label:'Metas e sonhos',icon:'goals'},{key:'stocks',label:'Ações e mercados',icon:'stocks'},{key:'profile',label:'Minha conta',icon:'profile'}];
+  navigation:{key:View;label:string;icon:string}[]=[{key:'dashboard',label:'Visão geral',icon:'dashboard'},{key:'transactions',label:'Lançamentos',icon:'transactions'},{key:'accounts',label:'Minhas contas',icon:'accounts'},{key:'budgets',label:'Orçamentos',icon:'budgets'},{key:'goals',label:'Metas e sonhos',icon:'goals'},{key:'stocks',label:'Investimentos',icon:'stocks'},{key:'profile',label:'Minha conta',icon:'profile'}];
   categories=['Alimentação','Moradia','Transporte','Compras','Saúde','Lazer','Educação','Salário','Freelance','Outros'];
   private _month = this.localToday().slice(0,7);
   get month(){return this._month;}
   set month(value:string){if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value)&&value>='2000-01'&&value<='2100-12')this._month=value;}
   search=''; filterType='ALL'; filterAccount='ALL'; hideValues=false; mobileMenu=false;
   state:State={accounts:[],transactions:[],budgets:[],goals:[]};
-  modal:'transaction'|'account'|'budget'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|null=null;
+  modal:'transaction'|'account'|'budget'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|'fixedIncome'|'deleteFixedIncome'|null=null;
   error=''; toast=''; busy=false;
   accountOnboarding=false;
   private resumeTransactionAfterSetup=false;
@@ -171,10 +193,19 @@ export class AppComponent {
   notify(message:string){this.toast=message;clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>this.toast='',4500);}
   private async persist(){if(!this.user||!this.dataReady)throw new Error('Entre na sua conta e carregue os dados antes de salvar.');const saved=await siteAuth.saveFinance(this.state,this.revision);this.state=saved.state;this.revision=saved.revision;}
   async save(){if(this.busy||!this.user||!this.dataReady)return;const previous=this.state;this.error='';this.busy=true;try{
-    if(this.modal==='holding'){
+    if(this.modal==='fixedIncome'){
+      const row=fixedIncomeFromDraft(this.investmentDraft,this.investmentDraft.id||this.uuid());
+      if(this.investmentDraft.id&&!this.fixedIncomeInvestments.some(item=>item.id===row.id))throw new Error('O investimento não foi encontrado. Recarregue os dados.');
+      const investments=this.investmentDraft.id?this.fixedIncomeInvestments.map(item=>item.id===row.id?row:item):[...this.fixedIncomeInvestments,row];
+      if(investments.length>200)throw new Error('O limite é de 200 registros de renda fixa.');
+      this.state={...this.state,investments};
+    }else if(this.modal==='deleteFixedIncome'){
+      if(!this.pendingDeleteInvestment)throw new Error('Selecione um investimento.');
+      this.state={...this.state,investments:this.fixedIncomeInvestments.filter(item=>item.id!==this.pendingDeleteInvestment!.id)};
+    }else if(this.modal==='holding'){
       const ticker=this.holdingDraft.ticker.trim().toUpperCase();if(!/^[A-Z][A-Z0-9]{3}\d{1,2}F?$/.test(ticker))throw new Error('Use um ticker brasileiro, como PETR4, TAEE11 ou PETR4F.');
-      if(!/^\d+$/.test(this.holdingDraft.quantity.trim()))throw new Error('Informe uma quantidade inteira de ações.');
-      const quantity=Number(this.holdingDraft.quantity);if(!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)throw new Error('A quantidade deve ser de 1 a 1.000.000 de ações.');
+      if(!/^\d+$/.test(this.holdingDraft.quantity.trim()))throw new Error('Informe uma quantidade inteira de cotas ou ações.');
+      const quantity=Number(this.holdingDraft.quantity);if(!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)throw new Error('A quantidade deve ser de 1 a 1.000.000 de cotas ou ações.');
       const averagePriceCents=this.holdingDraft.unknownCost?null:parseMoneyToCents(this.holdingDraft.averagePrice);
       if(this.holdings.some(h=>h.ticker===ticker&&h.id!==this.holdingDraft.id))throw new Error('Este ticker já está na carteira. Edite a posição existente.');
       const holding:Holding={id:this.holdingDraft.id||this.uuid(),ticker,quantity,averagePriceCents};stockPosition(holding,this.quotes.find(q=>q.ticker===ticker));

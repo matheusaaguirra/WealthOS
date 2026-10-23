@@ -13,7 +13,7 @@ A autenticação usa Supabase Auth com `@supabase/ssr`, no servidor. O navegador
 
 ## E-mail e Google
 
-Cadastro usa `signUp`; login usa `signInWithPassword`. A senha não é armazenada pela aplicação. Quando Supabase exige confirmação de e-mail, o cadastro mostra a orientação e não entra sem sessão.
+Cadastro usa `signUp`; login usa `signInWithPassword`. Em 23/10/2026, a opção `Confirm email` foi verificada desativada no projeto de produção. A senha não é armazenada pela aplicação. Quando Supabase exige confirmação de e-mail, o cadastro mostra a orientação e não entra sem sessão.
 
 Google inicia em `/auth/google`, com OAuth/PKCE. O callback fixo `/auth/callback` troca o código pela sessão. Não há parâmetro livre de redirecionamento. `APP_URL` define a origem de produção. `/auth/confirm` aceita confirmação de e-mail por token hash quando configurada no template Supabase.
 
@@ -24,7 +24,7 @@ A configuração pública informa se o Supabase foi configurado e se o provedor 
 | Rota | Uso |
 | --- | --- |
 | `GET /api/finance` | Estado financeiro do usuário, ou arrays vazios para uma conta nova |
-| `PUT /api/finance` | Valida e grava contas, lançamentos, orçamentos e metas atomicamente, com revisão esperada |
+| `PUT /api/finance` | Valida e grava contas, lançamentos, orçamentos, metas e registros opcionais de renda fixa atomicamente, com revisão esperada |
 | `GET /api/portfolio` | Posições da carteira do usuário |
 | `PUT /api/portfolio` | Substitui as posições desse usuário em uma gravação atômica |
 

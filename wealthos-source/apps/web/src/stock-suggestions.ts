@@ -1,5 +1,8 @@
 /** A small symbol directory, never a source of prices or investment recommendations. */
-export interface StockSuggestion { ticker:string; name:string; aliases?:readonly string[]; }
+export type ListedAssetType='stock'|'unit'|'fii'|'etf'|'bdr'|'fund'|'other';
+export interface StockSuggestion { ticker:string; name:string; assetType?:ListedAssetType; aliases?:readonly string[]; }
+export interface SymbolCataloguePage {symbols:StockSuggestion[];page:number;pageSize:number;total:number;hasMore:boolean;source:'brapi';retrievedAt:string;}
+export function listedAssetLabel(type:ListedAssetType|undefined):string {return ({stock:'Ação',unit:'Unit',fii:'FII',etf:'ETF',bdr:'BDR',fund:'Fundo',other:'Ativo listado'} as const)[type??'stock'];}
 
 export const STOCK_SUGGESTIONS:readonly StockSuggestion[] = [
   {ticker:'PETR4',name:'Petrobras · preferencial',aliases:['petróleo','petroleo brasileiro']},
@@ -17,11 +20,11 @@ export const STOCK_SUGGESTIONS:readonly StockSuggestion[] = [
   {ticker:'B3SA3',name:'B3',aliases:['bolsa']},
   {ticker:'RENT3',name:'Localiza'},
   {ticker:'SUZB3',name:'Suzano'},
-  {ticker:'TAEE11',name:'Taesa · units'},
+  {ticker:'TAEE11',name:'Taesa · units',assetType:'unit'},
   {ticker:'VIVT3',name:'Telefônica Brasil',aliases:['vivo','telefonica']},
   {ticker:'BBSE3',name:'BB Seguridade'},
   {ticker:'EGIE3',name:'Engie Brasil'},
-  {ticker:'KLBN11',name:'Klabin · units'},
+  {ticker:'KLBN11',name:'Klabin · units',assetType:'unit'},
   {ticker:'RADL3',name:'Raia Drogasil',aliases:['rd saude','drogasil']},
   {ticker:'LREN3',name:'Lojas Renner'},
 ];
@@ -32,7 +35,7 @@ function normalized(value:string):string {
 
 export function matchStockSuggestions(query:string,limit=6):StockSuggestion[] {
   const term=normalized(query);
-  const safeLimit=Math.max(0,Math.min(20,Math.floor(limit)||0));
+  const safeLimit=Math.max(0,Math.min(200,Math.floor(limit)||0));
   if(!term)return STOCK_SUGGESTIONS.slice(0,safeLimit);
   const tokens=term.split(/\s+/);
   return STOCK_SUGGESTIONS.map((stock,index)=>{

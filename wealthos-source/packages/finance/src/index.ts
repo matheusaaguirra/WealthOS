@@ -78,3 +78,6 @@ export function splitInstallments(totalCents: number, count: number): number[] {
 }
 export { stockPosition, sectorPerformance, validateHolding } from './stocks';
 export type { StockQuote, StockPeriod, Holding, StockPosition } from './stocks';
+
+export { FIXED_INCOME_TYPES, validateFixedIncomeInvestment, fixedIncomeFromDraft, summarizeFixedIncome } from './fixed-income';
+export type { FixedIncomeInvestment, FixedIncomeDraft, FixedIncomeType, InvestmentIndexer } from './fixed-income';

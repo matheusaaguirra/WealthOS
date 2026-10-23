@@ -1,11 +1,11 @@
 import { AuthError } from './auth-core';
-import { assertNoDuplicate, balance, validateAmount, validateDate, type Entry } from '../wealthos-source/packages/finance/src/index';
+import { assertNoDuplicate, balance, validateAmount, validateDate, validateFixedIncomeInvestment, type FixedIncomeInvestment, type Entry } from '../wealthos-source/packages/finance/src/index';
 
 export interface Account {id:string;name:string;institution:string;color:string;openingBalanceCents:number}
 export interface Transaction extends Entry {description:string;category:string;idempotencyKey:string}
 export interface Budget {id:string;category:string;limitCents:number}
 export interface Goal {id:string;name:string;targetCents:number;savedCents:number;icon:string}
-export interface FinancialState {accounts:Account[];transactions:Transaction[];budgets:Budget[];goals:Goal[]}
+export interface FinancialState {accounts:Account[];transactions:Transaction[];budgets:Budget[];goals:Goal[];investments?:FixedIncomeInvestment[]}
 export const emptyFinancialState=():FinancialState=>({accounts:[],transactions:[],budgets:[],goals:[]});
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function invalid(message='Os dados financeiros são inválidos.'):never{throw new AuthError(400,message);}
@@ -21,7 +21,7 @@ function integer(value:unknown,min:number,max:number):number{if(typeof value!=='
 function rows(value:unknown,max:number){if(!Array.isArray(value)||value.length>max)invalid('Quantidade de registros acima do limite.');return value as unknown[];}
 function unique<T>(values:T[],key:(value:T)=>string){if(new Set(values.map(key)).size!==values.length)invalid('Há registros duplicados.');}
 export function validateFinancialState(input:unknown):FinancialState{
-  const data=object(input,['accounts','transactions','budgets','goals']);
+  const data=object(input,['accounts','transactions','budgets','goals','investments']);
   const accounts=rows(data.accounts,100).map(raw=>{const r=object(raw,['id','name','institution','color','openingBalanceCents']);const color=text(r.color,7);if(!/^#[0-9a-f]{6}$/i.test(color))invalid();return{id:id(r.id),name:text(r.name,80),institution:text(r.institution,80),color,openingBalanceCents:integer(r.openingBalanceCents,-1e9,1e9)};});
   unique(accounts,r=>r.id);
   const transactions:Transaction[]=rows(data.transactions,2000).map(raw=>{
@@ -39,7 +39,11 @@ export function validateFinancialState(input:unknown):FinancialState{
   unique(budgets,r=>r.id);unique(budgets,r=>r.category);
   const goals=rows(data.goals,100).map(raw=>{const r=object(raw,['id','name','targetCents','savedCents','icon']);const targetCents=integer(r.targetCents,1,1e9);return{id:id(r.id),name:text(r.name,80),targetCents,savedCents:integer(r.savedCents,0,targetCents),icon:text(r.icon,8)};});
   unique(goals,r=>r.id);
-  return {accounts,transactions,budgets,goals};
+  if(data.investments===undefined)return {accounts,transactions,budgets,goals};
+  let investments:FixedIncomeInvestment[];
+  try{investments=rows(data.investments,200).map(validateFixedIncomeInvestment);}catch(error){invalid(error instanceof Error?error.message:'Investimentos inválidos.');}
+  unique(investments,r=>r.id);
+  return {accounts,transactions,budgets,goals,investments};
 }
 export async function readFinancialRequest(request:Request){
   if(request.headers.get('origin')!==new URL(request.url).origin)throw new AuthError(403,'Origem não autorizada.');
