@@ -1,7 +1,7 @@
 /** A small symbol directory, never a source of prices or investment recommendations. */
 export type ListedAssetType='stock'|'unit'|'fii'|'etf'|'bdr'|'fund'|'other';
 export interface StockSuggestion { ticker:string; name:string; assetType?:ListedAssetType; aliases?:readonly string[]; }
-export interface SymbolCataloguePage {symbols:StockSuggestion[];page:number;pageSize:number;total:number;hasMore:boolean;source:'brapi';retrievedAt:string;}
+export interface SymbolCataloguePage {symbols:StockSuggestion[];page:number;pageSize:number;total:number;hasMore:boolean;source:'brapi';retrievedAt:string;omittedCount?:number;}
 export function listedAssetLabel(type:ListedAssetType|undefined):string {return ({stock:'Ação',unit:'Unit',fii:'FII',etf:'ETF',bdr:'BDR',fund:'Fundo',other:'Ativo listado'} as const)[type??'stock'];}
 
 export const STOCK_SUGGESTIONS:readonly StockSuggestion[] = [

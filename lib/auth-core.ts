@@ -83,7 +83,7 @@ export function validateHoldings(body:Record<string,unknown>):Holding[]{
     if(typeof row.id!=='string'||!uuid.test(row.id)||ids.has(row.id))fail('Cada posição deve ter um identificador UUID exclusivo.');
     if(typeof row.ticker!=='string')fail('Ticker inválido.');
     const ticker=row.ticker.trim().toUpperCase();
-    if(!/^[A-Z][A-Z0-9]{3}[0-9]{1,2}F?$/.test(ticker)||tickers.has(ticker))fail('Use tickers brasileiros válidos e sem repetição.');
+    if(!/^[A-Z0-9]{4}[0-9]{1,2}F?$/.test(ticker)||tickers.has(ticker))fail('Use tickers brasileiros válidos e sem repetição.');
     if(typeof row.quantity!=='number'||!Number.isSafeInteger(row.quantity)||row.quantity<=0||row.quantity>1e6)fail('A quantidade deve ser um inteiro entre 1 e 1 milhão.');
     const price=row.averagePriceCents;
     if(price!==null&&(typeof price!=='number'||!Number.isSafeInteger(price)||price<1||price>1e9))fail('O preço médio deve ser um inteiro entre 1 e 1 bilhão de centavos ou nulo.');

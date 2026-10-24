@@ -5,7 +5,7 @@ const sectors:Record<string,string>={PETR4:'Commodities',VALE3:'Commodities',ITU
 export class MarketError extends Error { constructor(public status:number,message:string){super(message);} }
 export function stockInput(ticker:string|null,range:string|null){
   const symbol=(ticker??'PETR4').trim().toUpperCase();const period=range??'1mo';
-  if(!/^[A-Z][A-Z0-9]{3}\d{1,2}F?$/.test(symbol))throw new MarketError(400,'Ticker inválido. Exemplo: PETR4.');
+  if(!/^[A-Z0-9]{4}\d{1,2}F?$/.test(symbol))throw new MarketError(400,'Ticker inválido. Exemplo: PETR4.');
   if(!STOCK_RANGES.includes(period as typeof STOCK_RANGES[number]))throw new MarketError(400,'Período não disponível. Use 5d, 1mo ou 3mo.');
   return {symbol,period};
 }

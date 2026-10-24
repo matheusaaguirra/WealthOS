@@ -77,6 +77,7 @@ export class StockAutocompleteComponent implements OnDestroy {
   total=0;
   error='';
   retrievedAt='';
+  omittedCount=0;
   private rows:StockSuggestion[]=[];
   private loadedQuery:string|null=null;
   private loadedPage=0;
@@ -90,7 +91,7 @@ export class StockAutocompleteComponent implements OnDestroy {
     if(this.fallback)return this.error?'Catálogo online indisponível. Mostrando uma lista local parcial; digite um ticker se precisar.':'Sugestões locais parciais enquanto consultamos o catálogo BRAPI.';
     if(this.error)return 'Não foi possível carregar mais ativos. Tente novamente; os resultados anteriores foram mantidos.';
     const time=this.retrievedAt?new Intl.DateTimeFormat('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'}).format(new Date(this.retrievedAt)):'';
-    return 'BRAPI · '+this.rows.length+' de '+this.total+' resultados'+(time?' · consultado às '+time:'')+'. Cobertura conforme a fonte.';
+    return 'BRAPI · '+this.rows.length+' de '+this.total+' resultados'+(time?' · consultado às '+time:'')+'. Cobertura conforme a fonte.'+(this.omittedCount?' '+this.omittedCount+' registro(s) incompatível(is) ou repetido(s) não exibido(s).':'');
   }
   assetLabel(stock:StockSuggestion){return listedAssetLabel(stock.assetType);}
   open(){if(!this.disabled){this.opened=true;this.activeIndex=-1;this.scheduleSearch();}}
@@ -118,7 +119,7 @@ export class StockAutocompleteComponent implements OnDestroy {
       this.update(()=>{
         const candidates=page===1?data.symbols:[...this.rows,...data.symbols];
         this.rows=[...new Map(candidates.map(row=>[row.ticker,row])).values()];
-        this.loadedQuery=query;this.loadedPage=data.page;this.total=data.total;this.hasMore=data.hasMore;this.retrievedAt=data.retrievedAt;this.fallback=false;this.error='';
+        this.loadedQuery=query;this.loadedPage=data.page;this.total=data.total;this.hasMore=data.hasMore;this.retrievedAt=data.retrievedAt;this.omittedCount=(page===1?0:this.omittedCount)+(data.omittedCount??0);this.fallback=false;this.error='';
         if(page===1)this.activeIndex=-1;
       });
     }catch(error){

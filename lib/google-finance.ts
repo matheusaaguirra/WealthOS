@@ -3,7 +3,7 @@ import { MarketError } from './market';
 export const GOOGLE_RANGES = ['1d', '5d', '1mo'] as const;
 export function googleInput(ticker:string|null,range:string|null){
   const symbol=(ticker??'').trim().toUpperCase();const period=range??'1mo';
-  if(!/^[A-Z][A-Z0-9]{3}\d{1,2}F?$/.test(symbol))throw new MarketError(400,'Informe o ticker brasileiro, como WEGE3 ou BBAS3.');
+  if(!/^[A-Z0-9]{4}\d{1,2}F?$/.test(symbol))throw new MarketError(400,'Informe o ticker brasileiro, como WEGE3 ou BBAS3.');
   if(!GOOGLE_RANGES.includes(period as typeof GOOGLE_RANGES[number]))throw new MarketError(400,'Escolha o período de 1 dia, 5 dias ou 1 mês.');
   return {symbol,period};
 }

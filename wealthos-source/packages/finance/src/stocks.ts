@@ -20,7 +20,7 @@ export interface StockPosition {
   profitPercent: number | null;
 }
 export function validateHolding(holding: Holding): void {
-  if (!holding || typeof holding.id !== 'string' || !holding.id.trim() || typeof holding.ticker !== 'string' || !/^[A-Z][A-Z0-9]{3}\d{1,2}F?$/.test(holding.ticker)) throw new RangeError('Informe um identificador e ticker brasileiro válido.');
+  if (!holding || typeof holding.id !== 'string' || !holding.id.trim() || typeof holding.ticker !== 'string' || !/^[A-Z0-9]{4}\d{1,2}F?$/.test(holding.ticker)) throw new RangeError('Informe um identificador e ticker brasileiro válido.');
   if (!Number.isSafeInteger(holding.quantity) || holding.quantity <= 0 || holding.quantity > 1_000_000) throw new RangeError('Quantidade deve ser inteira, entre 1 e 1.000.000.');
   if (holding.averagePriceCents !== null) validateAmount(holding.averagePriceCents);
 }

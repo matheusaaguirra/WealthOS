@@ -1,0 +1,588 @@
+{
+  "source": "https://brapi.dev/api/v2/tickers?limit=40&sortBy=symbol&sortOrder=asc",
+  "capturedAt": "2026-10-23",
+  "pages": [
+    {
+      "results": [
+        {
+          "symbol": "03BK11",
+          "longName": "Galapagos Teva ITBR Tesouro IPCA 3 Anos Fundo de Indice ETF",
+          "name": "03BK11",
+          "subType": "etf",
+          "assetType": "fund"
+        },
+        {
+          "symbol": "10BK11",
+          "longName": "Galapagos Teva ITBR Tesouro IPCA 10 Anos Fundo de Indice",
+          "name": "10BK11",
+          "subType": "etf",
+          "assetType": "fund"
+        },
+        {
+          "symbol": "3PRE11",
+          "longName": "Galapagos Teva ITBR Tesouro Pre Fixado 3 Anos Fundo de Indice",
+          "name": "3PRE11",
+          "subType": "etf",
+          "assetType": "fund"
+        },
+        {
+          "symbol": "5PRE11",
+          "longName": "IT Now TEVA ITBR Pre 5 Anos Fundo de Indice Responsabilidade Limitada ETF",
+          "name": "5PRE11",
+          "subType": "etf",
+          "assetType": "fund"
+        },
+        {
+          "symbol": "A1AP34",
+          "longName": "Advance Auto Parts, Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 0.0625 Sh",
+          "name": "A1AP34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1CR34",
+          "longName": "Amcor PLC Shs Unsponsored Brazilian Depositary Receipt Repr 1 Sh",
+          "name": "A1CR34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1DC34",
+          "longName": "Agree Realty Corp Shs Unsponsored Brazilian Depositary Receipt Repr 0.125 Sh",
+          "name": "A1DC34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1DI34",
+          "longName": "Analog Devices Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.025 Sh",
+          "name": "A1DI34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1DM34",
+          "longName": "Archer Daniels Midland Company Shs Unsponsored Brazilian Depositary Receipt Repr 0.125 Sh",
+          "name": "A1DM34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1EG34",
+          "longName": "Aegon Ltd. ADR Unsponsored Brazilian Depositary Receipt Repr 0.25 ADR",
+          "name": "A1EG34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1EN34",
+          "longName": "Alliant Energy Corporation Unsponsored Brazilian Depositary Receipt Repr 1 Sh",
+          "name": "A1EN34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1EP34",
+          "longName": "American Electric Power Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.1 Sh",
+          "name": "A1EP34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1ES34",
+          "longName": "AES Corporation Shs Unsponsored Brazilian Depository Receipt Repr 1 Sh",
+          "name": "A1ES34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1FL34",
+          "longName": "Aflac Incorporated Unsponsored Brazilian Depositary Receipt Repr 1 Sh",
+          "name": "A1FL34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1GI34",
+          "longName": "Agilent Technologies Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.1 Sh",
+          "name": "A1GI34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1GN34",
+          "longName": "Allegion PLC Shs Unsponsored Brazilian Depositary Receipt Repr 0.5 Sh",
+          "name": "A1GN34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1GT34",
+          "longName": "AGNT Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.25 Sh",
+          "name": "A1GT34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1IV34",
+          "longName": "Apartment Investment and Management Company -A- Unsponsored BDR",
+          "name": "A1IV34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1KA34",
+          "longName": "Akamai Technologies, Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 0.0833 Sh",
+          "name": "A1KA34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1LB34",
+          "longName": "Albemarle Corporation Shs Unsponsored Brazilian Depositary Receipt Repr 0.04166667 Sh",
+          "name": "A1LB34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1LG34",
+          "longName": "Align Technology, Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 1/4 Sh",
+          "name": "A1LG34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1LK34",
+          "longName": "Alaska Air Group, Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 1 Sh",
+          "name": "A1LK34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1LL34",
+          "longName": "Bread Financial Holdings, Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 0.25 Sh",
+          "name": "A1LL34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1LN34",
+          "longName": "Alnylam Pharmaceuticals, Inc Shs Unsponsored Brazilian Depository Receipt Repr 0.05 Sh",
+          "name": "A1LN34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1MD34",
+          "longName": "Advanced Micro Devices, Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 0.125 Sh",
+          "name": "A1MD34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1ME34",
+          "longName": "AMETEK, Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 0.04166667 S",
+          "name": "A1ME34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1MP34",
+          "longName": "Ameriprise Financial Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.025 Sh",
+          "name": "A1MP34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1MT34",
+          "longName": "Applied Materials, Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 0.1 Sh",
+          "name": "A1MT34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1NE34",
+          "longName": "Arista Networks Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.25 Sh",
+          "name": "A1NE34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1ON34",
+          "longName": "Aon PLC Shs Unsponsored Brazilian Depositary Receipt Repr 0.041667 Sh",
+          "name": "A1ON34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1OS34",
+          "longName": "A. O. Smith Corporation Unsponsored Brazilian Depositary Receipt Repr 1 Sh",
+          "name": "A1OS34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1PA34",
+          "longName": "APA Corporation Shs Unsponsored Brazilian Depositary Receipt Repr 1 Sh",
+          "name": "A1PA34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1PD34",
+          "longName": "Air Products & Chemicals Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.041667 Sh",
+          "name": "A1PD34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1PH34",
+          "longName": "Amphenol Corporation (New) Shs Unsponsored Brazilian Depositary Receipt Repr 0.083333 Sh",
+          "name": "A1PH34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1PL34",
+          "longName": "Applied Digital Corporation Shs Unsponsored Brazilian Depositary Receipt Repr 1 Sh",
+          "name": "A1PL34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1PO34",
+          "longName": "Apollo Global Management Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.06666667 Shs",
+          "name": "A1PO34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1PP34",
+          "longName": "AppLovin Corp. Shs A UnSp Brazilian Depositary Receipt Repr 0.03125 Shs A",
+          "name": "A1PP34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1RC34",
+          "longName": "Arcos Dorados Holdings Inc Shs Unsponsored Brazilian Depositary Receipt Repr 1 Sh",
+          "name": "A1RC34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1RE34",
+          "longName": "Alexandria Real Estate Equities Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.25 Sh",
+          "name": "A1RE34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1RG34",
+          "longName": "argenx SE ADR Unsponsored Brazilian Depositary Receipt Repr 0.04 ADR",
+          "name": "A1RG34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        }
+      ],
+      "pagination": {
+        "page": 1,
+        "limit": 40,
+        "totalItems": 2348,
+        "totalPages": 59,
+        "hasNextPage": true
+      }
+    },
+    {
+      "results": [
+        {
+          "symbol": "A1SN34",
+          "longName": "Ascendis Pharma A/S ADR Unsponsored Brazilian Depositary Receipt Repr 0.0666 ADR",
+          "name": "A1SN34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1SU34",
+          "longName": "Assurant, Inc. Unsponsored Brazilian Depositary Receipt Repr 0.25 Sh",
+          "name": "A1SU34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1TH34",
+          "longName": "Autohome Inc. ADR Unsponsored Brazilian Depositary Receipt Repr 0.1 ADR",
+          "name": "A1TH34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1TM34",
+          "longName": "Atmos Energy Corporation Shs Unsponsored Brazilian Depositary Receipt Repr 0.5 Sh",
+          "name": "A1TM34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1TT34",
+          "longName": "Allstate Corporation Shs Unsponsored Brazilian Depositary Receipt Repr 0.04166667 Sh",
+          "name": "A1TT34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1UT34",
+          "longName": "Autodesk Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.05 Sh",
+          "name": "A1UT34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1WK34",
+          "longName": "American Water Works Co Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.083333 Sh",
+          "name": "A1WK34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A1ZN34",
+          "longName": "AstraZeneca PLC ADR Unsponsored Brazilian Depositary Receipt Repr 0.1666 ADR",
+          "name": "A1ZN34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A2FY34",
+          "longName": "Afya Limited Unsponsored Brazilian Depositary Receipt Repr 0.5 Class A",
+          "name": "A2FY34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A2LC34",
+          "longName": "Alcon Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 0.1 Sh",
+          "name": "A2LC34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A2MB34",
+          "longName": "Ambarella, Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 0.04 Sh",
+          "name": "A2MB34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A2RE34",
+          "longName": "Ares Management Corporation Shs Unsponsored Brazilian Depositary Receipt Repr 0.1 Sh",
+          "name": "A2RE34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A2RR34",
+          "longName": "Arrowhead Pharmaceuticals, Inc. Unsponsored Brazilian Depositary Receipt Repr 0.125 Sh",
+          "name": "A2RR34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A2RW34",
+          "longName": "Arrows Electronics Inc Unsponsored Brazilian Depositary Receipt Repr 0.066666667 Sh",
+          "name": "A2RW34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A2SO34",
+          "longName": "Academy Sports and Outdoors Inc Shs Unsponsored Brazilian Depositary Receipt Repr 0.25 Sh",
+          "name": "A2SO34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A2XO34",
+          "longName": "Axon Enterprise Inc Unsponsored Brazilian Depositary Receipt Repr 0.055555556 Sh",
+          "name": "A2XO34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "A2ZT34",
+          "longName": "Azenta Inc Unsponsored Brazilian Depositary Receipt Repr 0.083333333 Sh",
+          "name": "A2ZT34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "AADA39",
+          "longName": "21Shares Ltd ETP Unsponsored Brazilian Depositary Receipt Repr 1 ETP",
+          "name": "21SHARES CARDANO ETP",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "AAGR11",
+          "longName": "Asset Bank Agronegocios Fundo de Investimento nas Cadeias Produtivas Agroindustriais Direitos Creditorios",
+          "name": "AAGR11",
+          "subType": "fi-agro",
+          "assetType": "fund"
+        },
+        {
+          "symbol": "AALL34",
+          "longName": "American Airlines Group Inc. Shs Unsponsored Brazilian Depository Receipt Repr 1 Sh",
+          "name": "AALL34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "AALR3",
+          "longName": "Allianca Saude e Participacoes SA - ALLIAR",
+          "name": "ALLIANÇA SAÚDE E PARTICIPAÇÕES S.A.",
+          "subType": "stock",
+          "assetType": "stock"
+        },
+        {
+          "symbol": "AALR3F",
+          "longName": "Allianca Saude e Participacoes SA - ALLIAR",
+          "name": "ALLIANÇA SAÚDE E PARTICIPAÇÕES S.A.",
+          "subType": "stock",
+          "assetType": "stock"
+        },
+        {
+          "symbol": "AAPL34",
+          "longName": "Apple Inc. Shs Unsponsored Brazilian Depository Receipt Repr 0.05 Sh",
+          "name": "AAPL34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "AAZQ11",
+          "longName": "AZ Quest Sole Fundo de Investimento Nas Cadeias Produtivas do Agronegocio - Fiagro - Imobiliario",
+          "name": "AAZQ11",
+          "subType": "fi-agro",
+          "assetType": "fund"
+        },
+        {
+          "symbol": "ABBV34",
+          "longName": "AbbVie, Inc. Shs Unsponsored Brazilian Depository Receipt Repr 0.0625 Sh",
+          "name": "ABBV34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "ABCB10",
+          "longName": "Banco ABC Brasil SA TEMP",
+          "name": "BCO ABC BRASIL S.A.",
+          "subType": "stock",
+          "assetType": "stock"
+        },
+        {
+          "symbol": "ABCB10F",
+          "longName": "Banco ABC Brasil SA TEMP",
+          "name": "BCO ABC BRASIL S.A.",
+          "subType": "stock",
+          "assetType": "stock"
+        },
+        {
+          "symbol": "ABCB4",
+          "longName": "Banco ABC Brasil SA Conv Pfd",
+          "name": "BCO ABC BRASIL S.A.",
+          "subType": "stock",
+          "assetType": "stock"
+        },
+        {
+          "symbol": "ABCB4F",
+          "longName": "Banco ABC Brasil SA Conv Pfd",
+          "name": "BCO ABC BRASIL S.A.",
+          "subType": "stock",
+          "assetType": "stock"
+        },
+        {
+          "symbol": "ABCP11",
+          "longName": "Fundo de Investimento Imobiliario Grand Plaza Shopping Cotas",
+          "name": "ABCP11",
+          "subType": "fii",
+          "assetType": "fund"
+        },
+        {
+          "symbol": "ABEV3",
+          "longName": "Ambev SA",
+          "name": "AMBEV S.A.",
+          "subType": "stock",
+          "assetType": "stock"
+        },
+        {
+          "symbol": "ABEV3F",
+          "longName": "Ambev SA",
+          "name": "AMBEV S.A.",
+          "subType": "stock",
+          "assetType": "stock"
+        },
+        {
+          "symbol": "ABGD39",
+          "longName": "abrdn Gold ETF Trust Shs Unsponsored Brazilian Depositary Receipt Repr 0.5 Sh",
+          "name": "ABRDN PHYSICAL GOLD SHARES ETF",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "ABTC11",
+          "longName": "BTG Pactual Teva AUVP Bitcoin Fear Arbitrage Fundo de Indice",
+          "name": "ABTC11",
+          "subType": "etf",
+          "assetType": "fund"
+        },
+        {
+          "symbol": "ABTT34",
+          "longName": "Abbott Laboratories Shs Unsponsored Brazilian Depository Receipts Repr 0.083333333 S",
+          "name": "ABTT34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "ABUD34",
+          "longName": "Anheuser-Busch InBev SA/NV ADR Unsponsored Brazilian Depository Receipt Repr 0.1667 ADR",
+          "name": "ABUD34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "ACNB34",
+          "longName": "Accenture PLC Shs Unsponsored Brazilian Depository Receipt Repr 1 Sh",
+          "name": "ACNB34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "ACWI11",
+          "longName": "Trend ETF MSCI ACWI Fundo de Indice",
+          "name": "ACWI11",
+          "subType": "etf",
+          "assetType": "fund"
+        },
+        {
+          "symbol": "ACWX39",
+          "longName": "iShares MSCI ACWI ex US ETF Shs Unsponsored Brazilian Depositary Receipt Repr 0.16666666 Sh",
+          "name": "ISHARES MSCI ACWI EX U.S. ETF",
+          "subType": "bdr",
+          "assetType": "bdr"
+        },
+        {
+          "symbol": "ADBE34",
+          "longName": "Adobe Inc. Shs Unsponsored Brazilian Depositary Receipt Repr 0.02 Sh",
+          "name": "ADBE34",
+          "subType": "bdr",
+          "assetType": "bdr"
+        }
+      ],
+      "pagination": {
+        "page": 2,
+        "limit": 40,
+        "totalItems": 2348,
+        "totalPages": 59,
+        "hasNextPage": true
+      }
+    }
+  ]
+}

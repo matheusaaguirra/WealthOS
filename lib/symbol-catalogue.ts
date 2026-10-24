@@ -2,7 +2,8 @@ import type { ListedAssetType, SymbolCataloguePage, StockSuggestion } from '../w
 
 export const SYMBOL_PAGE_SIZE=40;
 const MAX_BODY_BYTES=1_000_000;
-const ticker=/^[A-Z][A-Z0-9]{3}\d{1,2}F?$/;
+// B3 ETFs can begin with digits (03BK11, 10BK11, 3PRE11, 5PRE11).
+const ticker=/^[A-Z0-9]{4}\d{1,2}F?$/;
 export class SymbolCatalogueError extends Error {constructor(public status:number,message:string){super(message);}}
 export function symbolCatalogueInput(params:URLSearchParams){
   const query=(params.get('q')??'').trim();
@@ -18,16 +19,16 @@ export function normalizeSymbolCatalogue(payload:unknown,page:number,retrievedAt
   const data=payload as {results?:unknown[];pagination?:{page?:unknown;limit?:unknown;totalItems?:unknown;hasNextPage?:unknown}}|null;
   const p=data?.pagination;
   if(!Array.isArray(data?.results)||data.results.length>SYMBOL_PAGE_SIZE||p?.page!==page||p.limit!==SYMBOL_PAGE_SIZE||typeof p.totalItems!=='number'||!Number.isSafeInteger(p.totalItems)||p.totalItems<0||p.totalItems>100000||typeof p.hasNextPage!=='boolean')throw new SymbolCatalogueError(502,'O catálogo retornou dados incompatíveis.');
-  const symbols:StockSuggestion[]=[];const seen=new Set<string>();
+  const symbols:StockSuggestion[]=[];const seen=new Set<string>();let omittedCount=0;
   for(const raw of data.results){
     const row=raw as {symbol?:unknown;longName?:unknown;name?:unknown;subType?:unknown;assetType?:unknown;isActive?:unknown}|null;
-    if(!row||typeof row.symbol!=='string'||!ticker.test(row.symbol)||seen.has(row.symbol))throw new SymbolCatalogueError(502,'O catálogo retornou um código de ativo inválido.');
+    if(!row||typeof row.symbol!=='string'||!ticker.test(row.symbol)||seen.has(row.symbol)){omittedCount++;continue;}
     const name=cleanName(row.longName)||cleanName(row.name)||row.symbol;
     const type=typeof row.subType==='string'&&assetTypes.has(row.subType)?row.subType:typeof row.assetType==='string'&&assetTypes.has(row.assetType)?row.assetType:'other';
     seen.add(row.symbol);symbols.push({ticker:row.symbol,name,assetType:type as ListedAssetType});
   }
-  if(p.totalItems<symbols.length||(!symbols.length&&p.hasNextPage))throw new SymbolCatalogueError(502,'A paginação do catálogo está indisponível.');
-  return {symbols,page,pageSize:SYMBOL_PAGE_SIZE,total:p.totalItems,hasMore:p.hasNextPage,source:'brapi',retrievedAt};
+  if(p.totalItems<data.results.length||(!data.results.length&&p.hasNextPage))throw new SymbolCatalogueError(502,'A paginação do catálogo está indisponível.');
+  return {symbols,page,pageSize:SYMBOL_PAGE_SIZE,total:p.totalItems,hasMore:p.hasNextPage,source:'brapi',retrievedAt,omittedCount};
 }
 export async function fetchSymbolCatalogue(query:string,page:number,token?:string,fetcher:typeof fetch=fetch):Promise<SymbolCataloguePage>{
   const url=new URL('https://brapi.dev/api/v2/tickers');
