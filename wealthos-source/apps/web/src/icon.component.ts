@@ -14,6 +14,7 @@ export class IconComponent {
     logo: 'M3 7l3 12 5-9 3 9 7-15 M15 4h6v6',
     dashboard: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
     transactions: 'M4 7h16m-4-4 4 4-4 4 M20 17H4m4-4-4 4 4 4',
+    recurring: 'M7 3v4m10-4v4M4 9h16M5 5h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2 M8 14h3v3H8z M15 14h2',
     accounts: 'M3 7a2 2 0 0 1 2-2h14v4H5a2 2 0 0 1 0-4 M3 7v12a2 2 0 0 0 2 2h16V9H5 M21 13h-5v4h5 M17 15h.01',
     budgets: 'M12 3v9h9 M8.5 3.7A9 9 0 1 0 20.3 15.5 M16 3.9a9 9 0 0 1 4.1 4.1',
     goals: 'M4 21V4m0 0c5-4 11 4 16 0v10c-5 4-11-4-16 0',

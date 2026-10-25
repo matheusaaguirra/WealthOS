@@ -16,7 +16,7 @@ interface Transaction extends Entry { description:string; category:string; idemp
 interface Budget { id:string; category:string; limitCents:number; }
 interface Goal { id:string; name:string; targetCents:number; savedCents:number; icon:string; }
 interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; investments?:FixedIncomeInvestment[]; recurringExpenses?:RecurringExpense[]; }
-type View = 'dashboard'|'transactions'|'accounts'|'budgets'|'goals'|'stocks'|'profile';
+type View = 'dashboard'|'transactions'|'recurring'|'accounts'|'budgets'|'goals'|'stocks'|'profile';
 @Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent],templateUrl:'./app.component.html'})
 export class AppComponent {
   MathRound = Math.round;
@@ -141,7 +141,7 @@ export class AppComponent {
   selectStockTab(tab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'){this.stockTab=tab;if(tab==='market'&&!this.marketLoaded)void this.refreshMarket();if(tab==='portfolio')void this.loadPortfolioQuotes();if(tab==='detail'&&!this.stockDetail)void this.loadStockChart();if(tab==='crypto'&&!this.cryptoLoaded)void this.refreshCrypto();}
 
   view:View = 'dashboard';
-  navigation:{key:View;label:string;icon:string}[]=[{key:'dashboard',label:'Visão geral',icon:'dashboard'},{key:'transactions',label:'Lançamentos',icon:'transactions'},{key:'accounts',label:'Minhas contas',icon:'accounts'},{key:'budgets',label:'Orçamentos',icon:'budgets'},{key:'goals',label:'Metas e sonhos',icon:'goals'},{key:'stocks',label:'Investimentos',icon:'stocks'},{key:'profile',label:'Minha conta',icon:'profile'}];
+  navigation:{key:View;label:string;icon:string}[]=[{key:'dashboard',label:'Visão geral',icon:'dashboard'},{key:'transactions',label:'Lançamentos',icon:'transactions'},{key:'recurring',label:'Gastos fixos',icon:'recurring'},{key:'accounts',label:'Minhas contas',icon:'accounts'},{key:'budgets',label:'Orçamentos',icon:'budgets'},{key:'goals',label:'Metas e sonhos',icon:'goals'},{key:'stocks',label:'Investimentos',icon:'stocks'},{key:'profile',label:'Minha conta',icon:'profile'}];
   categories=['Alimentação','Moradia','Transporte','Compras','Saúde','Lazer','Educação','Salário','Freelance','Outros'];
   private _month = this.localToday().slice(0,7);
   get month(){return this._month;}
@@ -157,6 +157,11 @@ export class AppComponent {
   recurringDraft={id:'',description:'',amount:'',accountId:'',category:'Moradia',day:1,startMonth:this.month,endMonth:'',active:true};
   get recurringRules(){return this.state.recurringExpenses??[];}
   get dueRecurring(){return dueRecurringExpenses(this.recurringRules,this.state.transactions,this.month);}
+  get scheduledRecurring(){return this.recurringRules.filter(rule=>rule.active&&this.month>=rule.startMonth&&(!rule.endMonth||this.month<=rule.endMonth));}
+  get recurringMonthlyTotal(){return this.scheduledRecurring.reduce((sum,rule)=>sum+rule.amountCents,0);}
+  get recurringPendingTotal(){return this.dueRecurring.reduce((sum,rule)=>sum+rule.amountCents,0);}
+  recurringPosted(rule:RecurringExpense){return this.state.transactions.some(t=>t.recurringRuleId===rule.id&&t.recurringMonth===this.month);}
+  recurringStatus(rule:RecurringExpense){if(!rule.active)return 'Pausado';if(this.recurringPosted(rule))return 'Lançado neste mês';if(this.month<rule.startMonth)return 'Começa em '+rule.startMonth;if(rule.endMonth&&this.month>rule.endMonth)return 'Encerrado';return 'Pendente neste mês';}
   openRecurring(rule?:RecurringExpense){this.openModal('recurring');this.recurringDraft=rule?{...rule,amount:(rule.amountCents/100).toFixed(2).replace('.',','),endMonth:rule.endMonth??''}:{id:'',description:'',amount:'',accountId:defaultAccountId(this.state.accounts),category:'Moradia',day:1,startMonth:this.month,endMonth:'',active:true};}
   async generateRecurring(){if(this.busy||!this.dataReady||!this.user)return;const due=this.dueRecurring;if(!due.length)return;const previous=this.state;this.busy=true;try{const generated:Transaction[]=due.map(rule=>({id:this.uuid(),idempotencyKey:this.uuid(),accountId:rule.accountId,description:rule.description,category:rule.category,amountCents:rule.amountCents,date:recurringDate(rule,this.month),type:'EXPENSE',recurringRuleId:rule.id,recurringMonth:this.month}));this.state={...this.state,transactions:[...this.state.transactions,...generated]};await this.persist();this.notify(generated.length+' despesa(s) fixa(s) lançada(s) neste mês.');}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:'Não foi possível lançar as despesas.');}finally{this.busy=false;}}
   async toggleRecurring(rule:RecurringExpense){if(this.busy)return;const previous=this.state;this.busy=true;try{this.state={...this.state,recurringExpenses:this.recurringRules.map(r=>r.id===rule.id?{...r,active:!r.active}:r)};await this.persist();this.notify(rule.active?'Despesa fixa pausada.':'Despesa fixa reativada.');}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:'Não foi possível alterar.');}finally{this.busy=false;}}

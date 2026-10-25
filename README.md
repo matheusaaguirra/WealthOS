@@ -3,7 +3,7 @@
 ## Lançamentos e extratos
 
 - Valores em reais usam máscara de centavos: digitar `232323` exibe `2.323,23`.
-- Despesas fixas são regras mensais salvas na conta. Em **Lançamentos**, use **Lançar despesas** no mês escolhido; cada regra gera no máximo um lançamento por mês, mesmo após estorno. Pausar a regra não remove lançamentos anteriores.
+- **Gastos fixos** é uma tela própria no menu. As regras mensais aparecem na programação do mês selecionado; use **Lançar gastos deste mês** para registrar os pendentes no saldo e nos relatórios. Cada regra gera no máximo um lançamento por mês, mesmo após estorno. Pausar a regra não remove lançamentos anteriores.
 - A importação de extratos PDF lê texto localmente no navegador, até 10 MB e 20 páginas. Revise conta, descrição e categoria na prévia antes de salvar. PDFs digitalizados como imagem precisam de OCR externo; linhas ambíguas são ignoradas.
 - **Exportar PDF** em Lançamentos gera um relatório A4 do mês e dos filtros atuais. **Baixar meus dados** na tela Minha conta mantém a exportação completa em JSON.
 
