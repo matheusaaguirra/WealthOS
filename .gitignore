@@ -47,5 +47,6 @@ yarn-error.log*
 !.env.example
 /wealthos-source/**/node_modules/
 /wealthos-source/**/dist/
+/public/app/pdf.worker.min.mjs
 
 /.vercel/

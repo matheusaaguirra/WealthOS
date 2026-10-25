@@ -81,3 +81,5 @@ export type { StockQuote, StockPeriod, Holding, StockPosition } from './stocks';
 
 export { FIXED_INCOME_TYPES, validateFixedIncomeInvestment, fixedIncomeFromDraft, summarizeFixedIncome } from './fixed-income';
 export type { FixedIncomeInvestment, FixedIncomeDraft, FixedIncomeType, InvestmentIndexer } from './fixed-income';
+export { validateRecurringExpense, recurringDate, dueRecurringExpenses } from './recurring-expenses';
+export type { RecurringExpense, RecurringTransaction } from './recurring-expenses';

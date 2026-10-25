@@ -9,3 +9,4 @@ for(const args of [['run','build','-w','@wealthos/finance'],['run','build','-w',
 const destination=new URL('../public/app/',import.meta.url);
 await rm(destination,{recursive:true,force:true});
 await cp(new URL('apps/web/dist/browser/',source),destination,{recursive:true});
+await cp(new URL('node_modules/pdfjs-dist/build/pdf.worker.min.mjs',source),new URL('pdf.worker.min.mjs',destination));

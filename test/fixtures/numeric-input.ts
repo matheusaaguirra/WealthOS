@@ -42,4 +42,16 @@ directive.numericDecimals=6;directive.numericAllowNegative=false;directive.write
 const before=model;input.select();directive.compositionStart();input.value='あ';directive.inputChanged();assert.equal(model,before);directive.compositionEnd();assert.equal(input.value,before);assert.equal(model,before);
 directive.setDisabledState(true);input.select();paste('5');assert.equal(model,before);
 directive.setDisabledState(false);input.readOnly=true;paste('5');assert.equal(model,before);
+input.readOnly=false;directive.numericMoneyMask=true;directive.numericDecimals=2;
+directive.writeValue('');
+for(const digit of '232323')type(digit);
+assert.equal(model,'2.323,23');assert.equal(input.selectionStart,input.value.length);
+let deletionPrevented=false;directive.beforeInput({inputType:'deleteContentBackward',data:null,isComposing:false,preventDefault(){deletionPrevented=true;}} as InputEvent);
+assert.equal(deletionPrevented,true);assert.equal(model,'232,32');
+type('3');assert.equal(model,'2.323,23');
+assert.equal(type('a'),true);assert.equal(model,'2.323,23');
+input.select();paste('R$ 1.234,56');assert.equal(model,'1.234,56');
+input.select();paste('1e3');assert.equal(model,'1.234,56');
+directive.writeValue('0');directive.focus();type('5');assert.equal(model,'0,05');
+directive.numericAllowNegative=true;directive.writeValue('-12,34');assert.equal(input.value,'-12,34');
 console.log('Numeric directive typing, zero, caret, paste, model, composition and disabled checks passed.');

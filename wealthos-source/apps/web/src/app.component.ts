@@ -4,21 +4,24 @@ import { FormsModule } from '@angular/forms';
 import { TradingChartComponent } from './trading-chart.component';
 import { IconComponent } from './icon.component';
 import { NumericInputDirective } from './numeric-input.directive';
+import { StatementImportComponent, ImportedStatementRow } from './statement-import.component';
+import { statementFingerprint } from './statement-parser';
+import { downloadTransactionsPdf } from './transactions-pdf';
 import { StockAutocompleteComponent } from './stock-autocomplete.component';
 import { createAccountFromDraft, defaultAccountId } from './account-setup';
 import {siteAuth,marketApi,SiteUser,AuthConfig,StockResponse,CryptoResponse} from './services/site-api';
-import { balance, summarize, parseMoneyToCents, validateAmount, validateDate, assertNoDuplicate, Entry, stockPosition, sectorPerformance, StockQuote, Holding, FIXED_INCOME_TYPES, FixedIncomeInvestment, FixedIncomeDraft, fixedIncomeFromDraft, summarizeFixedIncome } from '@wealthos/finance';
+import { balance, summarize, parseMoneyToCents, validateAmount, validateDate, assertNoDuplicate, Entry, stockPosition, sectorPerformance, StockQuote, Holding, FIXED_INCOME_TYPES, FixedIncomeInvestment, FixedIncomeDraft, fixedIncomeFromDraft, summarizeFixedIncome, RecurringExpense, dueRecurringExpenses, recurringDate } from '@wealthos/finance';
 interface Account { id:string; name:string; institution:string; color:string; openingBalanceCents:number; balanceCents?:number; }
-interface Transaction extends Entry { description:string; category:string; idempotencyKey:string; }
+interface Transaction extends Entry { description:string; category:string; idempotencyKey:string; recurringRuleId?:string; recurringMonth?:string; }
 interface Budget { id:string; category:string; limitCents:number; }
 interface Goal { id:string; name:string; targetCents:number; savedCents:number; icon:string; }
-interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; investments?:FixedIncomeInvestment[]; }
+interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; investments?:FixedIncomeInvestment[]; recurringExpenses?:RecurringExpense[]; }
 type View = 'dashboard'|'transactions'|'accounts'|'budgets'|'goals'|'stocks'|'profile';
-@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,StockAutocompleteComponent,NumericInputDirective],templateUrl:'./app.component.html'})
+@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent],templateUrl:'./app.component.html'})
 export class AppComponent {
   MathRound = Math.round;
   theme:'light'|'dark'=document.documentElement.dataset['theme']==='dark'?'dark':'light';
-  stockTab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'='market';
+  stockTab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'='portfolio';
   stockPeriod:'day'|'month'|'year'='day';
   stockSearch=''; stockSector='ALL';
   quotes:StockQuote[]=[];
@@ -145,12 +148,18 @@ export class AppComponent {
   set month(value:string){if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value)&&value>='2000-01'&&value<='2100-12')this._month=value;}
   search=''; filterType='ALL'; filterAccount='ALL'; hideValues=false; mobileMenu=false;
   state:State={accounts:[],transactions:[],budgets:[],goals:[]};
-  modal:'transaction'|'account'|'budget'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|'fixedIncome'|'deleteFixedIncome'|null=null;
+  modal:'transaction'|'account'|'budget'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|'fixedIncome'|'deleteFixedIncome'|'recurring'|null=null;
   error=''; toast=''; busy=false;
   accountOnboarding=false;
   private resumeTransactionAfterSetup=false;
 
   draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:'',date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:''};
+  recurringDraft={id:'',description:'',amount:'',accountId:'',category:'Moradia',day:1,startMonth:this.month,endMonth:'',active:true};
+  get recurringRules(){return this.state.recurringExpenses??[];}
+  get dueRecurring(){return dueRecurringExpenses(this.recurringRules,this.state.transactions,this.month);}
+  openRecurring(rule?:RecurringExpense){this.openModal('recurring');this.recurringDraft=rule?{...rule,amount:(rule.amountCents/100).toFixed(2).replace('.',','),endMonth:rule.endMonth??''}:{id:'',description:'',amount:'',accountId:defaultAccountId(this.state.accounts),category:'Moradia',day:1,startMonth:this.month,endMonth:'',active:true};}
+  async generateRecurring(){if(this.busy||!this.dataReady||!this.user)return;const due=this.dueRecurring;if(!due.length)return;const previous=this.state;this.busy=true;try{const generated:Transaction[]=due.map(rule=>({id:this.uuid(),idempotencyKey:this.uuid(),accountId:rule.accountId,description:rule.description,category:rule.category,amountCents:rule.amountCents,date:recurringDate(rule,this.month),type:'EXPENSE',recurringRuleId:rule.id,recurringMonth:this.month}));this.state={...this.state,transactions:[...this.state.transactions,...generated]};await this.persist();this.notify(generated.length+' despesa(s) fixa(s) lançada(s) neste mês.');}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:'Não foi possível lançar as despesas.');}finally{this.busy=false;}}
+  async toggleRecurring(rule:RecurringExpense){if(this.busy)return;const previous=this.state;this.busy=true;try{this.state={...this.state,recurringExpenses:this.recurringRules.map(r=>r.id===rule.id?{...r,active:!r.active}:r)};await this.persist();this.notify(rule.active?'Despesa fixa pausada.':'Despesa fixa reativada.');}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:'Não foi possível alterar.');}finally{this.busy=false;}}
   private transactionKey = this.uuid();
   private returnFocus:HTMLElement|null=null;
   private toastTimer:ReturnType<typeof setTimeout>|undefined;
@@ -174,7 +183,7 @@ export class AppComponent {
   spent(category:string){return this.state.transactions.filter(t=>t.type==='EXPENSE'&&t.category===category&&!t.reversedAt&&t.date.startsWith(this.month)).reduce((sum,t)=>sum+t.amountCents,0);}
   percent(value:number,total:number){return total>0?Math.min(100,Math.round(value/total*100)):0;}
   categoryIcon(c:string){return ({'Alimentação':'food','Moradia':'home','Transporte':'car','Compras':'bag','Saúde':'heart','Lazer':'sparkles','Educação':'book','Salário':'income','Freelance':'briefcase'} as Record<string,string>)[c]||'circle';}
-  navigate(v:View){if(!this.user||!this.dataReady)return;this.view=v;this.mobileMenu=false;this.search='';this.filterType='ALL';this.filterAccount='ALL';if(v==='stocks'&&!this.marketLoaded)void this.refreshMarket();}
+  navigate(v:View){if(!this.user||!this.dataReady)return;this.view=v;this.mobileMenu=false;this.search='';this.filterType='ALL';this.filterAccount='ALL';if(v==='stocks')this.selectStockTab('portfolio');}
   changeMonth(delta:number){const d=new Date(this.month+'-02T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+delta);this.month=d.toISOString().slice(0,7);}
   chooseMonth(){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(this.month))this.month=this.localToday().slice(0,7);}
   openModal(kind:NonNullable<AppComponent['modal']>,item?:Budget|Goal){
@@ -199,6 +208,14 @@ export class AppComponent {
       const investments=this.investmentDraft.id?this.fixedIncomeInvestments.map(item=>item.id===row.id?row:item):[...this.fixedIncomeInvestments,row];
       if(investments.length>200)throw new Error('O limite é de 200 registros de renda fixa.');
       this.state={...this.state,investments};
+    }else if(this.modal==='recurring'){
+      const d=this.recurringDraft;const amountCents=parseMoneyToCents(d.amount);validateAmount(amountCents);
+      if(!this.state.accounts.some(a=>a.id===d.accountId))throw new Error('Selecione uma conta válida.');
+      if(!d.description.trim()||d.description.length>120)throw new Error('Informe uma descrição de até 120 caracteres.');
+      if(!Number.isInteger(Number(d.day))||Number(d.day)<1||Number(d.day)>31)throw new Error('O dia deve estar entre 1 e 31.');
+      if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(d.startMonth)||d.endMonth&&(!/^\d{4}-(0[1-9]|1[0-2])$/.test(d.endMonth)||d.endMonth<d.startMonth))throw new Error('Confira os meses de início e término.');
+      const rule:RecurringExpense={id:d.id||this.uuid(),accountId:d.accountId,description:d.description.trim(),category:d.category,amountCents,day:Number(d.day),startMonth:d.startMonth,...(d.endMonth?{endMonth:d.endMonth}:{}),active:d.active};
+      this.state={...this.state,recurringExpenses:d.id?this.recurringRules.map(r=>r.id===d.id?rule:r):[...this.recurringRules,rule]};
     }else if(this.modal==='deleteFixedIncome'){
       if(!this.pendingDeleteInvestment)throw new Error('Selecione um investimento.');
       this.state={...this.state,investments:this.fixedIncomeInvestments.filter(item=>item.id!==this.pendingDeleteInvestment!.id)};
@@ -238,5 +255,23 @@ export class AppComponent {
   }catch(error){this.state=previous;this.error=error instanceof Error?error.message:'Não foi possível salvar. Tente novamente.';}finally{this.busy=false;}}
   async reverse(t:Transaction){if(t.reversedAt||this.busy||!this.user)return;const previous=this.state;this.busy=true;try{const updated:Transaction={...t,reversedAt:new Date().toISOString()};this.state={...this.state,transactions:this.state.transactions.map(item=>item.id===t.id?updated:item)};await this.persist();this.notify('Lançamento estornado. Saldo atualizado.');}catch(error){this.state=previous;this.notify(error instanceof Error?error.message:'Não foi possível estornar.');}finally{this.busy=false;}}
   exportData(){const data=JSON.stringify({exportedAt:new Date().toISOString(),...this.state},null,2);const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='wealthos-'+this.localToday()+'.json';a.click();URL.revokeObjectURL(url);this.notify('Exportação concluída.');}
+  exportTransactionsPdf(){downloadTransactionsPdf(this.filteredTransactions.map(t=>({...t,account:this.accountName(t.accountId)})),this.month);this.notify('PDF dos lançamentos gerado.');}
+  async importStatementRows(rows:ImportedStatementRow[]){
+    if(this.busy||!this.user||!this.dataReady||!rows.length)return;
+    const previous=this.state;this.busy=true;
+    try{
+      const seen=new Set(this.state.transactions.filter(t=>!t.reversedAt).map(t=>t.accountId+':'+statementFingerprint(t)));
+      const added:Transaction[]=[];
+      for(const row of rows){
+        validateDate(row.date);validateAmount(row.amountCents);
+        if(!this.state.accounts.some(a=>a.id===row.accountId)||!['INCOME','EXPENSE'].includes(row.type)||!this.categories.includes(row.category)||!row.description.trim()||row.description.length>120)throw new Error('Revise as linhas do extrato antes de importar.');
+        const key=row.accountId+':'+statementFingerprint(row);if(seen.has(key))continue;seen.add(key);
+        added.push({id:this.uuid(),idempotencyKey:this.uuid(),accountId:row.accountId,date:row.date,description:row.description.trim(),amountCents:row.amountCents,type:row.type,category:row.category});
+      }
+      if(!added.length){this.notify('Todos os lançamentos selecionados já estão cadastrados.');return;}
+      if(this.state.transactions.length+added.length>2000)throw new Error('Limite de 2.000 lançamentos atingido.');
+      this.state={...this.state,transactions:[...this.state.transactions,...added]};await this.persist();this.notify(added.length+' lançamento(s) importado(s).');
+    }catch(error){this.state=previous;this.notify(error instanceof Error?error.message:'Não foi possível importar o extrato.');}finally{this.busy=false;}
+  }
   private parseAllowZero(input:string){return /^(?:0+)(?:,0{1,2})?$/.test(input.trim())?0:parseMoneyToCents(input);}
 }
