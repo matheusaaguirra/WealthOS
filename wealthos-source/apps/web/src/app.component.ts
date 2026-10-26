@@ -18,10 +18,9 @@ interface Transaction extends Entry { description:string; category:string; idemp
 interface Budget { id:string; category:string; limitCents:number; }
 interface Goal { id:string; name:string; targetCents:number; savedCents:number; icon:string; }
 interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; investments?:FixedIncomeInvestment[]; recurringExpenses?:RecurringExpense[]; }
-type View = 'dashboard'|'transactions'|'recurring'|'accounts'|'budgets'|'goals'|'stocks'|'profile';
+type View = 'dashboard'|'transactions'|'recurring'|'accounts'|'goals'|'stocks'|'profile';
 @Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,CategoryPickerComponent,AccountPickerComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent],templateUrl:'./app.component.html'})
 export class AppComponent {
-  MathRound = Math.round;
   theme:'light'|'dark'=document.documentElement.dataset['theme']==='dark'?'dark':'light';
   stockTab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'='portfolio';
   stockPeriod:'day'|'month'|'year'='day';
@@ -143,7 +142,7 @@ export class AppComponent {
   selectStockTab(tab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'){this.stockTab=tab;if(tab==='market'&&!this.marketLoaded)void this.refreshMarket();if(tab==='portfolio')void this.loadPortfolioQuotes();if(tab==='detail'&&!this.stockDetail)void this.loadStockChart();if(tab==='crypto'&&!this.cryptoLoaded)void this.refreshCrypto();}
 
   view:View = 'dashboard';
-  navigation:{key:View;label:string;icon:string}[]=[{key:'dashboard',label:'Visão geral',icon:'dashboard'},{key:'transactions',label:'Lançamentos',icon:'transactions'},{key:'recurring',label:'Gastos fixos',icon:'recurring'},{key:'accounts',label:'Minhas contas',icon:'accounts'},{key:'budgets',label:'Orçamentos',icon:'budgets'},{key:'goals',label:'Metas e sonhos',icon:'goals'},{key:'stocks',label:'Investimentos',icon:'stocks'},{key:'profile',label:'Minha conta',icon:'profile'}];
+  navigation:{key:View;label:string;icon:string}[]=[{key:'dashboard',label:'Visão geral',icon:'dashboard'},{key:'transactions',label:'Lançamentos',icon:'transactions'},{key:'recurring',label:'Gastos fixos',icon:'recurring'},{key:'accounts',label:'Minhas contas',icon:'accounts'},{key:'goals',label:'Metas e sonhos',icon:'goals'},{key:'stocks',label:'Investimentos',icon:'stocks'},{key:'profile',label:'Minha conta',icon:'profile'}];
   categories=['Alimentação','Moradia','Transporte','Compras','Saúde','Lazer','Educação','Salário','Freelance','Outros'];
   private _month = this.localToday().slice(0,7);
   get month(){return this._month;}
@@ -151,7 +150,7 @@ export class AppComponent {
   search=''; filterType='ALL'; filterAccount='ALL'; hideValues=false; mobileMenu=false;
   activeGraphMonth:string|null=null;
   state:State={accounts:[],transactions:[],budgets:[],goals:[]};
-  modal:'transaction'|'account'|'budget'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|'fixedIncome'|'deleteFixedIncome'|'recurring'|null=null;
+  modal:'transaction'|'account'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|'fixedIncome'|'deleteFixedIncome'|'recurring'|null=null;
   error=''; toast=''; busy=false;
   accountOnboarding=false;
   private resumeTransactionAfterSetup=false;
@@ -180,7 +179,6 @@ export class AppComponent {
   get filteredTransactions(){return this.state.transactions.filter(t=>t.date.startsWith(this.month)&&(this.filterType==='ALL'||t.type===this.filterType)&&(this.filterAccount==='ALL'||t.accountId===this.filterAccount)&&(!this.search||[t.description,t.category,this.accountName(t.accountId)].join(' ').toLocaleLowerCase('pt-BR').includes(this.search.toLocaleLowerCase('pt-BR')))).sort((a,b)=>b.date.localeCompare(a.date));}
   get recentTransactions(){return this.filteredTransactions.slice(0,5);}
   get expenseCategories(){const all=new Map<string,number>();for(const t of this.state.transactions){if(t.type==='EXPENSE'&&!t.reversedAt&&t.date.startsWith(this.month))all.set(t.category,(all.get(t.category)||0)+t.amountCents);}const sorted=[...all].map(([name,total])=>({name,total})).sort((a,b)=>b.total-a.total);return sorted.length>4?[...sorted.slice(0,3),{name:'Demais categorias',total:sorted.slice(3).reduce((sum,c)=>sum+c.total,0)}]:sorted;}
-  get totalBudget(){return this.state.budgets.reduce((s,b)=>s+b.limitCents,0);}
   get graph(){const dates=Array.from({length:6},(_,i)=>{const d=new Date(this.month+'-02T12:00:00Z');d.setUTCMonth(d.getUTCMonth()-5+i);return d.toISOString().slice(0,7);});const vals=dates.filter(m=>m>='2000-01').map(m=>({month:m,...summarize(this.state.transactions,m)}));const max=Math.max(100000,...vals.flatMap(v=>[v.incomeCents,v.expenseCents]));return vals.map(v=>({...v,incomeHeight:Math.max(2,v.incomeCents/max*100),expenseHeight:Math.max(2,v.expenseCents/max*100),label:new Intl.DateTimeFormat('pt-BR',{month:'short',timeZone:'UTC'}).format(new Date(v.month+'-02T12:00:00Z')).replace('.','')}));}
   private uuid():string{if(typeof crypto.randomUUID==='function')return crypto.randomUUID();const bytes=crypto.getRandomValues(new Uint8Array(16));bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;const hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');return [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),hex.slice(16,20),hex.slice(20)].join('-');}
   localToday(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
@@ -188,21 +186,19 @@ export class AppComponent {
   dateLabel(date:string){return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));}
   accountName(id:string){return this.state.accounts.find(a=>a.id===id)?.name||'Conta indisponível';}
   accountBalance(a:Account){return balance(a.openingBalanceCents,this.state.transactions.filter(t=>t.accountId===a.id));}
-  spent(category:string){return this.state.transactions.filter(t=>t.type==='EXPENSE'&&t.category===category&&!t.reversedAt&&t.date.startsWith(this.month)).reduce((sum,t)=>sum+t.amountCents,0);}
   percent(value:number,total:number){return total>0?Math.min(100,Math.round(value/total*100)):0;}
   categoryIcon(c:string){return ({'Alimentação':'food','Moradia':'home','Transporte':'car','Compras':'bag','Saúde':'heart','Lazer':'sparkles','Educação':'book','Salário':'income','Freelance':'briefcase'} as Record<string,string>)[c]||'circle';}
   navigate(v:View){if(!this.user||!this.dataReady)return;this.view=v;this.mobileMenu=false;this.search='';this.filterType='ALL';this.filterAccount='ALL';if(v==='stocks')this.selectStockTab('portfolio');}
   changeMonth(delta:number){const d=new Date(this.month+'-02T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+delta);this.month=d.toISOString().slice(0,7);}
   chooseMonth(){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(this.month))this.month=this.localToday().slice(0,7);}
-  openModal(kind:NonNullable<AppComponent['modal']>,item?:Budget|Goal){
+  openModal(kind:NonNullable<AppComponent['modal']>,item?:Goal){
     if(this.busy||!this.user||!this.dataReady)return;
     this.resumeTransactionAfterSetup=kind==='transaction'&&!this.state.accounts.length;
     if(this.resumeTransactionAfterSetup)kind='account';
     this.accountOnboarding=kind==='account'&&!this.state.accounts.length;
     this.returnFocus=document.activeElement as HTMLElement;this.modal=kind;this.error='';if(kind==='transaction')this.transactionKey=this.uuid();
     this.draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:defaultAccountId(this.state.accounts),date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:''};
-    if(kind==='budget'&&item&&'category'in item){this.draft.category=item.category;this.draft.amount=(item.limitCents/100).toFixed(2).replace('.',',');}
-    if(kind==='progress'&&item&&'savedCents'in item){this.draft.goalId=item.id;this.draft.name=item.name;}
+    if(kind==='progress'&&item){this.draft.goalId=item.id;this.draft.name=item.name;}
     setTimeout(()=>(document.querySelector<HTMLElement>('.dialog input, .dialog select')||document.querySelector<HTMLElement>('.dialog button'))?.focus());
   }
   closeModal(){if(this.busy)return;this.modal=null;this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.error='';const target=this.returnFocus;setTimeout(()=>{if(!this.modal&&target?.isConnected)target.focus();});}
@@ -245,8 +241,6 @@ export class AppComponent {
     }else if(this.modal==='account'){
       const account=createAccountFromDraft(this.draft,this.uuid());
       this.state={...this.state,accounts:[...this.state.accounts,account]};
-    }else if(this.modal==='budget'){
-      const limitCents=parseMoneyToCents(this.draft.amount);validateAmount(limitCents);const existing=this.state.budgets.find(b=>b.category===this.draft.category);this.state={...this.state,budgets:existing?this.state.budgets.map(b=>b.id===existing.id?{...b,limitCents}:b):[...this.state.budgets,{id:this.uuid(),category:this.draft.category,limitCents}]};
     }else if(this.modal==='goal'){
       if(!this.draft.name.trim())throw new Error('Dê um nome à sua meta.');const targetCents=parseMoneyToCents(this.draft.target);validateAmount(targetCents);const savedCents=this.parseAllowZero(this.draft.saved);if(savedCents<0||savedCents>targetCents)throw new Error('O valor guardado deve estar entre zero e o valor da meta.');this.state={...this.state,goals:[...this.state.goals,{id:this.uuid(),name:this.draft.name.trim(),targetCents,savedCents,icon:'goals'}]};
     }else if(this.modal==='progress'){
