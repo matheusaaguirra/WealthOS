@@ -21,7 +21,11 @@ interface ReviewRow extends StatementCandidate { selected: boolean; duplicate: b
           </select>
         </label>
         <label>Extrato em PDF (até 10 MB e 20 páginas)
-          <input type="file" accept="application/pdf,.pdf" (change)="readFile($event)" [disabled]="busy || !accountId">
+          <span class="statement-file-shell" [class.file-disabled]="busy || !accountId">
+            <span class="statement-file-button">Escolher PDF</span>
+            <span class="statement-file-name">{{fileName || 'Nenhum PDF selecionado'}}</span>
+            <input type="file" accept="application/pdf,.pdf" (change)="readFile($event)" [disabled]="busy || !accountId">
+          </span>
         </label>
       </div>
       <p class="statement-hint">Leitura no navegador. PDFs digitalizados como imagem e lançamentos ambíguos precisam ser conferidos manualmente.</p>
@@ -51,7 +55,11 @@ interface ReviewRow extends StatementCandidate { selected: boolean; duplicate: b
     .statement-import .panel-heading h2{font-size:17px}.statement-import .panel-heading p{font-size:11px;color:var(--text-secondary);margin-top:4px}
     .statement-controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0 13px}.statement-controls label{display:grid;gap:8px;min-width:0;font-size:11px;font-weight:700;color:var(--ink)}
     .statement-controls input,.statement-controls select,.statement-table input,.statement-table select{width:100%;max-width:100%;min-height:44px;border:1px solid var(--border);border-radius:8px;padding:9px 12px;background:var(--surface);color:var(--ink);font-size:12px}
-    .statement-controls input[type=file]{padding:7px 8px;color:var(--text-secondary)}.statement-controls input[type=file]::file-selector-button{border:1px solid var(--border);background:var(--surface-subtle);color:var(--ink);border-radius:6px;padding:6px 10px;margin-right:12px;font:inherit;font-weight:650;cursor:pointer}
+    .statement-file-shell{position:relative;display:flex;align-items:center;gap:12px;min-height:44px;max-width:100%;padding:5px 10px 5px 5px;background:var(--surface);border:1px solid var(--border);border-radius:8px;cursor:pointer}
+    .statement-file-shell:focus-within{outline:2px solid #5a91c7;outline-offset:2px}.statement-file-shell.file-disabled{opacity:.55;cursor:not-allowed}
+    .statement-file-button{flex:none;padding:6px 10px;background:var(--surface-subtle);border:1px solid var(--border);border-radius:6px;color:var(--ink);font-size:11px;font-weight:700}
+    .statement-file-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary);font-size:11px;font-weight:500}
+    .statement-controls .statement-file-shell input[type=file]{position:absolute;inset:0;width:100%;height:100%;min-height:0;opacity:0;padding:0;cursor:pointer}
     .statement-controls input:disabled{opacity:.55;cursor:not-allowed}.statement-hint{font-size:10px;line-height:1.6;color:var(--text-secondary);max-width:740px}
     .statement-import [role=status],.statement-import [role=alert]{font-size:11px;line-height:1.5;margin:14px 0;color:var(--text-secondary)}.statement-import [role=alert]{color:var(--negative)}
     .statement-table-wrap{max-width:100%;overflow-x:auto;margin:16px 0}.statement-table{width:100%;min-width:690px;border-collapse:collapse;text-align:left}
@@ -63,7 +71,7 @@ export class StatementImportComponent {
   @Input() accounts: StatementAccount[] = [];
   @Input() existing: ExistingStatementRow[] = [];
   @Output() importRows = new EventEmitter<ImportedStatementRow[]>();
-  accountId = ''; rows: ReviewRow[] = []; error = ''; busy = false; skipped = 0; duplicates = 0;
+  accountId = ''; rows: ReviewRow[] = []; error = ''; fileName = ''; busy = false; skipped = 0; duplicates = 0;
   readonly categories = ['Alimentação','Transporte','Saúde','Moradia','Salário','Lazer','Educação','Compras','Outros'];
   get selectedCount() { return this.rows.filter(r => r.selected && !r.duplicate && !!r.description.trim()).length; }
   money(cents: number) { return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(cents/100); }
@@ -77,12 +85,13 @@ export class StatementImportComponent {
   }
   async readFile(event: Event) {
     const input = event.target as HTMLInputElement, file = input.files?.[0];
-    this.rows = []; this.error = ''; this.skipped = 0; this.duplicates = 0;
+    this.rows = []; this.error = ''; this.fileName = ''; this.skipped = 0; this.duplicates = 0;
     if (!file) return;
     if (!this.accountId) { this.error = 'Selecione a conta do extrato primeiro.'; return; }
     if (file.size > 10 * 1024 * 1024 || file.size === 0 || !/\.pdf$/i.test(file.name) || (file.type && file.type !== 'application/pdf')) {
       this.error = 'Escolha um PDF de até 10 MB.'; input.value = ''; return;
     }
+    this.fileName = file.name;
     this.busy = true;
     try {
       const pdfjs = await import('pdfjs-dist');
