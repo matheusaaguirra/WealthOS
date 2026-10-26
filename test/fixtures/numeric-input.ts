@@ -54,4 +54,24 @@ input.select();paste('R$ 1.234,56');assert.equal(model,'1.234,56');
 input.select();paste('1e3');assert.equal(model,'1.234,56');
 directive.writeValue('0');directive.focus();type('5');assert.equal(model,'0,05');
 directive.numericAllowNegative=true;directive.writeValue('-12,34');assert.equal(input.value,'-12,34');
+// Select-all deletion must leave the field empty, without inserting a static zero.
+directive.writeValue('2323,23');input.select();
+directive.beforeInput({inputType:'deleteContentBackward',data:null,isComposing:false,preventDefault(){}} as InputEvent);
+input.value='';input.setSelectionRange(0,0);
+directive.inputChanged({inputType:'deleteContentBackward'} as InputEvent);
+assert.equal(input.value,'');assert.equal(model,'');
+for(const digit of '1250')type(digit);
+assert.equal(input.value,'12,50');assert.equal(model,'12,50');
+// Backspacing the last cent clears padding instead of trapping the caret at 0,00.
+directive.writeValue('0,03');input.setSelectionRange(input.value.length,input.value.length);
+let intercepted=false;
+directive.beforeInput({inputType:'deleteContentBackward',data:null,isComposing:false,preventDefault(){intercepted=true;}} as InputEvent);
+assert.equal(intercepted,true);assert.equal(input.value,'');assert.equal(model,'');
+type('0');assert.equal(input.value,'0,00');
+directive.beforeInput({inputType:'deleteContentBackward',data:null,isComposing:false,preventDefault(){}} as InputEvent);
+assert.equal(input.value,'');assert.equal(model,'');
+// Some mobile keyboards emit input without a cancelable beforeinput event.
+directive.writeValue('0,03');input.value='0,0';input.setSelectionRange(3,3);
+directive.inputChanged({inputType:'deleteContentBackward'} as InputEvent);
+assert.equal(input.value,'');assert.equal(model,'');
 console.log('Numeric directive typing, zero, caret, paste, model, composition and disabled checks passed.');

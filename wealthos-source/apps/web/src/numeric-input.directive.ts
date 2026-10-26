@@ -51,7 +51,12 @@ export class NumericInputDirective implements ControlValueAccessor {
           const digits=this.input.value.replace(/\D/g,'');
           const before=this.input.value.slice(0,start).replace(/\D/g,'').length;
           const index=event.inputType==='deleteContentBackward'?before-1:before;
-          if(index>=0&&index<digits.length){event.preventDefault();const next=moneyMaskDigits((this.input.value.startsWith('-')?'-':'')+digits.slice(0,index)+digits.slice(index+1),this.numericAllowNegative);if(next!==null){this.commit(next);this.placeMoneyCaret(Math.min(index,next.replace(/\D/g,'').length));}}
+          if(index>=0&&index<digits.length){
+            event.preventDefault();
+            const remaining=digits.slice(0,index)+digits.slice(index+1);
+            const next=remaining.replace(/0/g,'')===''?'':moneyMaskDigits((this.input.value.startsWith('-')?'-':'')+remaining,this.numericAllowNegative);
+            if(next!==null){this.commit(next);this.placeMoneyCaret(Math.min(index,next.replace(/\D/g,'').length));}
+          }
         }
       }
       return;
@@ -60,12 +65,13 @@ export class NumericInputDirective implements ControlValueAccessor {
     const candidate=this.replaceSelection(event.data);
     if(numericEdit(candidate,this.options)===null)event.preventDefault();
   }
-  @HostListener('input') inputChanged(){
+  @HostListener('input',['$event']) inputChanged(event?:InputEvent){
     if(this.composing)return;
     const raw=this.input.value,caret=this.input.selectionStart??raw.length;
     if(this.numericMoneyMask){
       const digitsBefore=raw.slice(0,caret).replace(/\D/g,'').length;
-      const next=moneyMaskDigits(raw,this.numericAllowNegative);
+      const deleting=event?.inputType.startsWith('delete')&&raw.length<this.accepted.length;
+      const next=deleting&&raw.replace(/\D/g,'').replace(/0/g,'')===''?'':moneyMaskDigits(raw,this.numericAllowNegative);
       if(next===null){this.input.value=this.accepted;this.placeMoneyCaret(Math.min(digitsBefore,this.accepted.replace(/\D/g,'').length));return;}
       this.commit(next);if(caret===raw.length)this.input.setSelectionRange(next.length,next.length);else this.placeMoneyCaret(digitsBefore);return;
     }

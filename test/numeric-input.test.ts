@@ -35,6 +35,7 @@ test('actual numeric directive handlers keep the ngModel callback and caret cons
   });
 });
 test('money mask treats typed digits as cents and validates pasted BRL',()=>{
+  assert.equal(moneyMaskDigits(''),'');
   assert.equal(moneyMaskDigits('232323'),'2.323,23');
   assert.equal(moneyMaskDigits('00001'),'0,01');
   assert.equal(moneyMaskDigits('-1234',true),'-12,34');

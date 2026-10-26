@@ -3,6 +3,7 @@ export interface NumericOptions { decimals:number; allowNegative:boolean; }
 /** Monetary fields keep the last two digits as cents while the user types. */
 export function moneyMaskDigits(raw:string,allowNegative=false):string|null {
   if(!new RegExp('^'+(allowNegative?'-?':'')+'[0-9.,]*$').test(raw))return null;
+  if(raw==='')return '';
   const negative=raw.startsWith('-');
   const digits=raw.replace(/\D/g,'').replace(/^0+(?=\d)/,'')||'0';
   if(digits.length>14)return null;
