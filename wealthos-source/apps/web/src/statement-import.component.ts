@@ -12,7 +12,7 @@ interface ReviewRow extends StatementCandidate { selected: boolean; duplicate: b
   selector: 'app-statement-import', standalone: true, imports: [CommonModule, FormsModule],
   template: `
     <section class="statement-import panel" aria-labelledby="statement-title">
-      <div class="panel-heading"><div><h2 id="statement-title">Importar extrato em PDF</h2><p>Leia, confira e escolha os lançamentos antes de salvar.</p></div></div>
+      <div class="panel-heading"><div><h2 id="statement-title">Importar extrato</h2><p>Selecione a conta, carregue o PDF e confira cada linha antes de salvar.</p></div></div>
       <div class="statement-controls">
         <label>Conta do extrato
           <select [(ngModel)]="accountId" (ngModelChange)="markDuplicates()" [disabled]="busy">
@@ -20,11 +20,11 @@ interface ReviewRow extends StatementCandidate { selected: boolean; duplicate: b
             @for (account of accounts; track account.id) { <option [value]="account.id">{{account.name}}</option> }
           </select>
         </label>
-        <label>Arquivo PDF (até 10 MB e 20 páginas)
+        <label>Extrato em PDF (até 10 MB e 20 páginas)
           <input type="file" accept="application/pdf,.pdf" (change)="readFile($event)" [disabled]="busy || !accountId">
         </label>
       </div>
-      <p class="statement-hint">O arquivo é lido neste navegador. Extratos digitalizados como imagem e linhas sem indicação clara de entrada ou saída precisam ser lançados manualmente.</p>
+      <p class="statement-hint">Leitura no navegador. PDFs digitalizados como imagem e lançamentos ambíguos precisam ser conferidos manualmente.</p>
       @if (busy) { <p role="status">Lendo o extrato…</p> }
       @if (error) { <p role="alert">{{error}}</p> }
       @if (rows.length) {
@@ -47,10 +47,16 @@ interface ReviewRow extends StatementCandidate { selected: boolean; duplicate: b
     </section>
   `,
   styles: [`
-    .statement-import{margin-top:20px}.statement-controls{display:flex;flex-wrap:wrap;gap:16px;margin:16px 0}.statement-controls label{display:grid;gap:7px;min-width:220px;flex:1}
-    .statement-controls input,.statement-controls select,.statement-table input,.statement-table select{max-width:100%;min-height:40px;border:1px solid #d8dae3;border-radius:9px;padding:7px;background:var(--surface,#fff);color:var(--text,#24304a)}
-    .statement-hint{font-size:.85rem;line-height:1.5}.statement-table-wrap{max-width:100%;overflow-x:auto;margin:16px 0}.statement-table{width:100%;min-width:690px;border-collapse:collapse;text-align:left}
-    .statement-table th,.statement-table td{padding:10px;border-bottom:1px solid #e5e7ef}.statement-table td input[type=text]{width:100%}.statement-table td small{display:block;color:#9d5633}
+    .statement-import{margin-top:20px;padding:23px;border-color:var(--border)}
+    .statement-import .panel-heading h2{font-size:17px}.statement-import .panel-heading p{font-size:11px;color:var(--text-secondary);margin-top:4px}
+    .statement-controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0 13px}.statement-controls label{display:grid;gap:8px;min-width:0;font-size:11px;font-weight:700;color:var(--ink)}
+    .statement-controls input,.statement-controls select,.statement-table input,.statement-table select{width:100%;max-width:100%;min-height:44px;border:1px solid var(--border);border-radius:8px;padding:9px 12px;background:var(--surface);color:var(--ink);font-size:12px}
+    .statement-controls input[type=file]{padding:7px 8px;color:var(--text-secondary)}.statement-controls input[type=file]::file-selector-button{border:1px solid var(--border);background:var(--surface-subtle);color:var(--ink);border-radius:6px;padding:6px 10px;margin-right:12px;font:inherit;font-weight:650;cursor:pointer}
+    .statement-controls input:disabled{opacity:.55;cursor:not-allowed}.statement-hint{font-size:10px;line-height:1.6;color:var(--text-secondary);max-width:740px}
+    .statement-import [role=status],.statement-import [role=alert]{font-size:11px;line-height:1.5;margin:14px 0;color:var(--text-secondary)}.statement-import [role=alert]{color:var(--negative)}
+    .statement-table-wrap{max-width:100%;overflow-x:auto;margin:16px 0}.statement-table{width:100%;min-width:690px;border-collapse:collapse;text-align:left}
+    .statement-table th,.statement-table td{padding:11px;border-bottom:1px solid var(--border);font-size:11px}.statement-table td input[type=text]{width:100%}.statement-table td small{display:block;color:var(--negative)}
+    @media(max-width:700px){.statement-import{padding:18px}.statement-controls{grid-template-columns:1fr;gap:12px}.statement-controls input,.statement-controls select{font-size:16px}}
   `]
 })
 export class StatementImportComponent {
