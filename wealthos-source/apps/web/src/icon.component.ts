@@ -5,13 +5,21 @@ import { Component, Input } from '@angular/core';
   selector: 'app-icon',
   standalone: true,
   host: { 'aria-hidden': 'true' },
-  template: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path [attr.d]="path"/></svg>',
+  template: `@if (name === 'logo') {
+    <svg viewBox="0 0 40 40" fill="none" focusable="false" aria-hidden="true">
+      <rect width="40" height="40" rx="11" fill="#193F59"/>
+      <path d="M9 11.8c4-1.6 7.5-1.1 11 1.6v16.4c-3.5-2.7-7-3.2-11-1.6V11.8Z" fill="#F4F3E9"/>
+      <path d="M31 11.8c-4-1.6-7.5-1.1-11 1.6v16.4c3.5-2.7 7-3.2 11-1.6V11.8Z" fill="#91BDC3"/>
+      <path d="m23.5 23.2 2.1-2.8 1.7 1.3 1.5-2.1" stroke="#193F59" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  } @else {
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path [attr.d]="path"/></svg>
+  }`,
   styles: [':host{display:inline-flex;width:20px;height:20px;flex:0 0 auto;align-items:center;justify-content:center;vertical-align:middle}svg{display:block;width:100%;height:100%;overflow:visible}'],
 })
 export class IconComponent {
   @Input() name = 'circle';
   private readonly paths:Record<string,string> = {
-    logo: 'M3 7l3 12 5-9 3 9 7-15 M15 4h6v6',
     dashboard: 'M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z',
     transactions: 'M4 7h16m-4-4 4 4-4 4 M20 17H4m4-4-4 4 4 4',
     recurring: 'M7 3v4m10-4v4M4 9h16M5 5h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2 M8 14h3v3H8z M15 14h2',
