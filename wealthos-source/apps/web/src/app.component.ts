@@ -149,6 +149,7 @@ export class AppComponent {
   get month(){return this._month;}
   set month(value:string){if(/^\d{4}-(0[1-9]|1[0-2])$/.test(value)&&value>='2000-01'&&value<='2100-12')this._month=value;}
   search=''; filterType='ALL'; filterAccount='ALL'; hideValues=false; mobileMenu=false;
+  activeGraphMonth:string|null=null;
   state:State={accounts:[],transactions:[],budgets:[],goals:[]};
   modal:'transaction'|'account'|'budget'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|'fixedIncome'|'deleteFixedIncome'|'recurring'|null=null;
   error=''; toast=''; busy=false;
