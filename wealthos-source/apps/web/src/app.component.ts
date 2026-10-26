@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TradingChartComponent } from './trading-chart.component';
 import { IconComponent } from './icon.component';
+import { CategoryPickerComponent } from './category-picker.component';
 import { NumericInputDirective } from './numeric-input.directive';
 import { StatementImportComponent, ImportedStatementRow } from './statement-import.component';
 import { statementFingerprint } from './statement-parser';
@@ -17,7 +18,7 @@ interface Budget { id:string; category:string; limitCents:number; }
 interface Goal { id:string; name:string; targetCents:number; savedCents:number; icon:string; }
 interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; investments?:FixedIncomeInvestment[]; recurringExpenses?:RecurringExpense[]; }
 type View = 'dashboard'|'transactions'|'recurring'|'accounts'|'budgets'|'goals'|'stocks'|'profile';
-@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent],templateUrl:'./app.component.html'})
+@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,CategoryPickerComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent],templateUrl:'./app.component.html'})
 export class AppComponent {
   MathRound = Math.round;
   theme:'light'|'dark'=document.documentElement.dataset['theme']==='dark'?'dark':'light';
