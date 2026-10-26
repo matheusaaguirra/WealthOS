@@ -9,25 +9,29 @@ import { IconComponent } from './icon.component';
     <div class="category-field">
       <span class="category-label" id="category-label-{{id}}">Categoria</span>
       <details #picker class="category-picker" [class.open-up]="openUp" (toggle)="positionMenu()" (keydown.escape)="close($event)">
-        <summary #trigger [attr.aria-labelledby]="'category-label-'+id" aria-haspopup="listbox">
+        <summary #trigger [attr.aria-labelledby]="'category-label-'+id">
           <span class="chosen-icon"><app-icon [name]="icon(value)"/></span>
           <span class="chosen-name">{{value}}</span>
           <app-icon name="chevron-down" class="chevron"/>
         </summary>
-        <div class="category-options" role="listbox" [attr.aria-label]="'Categoria'">
-          <div class="group-label">Despesas</div>
+        <div class="category-options" aria-label="Categorias disponíveis">
+          @if (mode==='all') { <div class="group-label">Despesas</div> }
+          @if (mode!=='income') {
           @for (item of expense; track item) {
-            <button type="button" role="option" [attr.aria-selected]="value===item" (click)="choose(item,trigger)">
+            <button type="button" [attr.aria-pressed]="value===item" (click)="choose(item,trigger)">
               <span class="option-icon"><app-icon [name]="icon(item)"/></span><span>{{item}}</span>
               @if (value===item) { <app-icon name="check" class="option-check"/> }
             </button>
           }
-          <div class="group-label income-label">Receitas</div>
+          }
+          @if (mode==='all') { <div class="group-label income-label">Receitas</div> }
+          @if (mode!=='expense') {
           @for (item of income; track item) {
-            <button type="button" role="option" [attr.aria-selected]="value===item" (click)="choose(item,trigger)">
+            <button type="button" [attr.aria-pressed]="value===item" (click)="choose(item,trigger)">
               <span class="option-icon"><app-icon [name]="icon(item)"/></span><span>{{item}}</span>
               @if (value===item) { <app-icon name="check" class="option-check"/> }
             </button>
+          }
           }
         </div>
       </details>
@@ -43,13 +47,14 @@ import { IconComponent } from './icon.component';
     .open-up .category-options{top:auto;bottom:calc(100% + 5px)}
     .group-label{padding:10px 12px 6px;color:var(--text-secondary);font-size:10px;font-weight:750;letter-spacing:.09em;text-transform:uppercase}.income-label{margin-top:5px;border-top:1px solid var(--border)}
     .category-options button{display:flex;align-items:center;gap:11px;width:100%;min-height:46px;padding:6px 9px;text-align:left;border:0;border-bottom:1px solid var(--border);border-radius:0;background:transparent;color:var(--ink);font-size:13px;font-weight:600}
-    .category-options button:last-child{border-bottom:0}.category-options button:hover,.category-options button:focus-visible{background:var(--surface-subtle)}.category-options button[aria-selected=true]{color:var(--accent);background:var(--green-soft)}
+    .category-options button:last-child{border-bottom:0}.category-options button:hover,.category-options button:focus-visible{background:var(--surface-subtle)}.category-options button[aria-pressed=true]{color:var(--accent);background:var(--green-soft)}
     .option-icon{width:30px;height:30px;background:var(--surface-subtle)}.option-check{width:16px;height:16px;margin-left:auto}
     @media(max-width:700px){.category-picker summary{min-height:50px;font-size:16px}.category-options{max-height:min(310px,42dvh)}.category-options button{min-height:48px;font-size:15px}}
   `]
 })
 export class CategoryPickerComponent {
   @Input() value = 'Alimentação';
+  @Input() mode: 'all'|'expense'|'income' = 'all';
   @Output() valueChange = new EventEmitter<string>();
   @ViewChild('picker') picker?: ElementRef<HTMLDetailsElement>;
   readonly id = Math.random().toString(36).slice(2);

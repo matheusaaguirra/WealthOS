@@ -116,3 +116,32 @@ html[data-theme='dark'] .stock-data-notice{background:var(--surface)}
 .auth-google,.auth-submit{min-height:47px;border-radius:8px;font-size:13px;font-weight:700}
 .auth-form-wrap label{font-size:12px}.auth-form-wrap input{min-height:46px;font-size:14px}
 @media(max-width:700px){.auth-story{padding:20px 22px}.auth-story-copy{padding-top:15px}.auth-story-points{display:none}.auth-form-wrap h2{font-size:27px}.auth-form-wrap input{font-size:16px}}
+
+/* Form and reading pass: meaningful labels and touch targets across each module. */
+:root{--border:#d7e2e9;--text-secondary:#536a7c}
+.nav-item{font-size:13px}.sidebar-insight p,.sidebar-insight button{font-size:11px}
+.page-heading p,.panel-heading p,.stock-data-notice p,.portfolio-empty p,.recurring-empty p,.user-explainer>p{font-size:13px;line-height:1.6}
+.metric-footer,.chart-caption,.category-list,.transaction-info small,.transaction-value small,.goal-progress-label,.recurring-stat>small{font-size:11px}
+.section-title h2,.panel-heading h2{letter-spacing:-.025em}
+.budget-card h2,.goal-card h2,.recurring-card h3{line-height:1.35}
+.budget-card,.goal-card,.recurring-card,.full-account{transition:border-color .15s,box-shadow .15s}
+.budget-card:hover,.goal-card:hover,.recurring-card:hover,.full-account:hover{border-color:#b7cad8;box-shadow:0 4px 16px #1739500b}
+.table-wrapper th{font-size:11px}.table-wrapper td{font-size:13px}.table-description strong{font-size:13px}.table-description small{font-size:11px}
+.table-footer,.note-box,.field-help,.user-benefit p,.user-details>div,.page-footer{font-size:12px}
+.filter-bar input,.filter-bar select,.secondary-button,.text-button{font-size:12px}
+.dialog form>label,.dialog .form-grid>label{font-size:13px}.dialog .field-help{font-size:12px}
+.auth-footnote,.auth-story-footer{font-size:12px}
+html[data-theme='dark']{--border:#344b5f;--text-secondary:#b4c5d3}
+html[data-theme='dark'] .account-card small,html[data-theme='dark'] .transaction-info small,html[data-theme='dark'] .transaction-value small,html[data-theme='dark'] .table-description small,html[data-theme='dark'] .full-account>small,html[data-theme='dark'] .account-details,html[data-theme='dark'] .note-box,html[data-theme='dark'] .muted,html[data-theme='dark'] .panel-heading p,html[data-theme='dark'] .table-footer,html[data-theme='dark'] .page-footer{color:var(--text-secondary)}
+html[data-theme='dark'] .table-wrapper td,html[data-theme='dark'] .table-description strong,html[data-theme='dark'] .table-amount,html[data-theme='dark'] .account-details strong{color:var(--ink)}
+html[data-theme='dark'] .status-tag{color:#c7def6}
+@media(max-width:700px){
+  .mobile-menu-button{width:44px;min-width:44px;height:44px;margin-left:-9px;margin-right:0}
+  .topbar{padding-left:14px;padding-right:14px}.breadcrumb{gap:6px}
+  .nav-item{min-height:48px;font-size:13px}.page-heading p{font-size:13px}
+  .filter-bar{padding:14px}.filter-bar select,.filter-bar .secondary-button{min-height:44px;font-size:14px}
+  .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch}.table-wrapper .text-button{min-height:44px}
+  .dialog{max-height:calc(100dvh - 24px);padding:20px}.modal-backdrop{padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .dialog-actions button{min-height:48px;font-size:13px}
+  .panel-heading p,.recurring-empty p,.portfolio-empty p{font-size:12px}
+}

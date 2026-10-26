@@ -9,7 +9,7 @@ export interface PickerAccount { id:string; name:string; institution:string; col
     <div class="account-field">
       <span class="field-label" id="account-label-{{id}}">Conta</span>
       <details #picker [class.open-up]="openUp" (toggle)="positionMenu()" (keydown.escape)="close($event)">
-        <summary #trigger [attr.aria-labelledby]="'account-label-'+id" aria-haspopup="listbox">
+        <summary #trigger [attr.aria-labelledby]="'account-label-'+id">
           @if (selected) {
             <span class="account-symbol" [style.border-color]="selected.color"><app-icon name="accounts"/></span>
             <span class="account-copy"><strong>{{selected.name}}</strong><small>{{selected.institution}}</small></span>
@@ -18,10 +18,10 @@ export interface PickerAccount { id:string; name:string; institution:string; col
           }
           <app-icon name="chevron-down" class="chevron"/>
         </summary>
-        <div class="account-options" role="listbox" aria-label="Contas disponíveis">
+        <div class="account-options" aria-label="Contas disponíveis">
           <div class="options-label">SUAS CONTAS · {{accounts.length}}</div>
           @for (account of accounts; track account.id) {
-            <button type="button" role="option" [attr.aria-selected]="value===account.id" (click)="choose(account.id,trigger)">
+            <button type="button" [attr.aria-pressed]="value===account.id" (click)="choose(account.id,trigger)">
               <span class="account-symbol" [style.border-color]="account.color"><app-icon name="accounts"/></span>
               <span class="account-copy"><strong>{{account.name}}</strong><small>{{account.institution}}</small></span>
               @if(value===account.id){<app-icon name="check" class="selected-check"/>}
@@ -40,7 +40,7 @@ export interface PickerAccount { id:string; name:string; institution:string; col
     .chevron{width:16px;height:16px;color:var(--text-secondary);transition:transform .15s}details[open] .chevron{transform:rotate(180deg)}
     .account-options{position:absolute;z-index:10;top:calc(100% + 5px);left:0;right:0;max-height:min(310px,45dvh);overflow-y:auto;padding:5px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 14px 36px #172d4029}.open-up .account-options{top:auto;bottom:calc(100% + 5px)}
     .options-label{padding:9px 12px;color:var(--text-secondary);font-size:10px;font-weight:750;letter-spacing:.08em}.account-options button{display:flex;align-items:center;gap:11px;width:100%;min-height:58px;padding:7px 10px;border:0;border-bottom:1px solid var(--border);border-radius:0;background:transparent;color:var(--ink);text-align:left}
-    .account-options button:last-child{border-bottom:0}.account-options button:hover,.account-options button:focus-visible{background:var(--surface-subtle)}.account-options button[aria-selected=true]{background:var(--green-soft)}.selected-check{width:16px;height:16px;color:var(--accent)}.empty-account{padding:12px;color:var(--text-secondary);font-size:12px}
+    .account-options button:last-child{border-bottom:0}.account-options button:hover,.account-options button:focus-visible{background:var(--surface-subtle)}.account-options button[aria-pressed=true]{background:var(--green-soft)}.selected-check{width:16px;height:16px;color:var(--accent)}.empty-account{padding:12px;color:var(--text-secondary);font-size:12px}
     @media(max-width:700px){summary{min-height:54px}.account-copy strong{font-size:15px}.account-options button{min-height:62px}}
   `]
 })
