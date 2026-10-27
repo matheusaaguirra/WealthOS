@@ -1,4 +1,4 @@
-/** Client-side, dependency-free PDF export. Only the selected rows are rendered. */
+/** Client-side PDF reports. Financial data never leaves the browser. */
 export interface PdfTransaction {
   date: string;
   description: string;
@@ -12,7 +12,13 @@ export interface PdfTransaction {
 const amount = (cents: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100);
 const date = (iso: string) => /^\d{4}-\d{2}-\d{2}$/.test(iso) ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : 'Data inválida';
 const ascii = (text: string) => text.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[\u2013\u2014]/g, '-').replace(/[\u2018\u2019]/g, "'").replace(/[^\x20-\x7e]/g, '?');
-const literal = (text: string) => `(${ascii(text).replace(/[\\()]/g, '\\$&')})`;
+// Standard PDF fonts use WinAnsi; octal escapes retain Portuguese accents.
+const literal = (text: string) => '(' + Array.from(text.replace(/[\u2013\u2014]/g, '-').replace(/\s/g, ' '), char => {
+  const code = char.codePointAt(0)!;
+  if (code >= 160 && code <= 255) return '\\' + code.toString(8).padStart(3, '0');
+  if (code < 32 || code > 126) return '?';
+  return /[\\()]/.test(char) ? '\\' + char : char;
+}).join('') + ')';
 function clipped(text: string, width: number): string {
   const clean = ascii(text.trim().replace(/\s+/g, ' '));
   return clean.length > width ? `${clean.slice(0, width - 3)}...` : clean;
@@ -80,8 +86,8 @@ function serialize(pages: Page[]): Uint8Array {
   const add = (body: string) => { objects.push(body); return objects.length; };
   const catalog = add('');
   const root = add('');
-  const regular = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
-  const bold = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
+  const regular = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
+  const bold = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
   const references: number[] = [];
   for (const page of pages) {
     const stream = page.join('\n') + '\n';
@@ -90,13 +96,17 @@ function serialize(pages: Page[]): Uint8Array {
   }
   objects[catalog - 1] = `<< /Type /Catalog /Pages ${root} 0 R >>`;
   objects[root - 1] = `<< /Type /Pages /Kids [${references.map(n => `${n} 0 R`).join(' ')}] /Count ${references.length} >>`;
-  let output = '%PDF-1.4\n';
+  const chunks = ['%PDF-1.4\n'];
+  let length = encoder.encode(chunks[0]).length;
   const positions = [0];
   for (let i = 0; i < objects.length; i++) {
-    positions.push(encoder.encode(output).length);
-    output += `${i + 1} 0 obj\n${objects[i]}\nendobj\n`;
+    positions.push(length);
+    const chunk = `${i + 1} 0 obj\n${objects[i]}\nendobj\n`;
+    chunks.push(chunk);
+    length += encoder.encode(chunk).length;
   }
-  const start = encoder.encode(output).length;
+  const start = length;
+  let output = chunks.join('');
   // PDF cross-reference entries are exactly 20 bytes, including the final space and LF.
   const xrefEol = String.fromCharCode(32, 10);
   output += `xref\n0 ${objects.length + 1}\n0000000000 65535 f` + xrefEol;
@@ -105,13 +115,118 @@ function serialize(pages: Page[]): Uint8Array {
   return encoder.encode(output);
 }
 
-export function downloadTransactionsPdf(rows: readonly PdfTransaction[], month: string): void {
-  const bytes = createTransactionsPdf(rows, month);
+// Conservative widths keep wrapped descriptions inside their table cell.
+const textWidth = (text: string, size: number) => Array.from(text).reduce((n, c) => n + (/\s/.test(c) ? .33 : /[MW@%]/.test(c) ? 1 : /[A-ZÀ-Ý]/.test(c) ? .75 : .6) * size, 0);
+function wrap(text: string, width: number, size: number): string[] {
+  const result: string[] = [];
+  let line = '';
+  for (const char of text.trim().replace(/\s+/g, ' ') || 'Não informado') {
+    if (line && textWidth(line + char, size) > width) {
+      const space = line.lastIndexOf(' ');
+      if (space > 0) { result.push(line.slice(0, space)); line = line.slice(space + 1); }
+      else { result.push(line); line = ''; }
+    }
+    line += char;
+  }
+  if (line) result.push(line);
+  return result;
+}
+
+/** Complete history, independent of the current month, account and search filters. */
+export function createFinancialReportPdf(rows: readonly PdfTransaction[], generatedAt = new Date()): Uint8Array {
+  if (rows.length > 10_000) throw new Error('Exportação limitada a 10.000 lançamentos.');
+  for (const row of rows) {
+    if (!Number.isSafeInteger(row.amountCents) || row.amountCents <= 0 || row.amountCents > 1_000_000_000 ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !['INCOME', 'EXPENSE'].includes(row.type)) throw new Error('Lançamento inválido para exportação.');
+  }
+  const sorted = [...rows].sort((a, b) => b.date.localeCompare(a.date));
+  const active = sorted.filter(row => !row.reversedAt);
+  const income = active.filter(r => r.type === 'INCOME').reduce((total, row) => total + row.amountCents, 0);
+  const expense = active.filter(r => r.type === 'EXPENSE').reduce((total, row) => total + row.amountCents, 0);
+  const categories = new Map<string, number>();
+  for (const row of active) if (row.type === 'EXPENSE') categories.set(row.category || 'Sem categoria', (categories.get(row.category || 'Sem categoria') || 0) + row.amountCents);
+  const pages: Page[] = [];
+  let page: Page = [], y = 0;
+  const muted = '0.38 0.44 0.51', blue = '0.16 0.37 0.56';
+  const newPage = (section: string) => {
+    page = []; pages.push(page);
+    rectangle(page, 0, 750, 595, 92, '0.05 0.11 0.16');
+    write(page, 42, 804, 'WEALTHOS', 12, 'F2', '0.64 0.79 0.91');
+    write(page, 42, 775, 'Relatório financeiro', 23, 'F2', '1 1 1');
+    write(page, 42, 724, section, 15, 'F2');
+    y = 699;
+  };
+  const right = (value: string, baseline: number, size = 10, color = '0.12 0.17 0.29') => {
+    const width = Array.from(value).reduce((total, c) => total + (/\d/.test(c) || c === '$' ? .556 : c === 'R' ? .722 : c === '+' ? .584 : c === '-' ? .333 : .278) * size, 0);
+    write(page, 549 - width, baseline, value, size, 'F2', color);
+  };
+  const section = (title: string) => {
+    newPage(title);
+    rectangle(page, 42, 674, 511, 23, '0.92 0.95 0.97');
+    write(page, 50, 682, 'DATA', 8, 'F2'); write(page, 111, 682, 'DESCRIÇÃO / CATEGORIA / CONTA', 8, 'F2');
+    write(page, 464, 682, 'VALOR (BRL)', 8, 'F2'); y = 655;
+  };
+  newPage('Resumo de todo o histórico');
+  const period = rows.length ? `${date(sorted[sorted.length - 1].date)} a ${date(sorted[0].date)}` : 'Sem lançamentos cadastrados';
+  write(page, 42, y, `Período: ${period}`, 10, 'F1', muted); y -= 31;
+  for (const [label, value, color] of [['Entradas', income, '0.10 0.43 0.31'], ['Saídas', expense, '0.65 0.20 0.18'], ['Resultado das movimentações', income - expense, blue]] as const) {
+    rectangle(page, 42, y - 19, 511, 36, '0.95 0.97 0.98');
+    write(page, 53, y - 5, label, 11, 'F2'); right(amount(value), y - 5, 12, color); y -= 43;
+  }
+  y -= 4;
+  for (const line of ['Todas as contas incluídas: carteira principal e saldos separados.', 'O resultado considera entradas menos saídas, sem os saldos iniciais.', `${active.length} lançamento(s) confirmado(s). Estornos não entram nos totais.`]) { write(page, 42, y, line, 9, 'F1', muted); y -= 16; }
+  y -= 23; write(page, 42, y, 'Gastos por categoria', 15, 'F2'); y -= 28;
+  if (!categories.size) write(page, 42, y, 'Nenhum gasto confirmado no histórico.', 10, 'F1', muted);
+  for (const [category, total] of [...categories].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR'))) {
+    const lines = wrap(category, 280, 10), height = Math.max(35, lines.length * 14 + 15);
+    if (y - height < 65) { newPage('Gastos por categoria - continuação'); }
+    lines.forEach((line, i) => write(page, 49, y - i * 14, line, 10, 'F2'));
+    right(amount(total), y, 10);
+    write(page, 397, y - 14, `${(total / expense * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% dos gastos`, 8, 'F1', muted);
+    rectangle(page, 42, y - height + 15, 511, 0.5, '0.85 0.89 0.91'); y -= height;
+  }
+  const groups = [
+    { title: 'Entradas', items: active.filter(r => r.type === 'INCOME') },
+    { title: 'Gastos e despesas', items: active.filter(r => r.type === 'EXPENSE') },
+    { title: 'Lançamentos estornados - fora dos totais', items: sorted.filter(r => r.reversedAt) },
+  ];
+  for (const group of groups) {
+    if (!group.items.length) continue;
+    section(group.title);
+    for (const row of group.items) {
+      const description = wrap(row.description, 270, 10);
+      const details = wrap(`${row.category || 'Sem categoria'} | Conta: ${row.account}${row.reversedAt ? ' | Estornado' : ''}`, 270, 8);
+      const height = description.length * 14 + details.length * 12 + 19;
+      if (y - height < 62) section(group.title + ' - continuação');
+      write(page, 50, y, date(row.date), 8, 'F1', muted);
+      description.forEach((line, i) => write(page, 111, y - i * 14, line, 10, 'F2'));
+      details.forEach((line, i) => write(page, 111, y - description.length * 14 - i * 12 - 2, line, 8, 'F1', muted));
+      right(`${row.type === 'INCOME' ? '+' : '-'} ${amount(row.amountCents)}`, y, 10, row.reversedAt ? muted : row.type === 'INCOME' ? '0.10 0.43 0.31' : '0.65 0.20 0.18');
+      rectangle(page, 42, y - height + 16, 511, .5, '0.85 0.89 0.91'); y -= height;
+    }
+  }
+  pages.forEach((page, index) => {
+    rectangle(page, 42, 44, 511, .5, '0.85 0.89 0.91');
+    write(page, 42, 29, `Emitido em ${generatedAt.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} | Dados pessoais - WealthOS`, 8, 'F1', muted);
+    write(page, 487, 29, `${index + 1} / ${pages.length}`, 8, 'F1', muted);
+  });
+  return serialize(pages);
+}
+
+function downloadPdf(bytes: Uint8Array, filename: string): void {
   const blob = new Blob([new Uint8Array(bytes)], { type: 'application/pdf' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = `wealthos-lancamentos-${month}.pdf`;
+  anchor.download = filename;
   anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+export function downloadTransactionsPdf(rows: readonly PdfTransaction[], month: string): void {
+  downloadPdf(createTransactionsPdf(rows, month), `wealthos-lancamentos-${month}.pdf`);
+}
+
+export function downloadFinancialReportPdf(rows: readonly PdfTransaction[]): void {
+  downloadPdf(createFinancialReportPdf(rows), 'wealthos-relatorio-financeiro.pdf');
 }

@@ -27,6 +27,17 @@ globalThis.fetch=async(input,init)=>{
  return Response.json({state:structuredClone(stored),revision});
 };
 const app=new TestApp({} as never);await app.applyUser(user);
+// The account export downloads a PDF of all data, regardless of active UI filters.
+let exportedBlob:Blob|undefined,downloadName='',downloadClicked=false;
+Object.assign(document,{createElement(){return {set download(value:string){downloadName=value;},set href(_value:string){},click(){downloadClicked=true;}};}});
+const createUrl=URL.createObjectURL,revokeUrl=URL.revokeObjectURL,timer=globalThis.setTimeout;
+URL.createObjectURL=(blob:Blob)=>{exportedBlob=blob;return 'blob:test';};URL.revokeObjectURL=()=>{};
+globalThis.setTimeout=((callback:()=>void)=>{callback();return 0;}) as unknown as typeof setTimeout;
+app.search='no matching entries';app.filterType='INCOME';app.month='2020-01';
+app.exportData();assert.equal(downloadClicked,true);assert.equal(downloadName,'wealthos-relatorio-financeiro.pdf');assert.equal(exportedBlob!.type,'application/pdf');
+const exported=await exportedBlob!.text();assert.match(exported,/^%PDF-1.4/);assert.match(exported,/Conta: Principal/);assert.match(exported,/Conta: Outra conta/);assert.equal(writes,0);
+URL.createObjectURL=createUrl;URL.revokeObjectURL=revokeUrl;globalThis.setTimeout=timer;
+app.search='';app.filterType='ALL';app.month='2026-10';
 const original=JSON.stringify(stored);
 app.askDeleteAccount(app.state.accounts[0]);assert.equal(app.accountDeleteTransactions,2);assert.equal(app.accountDeleteRecurring,1);
 app.closeModal();assert.equal(JSON.stringify(stored),original);assert.equal(writes,0);

@@ -9,7 +9,7 @@ import { AccountPickerComponent } from './account-picker.component';
 import { NumericInputDirective } from './numeric-input.directive';
 import { StatementImportComponent, ImportedStatementRow } from './statement-import.component';
 import { statementFingerprint } from './statement-parser';
-import { downloadTransactionsPdf } from './transactions-pdf';
+import { downloadTransactionsPdf, downloadFinancialReportPdf } from './transactions-pdf';
 import { StockAutocompleteComponent } from './stock-autocomplete.component';
 import { createAccountFromDraft, defaultAccountId, isWalletAccount, type AccountBalanceGroup } from './account-setup';
 import {siteAuth,marketApi,SiteUser,AuthConfig,StockResponse,CryptoResponse} from './services/site-api';
@@ -288,7 +288,7 @@ export class AppComponent {
     if(resumeTransaction){this.openModal('transaction');this.returnFocus=returnFocus;}
   }catch(error){this.state=previous;this.error=error instanceof Error?error.message:'Não foi possível salvar. Tente novamente.';}finally{this.busy=false;}}
   async reverse(t:Transaction){if(t.reversedAt||this.busy||!this.user)return;const previous=this.state;this.busy=true;try{const updated:Transaction={...t,reversedAt:new Date().toISOString()};this.state={...this.state,transactions:this.state.transactions.map(item=>item.id===t.id?updated:item)};await this.persist();this.notify('Lançamento estornado. Saldo atualizado.');}catch(error){this.state=previous;this.notify(error instanceof Error?error.message:'Não foi possível estornar.');}finally{this.busy=false;}}
-  exportData(){const data=JSON.stringify({exportedAt:new Date().toISOString(),...this.state},null,2);const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='wealthos-'+this.localToday()+'.json';a.click();URL.revokeObjectURL(url);this.notify('Exportação concluída.');}
+  exportData(){if(!this.user||!this.dataReady)return;try{downloadFinancialReportPdf(this.state.transactions.map(t=>({...t,account:this.accountName(t.accountId)})));this.notify('Relatório financeiro em PDF gerado.');}catch(error){this.notify(error instanceof Error?error.message:'Não foi possível gerar o PDF. Tente novamente.');}}
   exportTransactionsPdf(){downloadTransactionsPdf(this.filteredTransactions.map(t=>({...t,account:this.accountName(t.accountId)})),this.month);this.notify('PDF dos lançamentos gerado.');}
   async importStatementRows(rows:ImportedStatementRow[]){
     if(this.busy||!this.user||!this.dataReady||!rows.length)return;
