@@ -285,3 +285,10 @@ html[data-theme='dark']{color-scheme:dark}
   main.auth-page,main.session-screen{min-height:calc(100dvh - env(safe-area-inset-top));padding-bottom:env(safe-area-inset-bottom)}
   .modal-backdrop{padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom))}
 }
+
+.average-price{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+.average-price>strong{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.average-price-change{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.average-price>small{font-size:11px;line-height:1.4;color:var(--text-secondary)}
+.average-price-edit{padding:0;white-space:normal;text-align:left;line-height:1.4}
+@container(max-width:720px){.responsive-table td .average-price{align-items:flex-end}.average-price-edit{text-align:right}}
