@@ -309,3 +309,15 @@ html[data-theme='dark']{color-scheme:dark}
 .account-delete-summary>div+div{border-top:1px solid var(--border)}
 .account-delete-confirm{margin-top:20px!important}.account-delete-confirm input{flex:none}
 @container(max-width:720px){.responsive-table td .position-day-change{align-items:flex-end}}
+
+/* Themed selections replace browser-native option menus across filters and forms. */
+.filter-bar>app-select-field{flex:0 1 190px;min-width:160px}
+.filter-bar>app-select-field:nth-of-type(2){flex-basis:220px}
+.stock-table-panel .filter-bar>app-select-field{flex:0 1 200px}
+.dialog app-select-field{width:100%;font-weight:500}
+.chart-controls>label app-select-field{min-width:135px}
+.crypto-select-label app-select-field{width:110px}
+@media(max-width:700px){
+  .filter-bar>app-select-field,.stock-table-panel .filter-bar>app-select-field{width:100%;min-width:0}
+  .chart-controls>label app-select-field{min-width:0;width:100%}
+}

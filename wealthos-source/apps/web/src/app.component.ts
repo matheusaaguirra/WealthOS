@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TradingChartComponent } from './trading-chart.component';
 import { IconComponent } from './icon.component';
 import { PwaInstallComponent } from './pwa-install.component';
+import { SelectFieldComponent, SelectOption } from './select-field.component';
 import { CategoryPickerComponent } from './category-picker.component';
 import { AccountPickerComponent } from './account-picker.component';
 import { NumericInputDirective } from './numeric-input.directive';
@@ -20,12 +21,24 @@ interface Budget { id:string; category:string; limitCents:number; }
 interface Goal { id:string; name:string; targetCents:number; savedCents:number; icon:string; }
 interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; investments?:FixedIncomeInvestment[]; recurringExpenses?:RecurringExpense[]; }
 type View = 'dashboard'|'transactions'|'recurring'|'accounts'|'goals'|'stocks'|'profile';
-@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,CategoryPickerComponent,AccountPickerComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent,PwaInstallComponent],templateUrl:'./app.component.html'})
+@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,SelectFieldComponent,TradingChartComponent,IconComponent,CategoryPickerComponent,AccountPickerComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent,PwaInstallComponent],templateUrl:'./app.component.html'})
 export class AppComponent {
   theme:'light'|'dark'=document.documentElement.dataset['theme']==='dark'?'dark':'light';
   stockTab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'='portfolio';
   stockPeriod:'day'|'month'|'year'='day';
   stockSearch=''; stockSector='ALL';
+  readonly transactionTypeOptions:SelectOption[]=[{value:'ALL',label:'Todos os tipos',icon:'transactions'},{value:'INCOME',label:'Receitas',icon:'income'},{value:'EXPENSE',label:'Despesas',icon:'expense'}];
+  get transactionAccountOptions():SelectOption[]{return [
+    {value:'ALL',label:'Todas as contas',icon:'accounts',group:'Visão do saldo'},
+    {value:'WALLET',label:'Carteira principal',description:'Contas do dia a dia',icon:'wallet',group:'Visão do saldo'},
+    {value:'SEPARATE',label:'Saldos separados',description:'Benefícios, reserva e investimentos',icon:'accounts',group:'Visão do saldo'},
+    ...this.state.accounts.map(a=>({value:a.id,label:a.name,description:a.institution+' · '+(a.balanceGroup==='SEPARATE'?'Saldo separado':'Carteira principal'),icon:'accounts',group:'Suas contas'}))
+  ];}
+  get sectorOptions():SelectOption[]{return [{value:'ALL',label:'Todos os setores'},...this.sectors.map(sector=>({value:sector,label:sector}))];}
+  readonly chartRangeOptions:SelectOption[]=[{value:'1d',label:'Dia'},{value:'5d',label:'5 pregões'},{value:'1mo',label:'1 mês'}];
+  readonly cryptoOptions:SelectOption[]=[{value:'BTC',label:'BTC',description:'Bitcoin'},{value:'ETH',label:'ETH',description:'Ethereum'},{value:'SOL',label:'SOL',description:'Solana'},{value:'XRP',label:'XRP'},{value:'ADA',label:'ADA',description:'Cardano'},{value:'DOGE',label:'DOGE',description:'Dogecoin'},{value:'BNB',label:'BNB'},{value:'USDT',label:'USDT',description:'Tether'}];
+  readonly investmentIndexerOptions:SelectOption[]=[{value:'',label:'Não informado'},{value:'CDI',label:'CDI'},{value:'SELIC',label:'Selic'},{value:'IPCA',label:'IPCA +'},{value:'PREFIXADO',label:'Prefixado'}];
+
   quotes:StockQuote[]=[];
   holdings:Holding[]=[];
   holdingDraft={id:'',ticker:'',quantity:'',averagePrice:'',unknownCost:true};
@@ -209,7 +222,7 @@ export class AppComponent {
     this.returnFocus=document.activeElement as HTMLElement;this.modal=kind;this.error='';if(kind==='transaction')this.transactionKey=this.uuid();
     this.draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:defaultAccountId(this.state.accounts),date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:'',balanceGroup:'WALLET' as AccountBalanceGroup};
     if(kind==='progress'&&item){this.draft.goalId=item.id;this.draft.name=item.name;}
-    setTimeout(()=>(document.querySelector<HTMLElement>('.dialog input, .dialog select')||document.querySelector<HTMLElement>('.dialog button'))?.focus());
+    setTimeout(()=>(document.querySelector<HTMLElement>('.dialog input, .dialog select, .dialog app-select-field button')||document.querySelector<HTMLElement>('.dialog button'))?.focus());
   }
   openAccount(account:Account){
     this.openModal('account');if(this.modal!=='account'||this.busy)return;
