@@ -23,3 +23,10 @@ test('default account stays the first persisted account after cloud serializatio
   const first=createAccountFromDraft(draft,'first'),second=createAccountFromDraft({...draft,name:'Reserva'},'second');
   assert.equal(defaultAccountId(JSON.parse(JSON.stringify([first,second]))),'first');
 });
+test('separate accounts retain exact balances and default selection prefers the wallet',()=>{
+ const vr=createAccountFromDraft({...draft,balanceGroup:'SEPARATE',opening:'24,49'},'vr');
+ const wallet=createAccountFromDraft({...draft,balanceGroup:'WALLET'},'daily');
+ assert.equal(vr.balanceGroup,'SEPARATE');assert.equal(vr.openingBalanceCents,2449);
+ assert.equal(defaultAccountId([vr,wallet]),'daily');assert.equal(defaultAccountId([vr]),'vr');
+ assert.throws(()=>createAccountFromDraft({...draft,balanceGroup:'INVALID' as never},'bad'));
+});

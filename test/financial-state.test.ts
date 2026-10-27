@@ -37,3 +37,11 @@ test('financial writes enforce same origin, bounded payload and an explicit revi
  await assert.rejects(readFinancialRequest(request({state:state()})));
  await assert.rejects(readFinancialRequest(request({state:state(),revision:0,extra:'x'.repeat(270000)})),e=>e instanceof AuthError&&e.status===413);
 });
+test('wallet classification survives validation and legacy accounts are preserved',()=>{
+ const data=state();const before=JSON.stringify(data);
+ const separate={...account,id:crypto.randomUUID(),name:'VR',balanceGroup:'SEPARATE',openingBalanceCents:2449};
+ const saved=validateFinancialState({...data,accounts:[account,separate]});
+ assert.equal(saved.accounts[1].balanceGroup,'SEPARATE');assert.equal(saved.accounts[1].openingBalanceCents,2449);
+ assert.equal(saved.accounts[0].balanceGroup,undefined);assert.equal(JSON.stringify(data),before);
+ for(const balanceGroup of ['INVALID',true,null,42])assert.throws(()=>validateFinancialState({...data,accounts:[{...account,balanceGroup}]}));
+});

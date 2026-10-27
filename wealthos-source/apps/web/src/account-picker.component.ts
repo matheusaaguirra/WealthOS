@@ -1,7 +1,7 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { IconComponent } from './icon.component';
 
-export interface PickerAccount { id:string; name:string; institution:string; color:string; }
+export interface PickerAccount { id:string; name:string; institution:string; color:string; balanceGroup?:'WALLET'|'SEPARATE'; }
 
 @Component({
   selector: 'app-account-picker', standalone: true, imports: [IconComponent],
@@ -12,7 +12,7 @@ export interface PickerAccount { id:string; name:string; institution:string; col
         <summary #trigger [attr.aria-labelledby]="'account-label-'+id">
           @if (selected) {
             <span class="account-symbol" [style.border-color]="selected.color"><app-icon name="accounts"/></span>
-            <span class="account-copy"><strong>{{selected.name}}</strong><small>{{selected.institution}}</small></span>
+            <span class="account-copy"><strong>{{selected.name}}</strong><small>{{selected.institution}} · {{selected.balanceGroup==='SEPARATE'?'Saldo separado':'Carteira principal'}}</small></span>
           } @else {
             <span class="account-symbol"><app-icon name="accounts"/></span><span class="account-copy"><strong>Selecione uma conta</strong></span>
           }
@@ -23,7 +23,7 @@ export interface PickerAccount { id:string; name:string; institution:string; col
           @for (account of accounts; track account.id) {
             <button type="button" [attr.aria-pressed]="value===account.id" (click)="choose(account.id,trigger)">
               <span class="account-symbol" [style.border-color]="account.color"><app-icon name="accounts"/></span>
-              <span class="account-copy"><strong>{{account.name}}</strong><small>{{account.institution}}</small></span>
+              <span class="account-copy"><strong>{{account.name}}</strong><small>{{account.institution}} · {{account.balanceGroup==='SEPARATE'?'Saldo separado':'Carteira principal'}}</small></span>
               @if(value===account.id){<app-icon name="check" class="selected-check"/>}
             </button>
           } @empty { <p class="empty-account">Adicione uma conta para registrar lançamentos.</p> }

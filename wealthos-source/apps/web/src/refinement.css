@@ -292,3 +292,16 @@ html[data-theme='dark']{color-scheme:dark}
 .average-price>small{font-size:11px;line-height:1.4;color:var(--text-secondary)}
 .average-price-edit{padding:0;white-space:normal;text-align:left;line-height:1.4}
 @container(max-width:720px){.responsive-table td .average-price{align-items:flex-end}.average-price-edit{text-align:right}}
+
+.account-scope-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:22px}
+.account-scope-overview article{padding:22px}.account-scope-overview article>span{font-size:12px;font-weight:700;color:var(--text-secondary)}
+.account-scope-overview strong{display:block;font-size:28px;overflow-wrap:anywhere;margin:8px 0;font-variant-numeric:tabular-nums}
+.account-scope-overview p,.account-scope-caption{font-size:12px;line-height:1.6;color:var(--text-secondary)}
+.account-scope-caption{margin:16px 0}.full-account-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.full-account-actions>.secondary-button{flex:1 1 160px;margin:0}
+.separate-balance-link{width:100%;display:flex;align-items:center;gap:18px;padding:18px 20px;margin:18px 0 26px;border:1px solid var(--border);border-radius:10px;background:var(--surface-subtle);color:var(--ink);text-align:left}
+.separate-balance-link>span:first-child{flex:1;min-width:0;font-weight:650}.separate-balance-link small{display:block;font-size:11px;color:var(--text-secondary);font-weight:400;margin-top:4px}.separate-balance-link strong{font-size:18px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.account-scope-field{border:0;padding:0;margin:0 0 20px;min-width:0}.account-scope-field legend{font-size:13px;font-weight:650;margin-bottom:10px;color:var(--ink)}
+.dialog form .account-scope-option{display:flex;flex-direction:row;align-items:flex-start;gap:11px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface);margin:0 0 9px;cursor:pointer}
+.account-scope-option:has(input:checked){border-color:var(--accent);background:var(--green-soft)}.dialog .account-scope-option input{flex:none;width:18px;height:18px;min-height:18px;margin:3px 0;accent-color:var(--accent)}
+.account-scope-option span{min-width:0}.account-scope-option strong{display:block;font-size:13px;color:var(--ink)}.account-scope-option small{display:block;font-size:12px;font-weight:400;color:var(--text-secondary);line-height:1.55;margin-top:4px}
+@media(max-width:700px){.account-scope-overview{grid-template-columns:minmax(0,1fr);gap:12px}.account-scope-overview article{padding:18px}.separate-balance-link{flex-wrap:wrap;gap:12px}.separate-balance-link>span:nth-child(2){flex-basis:100%}.separate-balance-link>app-icon{display:none}.full-account-actions>.text-button{min-height:44px}}

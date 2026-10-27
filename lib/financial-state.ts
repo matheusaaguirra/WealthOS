@@ -1,7 +1,7 @@
 import { AuthError } from './auth-core';
 import { assertNoDuplicate, balance, validateAmount, validateDate, validateFixedIncomeInvestment, validateRecurringExpense, type RecurringExpense, type FixedIncomeInvestment, type Entry } from '../wealthos-source/packages/finance/src/index';
 
-export interface Account {id:string;name:string;institution:string;color:string;openingBalanceCents:number}
+export interface Account {id:string;name:string;institution:string;color:string;openingBalanceCents:number;balanceGroup?:'WALLET'|'SEPARATE'}
 export interface Transaction extends Entry {description:string;category:string;idempotencyKey:string;recurringRuleId?:string;recurringMonth?:string}
 export interface Budget {id:string;category:string;limitCents:number}
 export interface Goal {id:string;name:string;targetCents:number;savedCents:number;icon:string}
@@ -22,7 +22,7 @@ function rows(value:unknown,max:number){if(!Array.isArray(value)||value.length>m
 function unique<T>(values:T[],key:(value:T)=>string){if(new Set(values.map(key)).size!==values.length)invalid('Há registros duplicados.');}
 export function validateFinancialState(input:unknown):FinancialState{
   const data=object(input,['accounts','transactions','budgets','goals','investments','recurringExpenses']);
-  const accounts=rows(data.accounts,100).map(raw=>{const r=object(raw,['id','name','institution','color','openingBalanceCents']);const color=text(r.color,7);if(!/^#[0-9a-f]{6}$/i.test(color))invalid();return{id:id(r.id),name:text(r.name,80),institution:text(r.institution,80),color,openingBalanceCents:integer(r.openingBalanceCents,-1e9,1e9)};});
+  const accounts=rows(data.accounts,100).map(raw=>{const r=object(raw,['id','name','institution','color','openingBalanceCents','balanceGroup']);const color=text(r.color,7);if(!/^#[0-9a-f]{6}$/i.test(color))invalid();if(r.balanceGroup!==undefined&&r.balanceGroup!=='WALLET'&&r.balanceGroup!=='SEPARATE')invalid('Classificação de conta inválida.');return{id:id(r.id),name:text(r.name,80),institution:text(r.institution,80),color,openingBalanceCents:integer(r.openingBalanceCents,-1e9,1e9),...(r.balanceGroup===undefined?{}:{balanceGroup:r.balanceGroup as 'WALLET'|'SEPARATE'})};});
   unique(accounts,r=>r.id);
   const transactions:Transaction[]=rows(data.transactions,2000).map(raw=>{
     const r=object(raw,['id','accountId','amountCents','type','date','reversedAt','description','category','idempotencyKey','recurringRuleId','recurringMonth']);

@@ -11,10 +11,10 @@ import { StatementImportComponent, ImportedStatementRow } from './statement-impo
 import { statementFingerprint } from './statement-parser';
 import { downloadTransactionsPdf } from './transactions-pdf';
 import { StockAutocompleteComponent } from './stock-autocomplete.component';
-import { createAccountFromDraft, defaultAccountId } from './account-setup';
+import { createAccountFromDraft, defaultAccountId, isWalletAccount, type AccountBalanceGroup } from './account-setup';
 import {siteAuth,marketApi,SiteUser,AuthConfig,StockResponse,CryptoResponse} from './services/site-api';
 import { balance, summarize, parseMoneyToCents, validateAmount, validateDate, assertNoDuplicate, Entry, stockPosition, sectorPerformance, StockQuote, Holding, FIXED_INCOME_TYPES, FixedIncomeInvestment, FixedIncomeDraft, fixedIncomeFromDraft, summarizeFixedIncome, RecurringExpense, dueRecurringExpenses, recurringDate } from '@wealthos/finance';
-interface Account { id:string; name:string; institution:string; color:string; openingBalanceCents:number; balanceCents?:number; }
+interface Account { id:string; name:string; institution:string; color:string; openingBalanceCents:number; balanceGroup?:AccountBalanceGroup; balanceCents?:number; }
 interface Transaction extends Entry { description:string; category:string; idempotencyKey:string; recurringRuleId?:string; recurringMonth?:string; }
 interface Budget { id:string; category:string; limitCents:number; }
 interface Goal { id:string; name:string; targetCents:number; savedCents:number; icon:string; }
@@ -154,9 +154,10 @@ export class AppComponent {
   modal:'transaction'|'account'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|'fixedIncome'|'deleteFixedIncome'|'recurring'|null=null;
   error=''; toast=''; busy=false;
   accountOnboarding=false;
+  editingAccountId='';
   private resumeTransactionAfterSetup=false;
 
-  draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:'',date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:''};
+  draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:'',date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:'',balanceGroup:'WALLET' as AccountBalanceGroup};
   recurringDraft={id:'',description:'',amount:'',accountId:'',category:'Moradia',day:1,startMonth:this.month,endMonth:'',active:true};
   get recurringRules(){return this.state.recurringExpenses??[];}
   get dueRecurring(){return dueRecurringExpenses(this.recurringRules,this.state.transactions,this.month);}
@@ -172,15 +173,20 @@ export class AppComponent {
   private returnFocus:HTMLElement|null=null;
   private toastTimer:ReturnType<typeof setTimeout>|undefined;
   get title(){return this.navigation.find(v=>v.key===this.view)!.label;}
-  get summary(){return summarize(this.state.transactions,this.month);}
-  get mainAccount():Account|null{return this.state.accounts[0]??null;}
-  get totalBalance(){return this.state.accounts.reduce((s,a)=>s+this.accountBalance(a),0);}
+  readonly accountInWallet=isWalletAccount;
+  get walletAccounts(){return this.state.accounts.filter(isWalletAccount);}
+  get separateAccounts(){return this.state.accounts.filter(a=>!isWalletAccount(a));}
+  get walletTransactions(){const ids=new Set(this.walletAccounts.map(a=>a.id));return this.state.transactions.filter(t=>ids.has(t.accountId));}
+  get summary(){return summarize(this.walletTransactions,this.month);}
+  get separateBalance(){return this.separateAccounts.reduce((sum,a)=>sum+this.accountBalance(a),0);}
+  get mainAccount():Account|null{return this.walletAccounts[0]??null;}
+  get totalBalance(){return this.walletAccounts.reduce((s,a)=>s+this.accountBalance(a),0);}
   get savingsRate(){return this.summary.incomeCents>0?Math.round((this.summary.incomeCents-this.summary.expenseCents)/this.summary.incomeCents*100):0;}
   get monthLabel(){return new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(this.month+'-02T12:00:00Z'));}
-  get filteredTransactions(){return this.state.transactions.filter(t=>t.date.startsWith(this.month)&&(this.filterType==='ALL'||t.type===this.filterType)&&(this.filterAccount==='ALL'||t.accountId===this.filterAccount)&&(!this.search||[t.description,t.category,this.accountName(t.accountId)].join(' ').toLocaleLowerCase('pt-BR').includes(this.search.toLocaleLowerCase('pt-BR')))).sort((a,b)=>b.date.localeCompare(a.date));}
-  get recentTransactions(){return this.filteredTransactions.slice(0,5);}
-  get expenseCategories(){const all=new Map<string,number>();for(const t of this.state.transactions){if(t.type==='EXPENSE'&&!t.reversedAt&&t.date.startsWith(this.month))all.set(t.category,(all.get(t.category)||0)+t.amountCents);}const sorted=[...all].map(([name,total])=>({name,total})).sort((a,b)=>b.total-a.total);return sorted.length>4?[...sorted.slice(0,3),{name:'Demais categorias',total:sorted.slice(3).reduce((sum,c)=>sum+c.total,0)}]:sorted;}
-  get graph(){const dates=Array.from({length:6},(_,i)=>{const d=new Date(this.month+'-02T12:00:00Z');d.setUTCMonth(d.getUTCMonth()-5+i);return d.toISOString().slice(0,7);});const vals=dates.filter(m=>m>='2000-01').map(m=>({month:m,...summarize(this.state.transactions,m)}));const max=Math.max(100000,...vals.flatMap(v=>[v.incomeCents,v.expenseCents]));return vals.map(v=>({...v,incomeHeight:Math.max(2,v.incomeCents/max*100),expenseHeight:Math.max(2,v.expenseCents/max*100),label:new Intl.DateTimeFormat('pt-BR',{month:'short',timeZone:'UTC'}).format(new Date(v.month+'-02T12:00:00Z')).replace('.','')}));}
+  get filteredTransactions(){const accounts=this.filterAccount==='ALL'?null:new Set(this.filterAccount==='WALLET'?this.walletAccounts.map(a=>a.id):this.filterAccount==='SEPARATE'?this.separateAccounts.map(a=>a.id):[this.filterAccount]);return this.state.transactions.filter(t=>t.date.startsWith(this.month)&&(this.filterType==='ALL'||t.type===this.filterType)&&(!accounts||accounts.has(t.accountId))&&(!this.search||[t.description,t.category,this.accountName(t.accountId)].join(' ').toLocaleLowerCase('pt-BR').includes(this.search.toLocaleLowerCase('pt-BR')))).sort((a,b)=>b.date.localeCompare(a.date));}
+  get recentTransactions(){return this.walletTransactions.filter(t=>t.date.startsWith(this.month)).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);}
+  get expenseCategories(){const all=new Map<string,number>();for(const t of this.walletTransactions){if(t.type==='EXPENSE'&&!t.reversedAt&&t.date.startsWith(this.month))all.set(t.category,(all.get(t.category)||0)+t.amountCents);}const sorted=[...all].map(([name,total])=>({name,total})).sort((a,b)=>b.total-a.total);return sorted.length>4?[...sorted.slice(0,3),{name:'Demais categorias',total:sorted.slice(3).reduce((sum,c)=>sum+c.total,0)}]:sorted;}
+  get graph(){const dates=Array.from({length:6},(_,i)=>{const d=new Date(this.month+'-02T12:00:00Z');d.setUTCMonth(d.getUTCMonth()-5+i);return d.toISOString().slice(0,7);});const vals=dates.filter(m=>m>='2000-01').map(m=>({month:m,...summarize(this.walletTransactions,m)}));const max=Math.max(100000,...vals.flatMap(v=>[v.incomeCents,v.expenseCents]));return vals.map(v=>({...v,incomeHeight:Math.max(2,v.incomeCents/max*100),expenseHeight:Math.max(2,v.expenseCents/max*100),label:new Intl.DateTimeFormat('pt-BR',{month:'short',timeZone:'UTC'}).format(new Date(v.month+'-02T12:00:00Z')).replace('.','')}));}
   private uuid():string{if(typeof crypto.randomUUID==='function')return crypto.randomUUID();const bytes=crypto.getRandomValues(new Uint8Array(16));bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;const hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');return [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),hex.slice(16,20),hex.slice(20)].join('-');}
   localToday(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
   money(value:number){return this.hideValues?'••••••':new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value/100);}
@@ -196,13 +202,19 @@ export class AppComponent {
     if(this.busy||!this.user||!this.dataReady)return;
     this.resumeTransactionAfterSetup=kind==='transaction'&&!this.state.accounts.length;
     if(this.resumeTransactionAfterSetup)kind='account';
+    this.editingAccountId='';
     this.accountOnboarding=kind==='account'&&!this.state.accounts.length;
     this.returnFocus=document.activeElement as HTMLElement;this.modal=kind;this.error='';if(kind==='transaction')this.transactionKey=this.uuid();
-    this.draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:defaultAccountId(this.state.accounts),date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:''};
+    this.draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:defaultAccountId(this.state.accounts),date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:'',balanceGroup:'WALLET' as AccountBalanceGroup};
     if(kind==='progress'&&item){this.draft.goalId=item.id;this.draft.name=item.name;}
     setTimeout(()=>(document.querySelector<HTMLElement>('.dialog input, .dialog select')||document.querySelector<HTMLElement>('.dialog button'))?.focus());
   }
-  closeModal(){if(this.busy)return;this.modal=null;this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.error='';const target=this.returnFocus;setTimeout(()=>{if(!this.modal&&target?.isConnected)target.focus();});}
+  openAccount(account:Account){
+    this.openModal('account');if(this.modal!=='account'||this.busy)return;
+    this.editingAccountId=account.id;
+    this.draft={...this.draft,name:account.name,institution:account.institution,color:account.color,opening:(account.openingBalanceCents/100).toFixed(2).replace('.',','),balanceGroup:account.balanceGroup??'WALLET'};
+  }
+  closeModal(){if(this.busy)return;this.modal=null;this.editingAccountId='';this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.error='';const target=this.returnFocus;setTimeout(()=>{if(!this.modal&&target?.isConnected)target.focus();});}
   @HostListener('document:keydown',['$event']) onKey(event:KeyboardEvent){if(event.key==='Escape'){this.closeModal();this.mobileMenu=false;}if(event.key==='Tab'&&this.modal){const items=Array.from(document.querySelectorAll<HTMLElement>('.dialog button:not([disabled]):not([tabindex="-1"]),.dialog input:not([disabled]),.dialog select:not([disabled]),.dialog summary,.dialog a[href]')).filter(el=>el.offsetParent!==null);const first=items[0],last=items[items.length-1];if(!items.length){event.preventDefault();document.querySelector<HTMLElement>('.dialog')?.focus();}else if(event.shiftKey&&(document.activeElement===first||document.activeElement===document.querySelector('.dialog'))){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}}
   notify(message:string){this.toast=message;clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>this.toast='',4500);}
   private async persist(){if(!this.user||!this.dataReady)throw new Error('Entre na sua conta e carregue os dados antes de salvar.');const saved=await siteAuth.saveFinance(this.state,this.revision);this.state=saved.state;this.revision=saved.revision;}
@@ -240,8 +252,11 @@ export class AppComponent {
       const input={accountId:this.draft.accountId,description:this.draft.description.trim(),amountCents:cents,type:this.draft.type as 'INCOME'|'EXPENSE',category:this.draft.category,date:this.draft.date,idempotencyKey:this.transactionKey};
       const t:Transaction={id:this.uuid(),...input};this.state={...this.state,transactions:[...this.state.transactions.filter(item=>item.id!==t.id),t]};
     }else if(this.modal==='account'){
-      const account=createAccountFromDraft(this.draft,this.uuid());
-      this.state={...this.state,accounts:[...this.state.accounts,account]};
+      const original=this.editingAccountId?this.state.accounts.find(a=>a.id===this.editingAccountId):null;
+      if(this.editingAccountId&&!original)throw new Error('Conta não encontrada. Recarregue seus dados.');
+      const account=createAccountFromDraft(this.draft,original?.id??this.uuid());
+      if(original)account.openingBalanceCents=original.openingBalanceCents;
+      this.state={...this.state,accounts:original?this.state.accounts.map(a=>a.id===original.id?{...a,...account}:a):[...this.state.accounts,account]};
     }else if(this.modal==='goal'){
       if(!this.draft.name.trim())throw new Error('Dê um nome à sua meta.');const targetCents=parseMoneyToCents(this.draft.target);validateAmount(targetCents);const savedCents=this.parseAllowZero(this.draft.saved);if(savedCents<0||savedCents>targetCents)throw new Error('O valor guardado deve estar entre zero e o valor da meta.');this.state={...this.state,goals:[...this.state.goals,{id:this.uuid(),name:this.draft.name.trim(),targetCents,savedCents,icon:'goals'}]};
     }else if(this.modal==='progress'){

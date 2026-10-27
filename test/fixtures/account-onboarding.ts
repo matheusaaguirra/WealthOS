@@ -56,6 +56,28 @@ assert.equal(stored.transactions.length,1);assert.equal(app.totalBalance,0);
 await app.applyUser(user);
 assert.equal(app.modal,null);assert.equal(app.state.accounts.length,1);
 app.openModal('transaction');assert.equal(app.draft.accountId,stored.accounts[0].id);app.closeModal();
+// A separate VR account remains spendable without changing the daily wallet.
+app.openModal('account');app.draft.name='VR';app.draft.institution='Benefício';app.draft.opening='100,00';app.draft.balanceGroup='SEPARATE';await app.save();
+const vrId=app.state.accounts[1].id;
+app.openModal('transaction');assert.equal(app.draft.accountId,app.state.accounts[0].id);
+app.draft.description='Crédito do VR';app.draft.type='INCOME';app.draft.accountId=vrId;app.draft.amount='50,01';await app.save();
+app.openModal('transaction');app.draft.description='Almoço';app.draft.accountId=vrId;app.draft.amount='12,34';await app.save();
+assert.equal(app.totalBalance,0);assert.equal(app.separateBalance,13767);
+assert.equal(app.summary.incomeCents,0);assert.equal(app.summary.expenseCents,0);
+assert.equal(app.graph.at(-1)!.incomeCents,0);assert.equal(app.expenseCategories.length,0);
+app.filterAccount='SEPARATE';assert.equal(app.filteredTransactions.length,2);
+const transactions=JSON.stringify(app.state.transactions),opening=app.state.accounts[1].openingBalanceCents;
+// Reclassifying preserves IDs, opening balance and transaction history, including on failure/retry.
+app.openAccount(app.state.accounts[1]);app.draft.balanceGroup='WALLET';app.draft.opening='999,99';
+failWrite=true;await app.save();assert.equal(app.state.accounts[1].balanceGroup,'SEPARATE');assert.equal(app.totalBalance,0);
+failWrite=false;await app.save();assert.equal(app.state.accounts.length,2);assert.equal(app.totalBalance,13767);assert.equal(app.separateBalance,0);
+assert.equal(app.state.accounts[1].openingBalanceCents,opening);assert.equal(JSON.stringify(app.state.transactions),transactions);
+assert.equal(app.summary.incomeCents,5001);assert.equal(app.summary.expenseCents,1234);
+await app.applyUser(user);assert.equal(app.state.accounts[1].balanceGroup,'WALLET');assert.equal(app.totalBalance,13767);
+app.openAccount(app.state.accounts[0]);app.draft.balanceGroup='SEPARATE';await app.save();
+assert.equal(app.mainAccount!.id,vrId);app.openModal('transaction');assert.equal(app.draft.accountId,vrId);app.closeModal();
+const lunch=app.state.transactions.find(t=>t.description==='Almoço')!;await app.reverse(lunch);await app.reverse(app.state.transactions.find(t=>t.id===lunch.id)!);
+assert.equal(app.totalBalance,15001);assert.equal(app.summary.expenseCents,0);assert.equal(app.state.transactions.length,3);
 failRead=true;
 await assert.rejects(()=>app.applyUser(user),/Falha ao carregar/);
 assert.equal(app.dataReady,false);assert.equal(app.modal,null);

@@ -27,7 +27,7 @@ test('Supabase: stale financial writes fail atomically and preserve the most rec
  const{db,user}=await fixture();try{
   await user(alice);
   const first=await db.query<{result:{revision:number}}>('select public.wealthos_save_financial_state($1::jsonb,0) as result',[JSON.stringify(empty)]);assert.equal(first.rows[0].result.revision,1);
-  const updated={...empty,accounts:[{id:crypto.randomUUID(),name:'Conta real',institution:'Banco',color:'#2862b9',openingBalanceCents:0}]};
+  const updated={...empty,accounts:[{id:crypto.randomUUID(),name:'Conta real',institution:'Banco',color:'#2862b9',openingBalanceCents:0,balanceGroup:'SEPARATE'}]};
   await db.query('select public.wealthos_save_financial_state($1::jsonb,1)',[JSON.stringify(updated)]);
   await assert.rejects(db.query('select public.wealthos_save_financial_state($1::jsonb,1)',[JSON.stringify(empty)]),e=>(e as {code:string}).code==='40001');
   const read=await db.query<{data:typeof updated;revision:number}>('select data,revision from public.wealthos_financial_state');assert.deepEqual(read.rows[0].data,updated);assert.equal(read.rows[0].revision,2);
