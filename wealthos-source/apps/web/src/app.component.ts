@@ -57,7 +57,7 @@ export class AppComponent {
   get marketQuotes(){const term=this.stockSearch.trim().toLocaleLowerCase('pt-BR');return this.sampleQuotes.filter(q=>(this.stockSector==='ALL'||q.sector===this.stockSector)&&(!term||(q.ticker+' '+q.name).toLocaleLowerCase('pt-BR').includes(term))).sort((a,b)=>(b.changes[this.stockPeriod]??-Infinity)-(a.changes[this.stockPeriod]??-Infinity));}
   get marketLeaders(){return this.marketQuotes.filter(q=>q.priceCents!==null&&(q.changes[this.stockPeriod]??0)>0).slice(0,4);}
   get sectorRows(){return sectorPerformance(this.sampleQuotes.filter(q=>q.priceCents!==null),this.stockPeriod);}
-  get positions(){return this.holdings.map(h=>({holding:h,quote:this.quotes.find(q=>q.ticker===h.ticker),...stockPosition(h,this.quotes.find(q=>q.ticker===h.ticker))}));}
+  get positions(){return this.holdings.map(holding=>{const quote=this.quotes.find(q=>q.ticker===holding.ticker);const change=quote?.changes.day;return {holding,quote,dayChangePercent:typeof change==='number'&&Number.isFinite(change)&&change>=-100?change:null,...stockPosition(holding,quote)};});}
   get portfolioMarketValue(){const valued=this.positions.filter(p=>p.marketValueCents!==null);return valued.length?this.safeTotal(valued.map(p=>p.marketValueCents!)):null;}
   get portfolioMissingQuotes(){return this.positions.filter(p=>p.marketValueCents===null).length;}
   get portfolioProfit(){const positions=this.positions;return positions.length&&positions.every(p=>p.profitCents!==null)?this.safeTotal(positions.map(p=>p.profitCents!)):null;}
@@ -151,10 +151,12 @@ export class AppComponent {
   search=''; filterType='ALL'; filterAccount='ALL'; hideValues=false; mobileMenu=false;
   activeGraphMonth:string|null=null;
   state:State={accounts:[],transactions:[],budgets:[],goals:[]};
-  modal:'transaction'|'account'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|'fixedIncome'|'deleteFixedIncome'|'recurring'|null=null;
+  modal:'transaction'|'account'|'deleteAccount'|'goal'|'progress'|'connection'|'holding'|'deleteHolding'|'stockAbout'|'fixedIncome'|'deleteFixedIncome'|'recurring'|null=null;
   error=''; toast=''; busy=false;
   accountOnboarding=false;
   editingAccountId='';
+  pendingDeleteAccount:Account|null=null;
+  accountDeleteConfirmed=false;
   private resumeTransactionAfterSetup=false;
 
   draft={description:'',amount:'',type:'EXPENSE',category:'Alimentação',accountId:'',date:this.localToday(),name:'',institution:'',color:'#8052cb',opening:'0',target:'',saved:'0',goalId:'',balanceGroup:'WALLET' as AccountBalanceGroup};
@@ -214,12 +216,26 @@ export class AppComponent {
     this.editingAccountId=account.id;
     this.draft={...this.draft,name:account.name,institution:account.institution,color:account.color,opening:(account.openingBalanceCents/100).toFixed(2).replace('.',','),balanceGroup:account.balanceGroup??'WALLET'};
   }
-  closeModal(){if(this.busy)return;this.modal=null;this.editingAccountId='';this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.error='';const target=this.returnFocus;setTimeout(()=>{if(!this.modal&&target?.isConnected)target.focus();});}
+  get accountDeleteTransactions(){return this.state.transactions.filter(t=>t.accountId===this.pendingDeleteAccount?.id).length;}
+  get accountDeleteRecurring(){return this.recurringRules.filter(r=>r.accountId===this.pendingDeleteAccount?.id).length;}
+  askDeleteAccount(account:Account){
+    if(this.busy||!this.user||!this.dataReady)return;
+    this.openModal('deleteAccount');this.pendingDeleteAccount=account;this.accountDeleteConfirmed=false;
+  }
+  closeModal(){if(this.busy)return;this.modal=null;this.editingAccountId='';this.pendingDeleteAccount=null;this.accountDeleteConfirmed=false;this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.error='';const target=this.returnFocus;setTimeout(()=>{if(!this.modal&&target?.isConnected)target.focus();});}
   @HostListener('document:keydown',['$event']) onKey(event:KeyboardEvent){if(event.key==='Escape'){this.closeModal();this.mobileMenu=false;}if(event.key==='Tab'&&this.modal){const items=Array.from(document.querySelectorAll<HTMLElement>('.dialog button:not([disabled]):not([tabindex="-1"]),.dialog input:not([disabled]),.dialog select:not([disabled]),.dialog summary,.dialog a[href]')).filter(el=>el.offsetParent!==null);const first=items[0],last=items[items.length-1];if(!items.length){event.preventDefault();document.querySelector<HTMLElement>('.dialog')?.focus();}else if(event.shiftKey&&(document.activeElement===first||document.activeElement===document.querySelector('.dialog'))){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}}
   notify(message:string){this.toast=message;clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>this.toast='',4500);}
   private async persist(){if(!this.user||!this.dataReady)throw new Error('Entre na sua conta e carregue os dados antes de salvar.');const saved=await siteAuth.saveFinance(this.state,this.revision);this.state=saved.state;this.revision=saved.revision;}
-  async save(){if(this.busy||!this.user||!this.dataReady)return;const previous=this.state;this.error='';this.busy=true;try{
-    if(this.modal==='fixedIncome'){
+  async save(){if(this.busy||!this.user||!this.dataReady||!this.modal)return;const previous=this.state;this.error='';this.busy=true;try{
+    if(this.modal==='deleteAccount'){
+      const id=this.pendingDeleteAccount?.id;
+      if(!id||!this.state.accounts.some(a=>a.id===id))throw new Error('Conta não encontrada. Recarregue seus dados.');
+      if(!this.accountDeleteConfirmed)throw new Error('Confirme a exclusão da conta e dos registros vinculados.');
+      this.state={...this.state,accounts:this.state.accounts.filter(a=>a.id!==id),transactions:this.state.transactions.filter(t=>t.accountId!==id),...(this.state.recurringExpenses===undefined?{}:{recurringExpenses:this.recurringRules.filter(r=>r.accountId!==id)})};
+      await this.persist();
+      if(this.filterAccount===id)this.filterAccount='ALL';
+      this.busy=false;this.closeModal();this.notify('Conta e registros vinculados excluídos.');return;
+    }else if(this.modal==='fixedIncome'){
       const row=fixedIncomeFromDraft(this.investmentDraft,this.investmentDraft.id||this.uuid());
       if(this.investmentDraft.id&&!this.fixedIncomeInvestments.some(item=>item.id===row.id))throw new Error('O investimento não foi encontrado. Recarregue os dados.');
       const investments=this.investmentDraft.id?this.fixedIncomeInvestments.map(item=>item.id===row.id?row:item):[...this.fixedIncomeInvestments,row];
