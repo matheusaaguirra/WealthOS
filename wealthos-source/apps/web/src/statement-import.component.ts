@@ -33,16 +33,16 @@ interface ReviewRow extends StatementCandidate { selected: boolean; duplicate: b
       @if (error) { <p role="alert">{{error}}</p> }
       @if (rows.length) {
         <p role="status">{{rows.length}} lançamento(s) encontrados. {{skipped}} linha(s) ignoradas e {{duplicates}} repetição(ões) no arquivo. Revise a prévia.</p>
-        <div class="statement-table-wrap"><table class="statement-table">
-          <thead><tr><th scope="col">Importar</th><th scope="col">Data</th><th scope="col">Descrição</th><th scope="col">Tipo</th><th scope="col">Categoria</th><th scope="col">Valor</th></tr></thead>
+        <div class="statement-table-wrap"><table class="statement-table responsive-table" role="table">
+          <thead><tr role="row"><th scope="col" role="columnheader">Importar</th><th scope="col" role="columnheader">Data</th><th scope="col" role="columnheader">Descrição</th><th scope="col" role="columnheader">Tipo</th><th scope="col" role="columnheader">Categoria</th><th scope="col" role="columnheader">Valor</th></tr></thead>
           <tbody>@for (row of rows; track $index) {
-            <tr><td><input type="checkbox" [(ngModel)]="row.selected" [disabled]="row.duplicate" [attr.aria-label]="'Importar '+row.description"></td>
-              <td>{{row.date}}</td><td><input [(ngModel)]="row.description" (ngModelChange)="markDuplicates()" maxlength="120" [attr.aria-label]="'Descrição da linha '+($index+1)"></td>
-              <td>{{row.type === 'INCOME' ? 'Entrada' : 'Saída'}}</td>
-              <td><select [(ngModel)]="row.category" [attr.aria-label]="'Categoria da linha '+($index+1)">
+            <tr role="row"><td role="cell" data-label="Importar"><input type="checkbox" [(ngModel)]="row.selected" [disabled]="row.duplicate" [attr.aria-label]="'Importar '+row.description"></td>
+              <td role="cell" data-label="Data">{{row.date}}</td><td role="cell" data-label="Descrição"><input [(ngModel)]="row.description" (ngModelChange)="markDuplicates()" maxlength="120" [attr.aria-label]="'Descrição da linha '+($index+1)"></td>
+              <td role="cell" data-label="Tipo">{{row.type === 'INCOME' ? 'Entrada' : 'Saída'}}</td>
+              <td role="cell" data-label="Categoria"><select [(ngModel)]="row.category" [attr.aria-label]="'Categoria da linha '+($index+1)">
                 @for (item of categories; track item) { <option [value]="item">{{item}}</option> }
               </select></td>
-              <td>{{money(row.amountCents)}} @if (row.duplicate) { <small>Já lançado</small> }</td>
+              <td role="cell" data-label="Valor"><span>{{money(row.amountCents)}} @if (row.duplicate) { <small>Já lançado</small> }</span></td>
             </tr>
           }</tbody>
         </table></div>
@@ -62,8 +62,13 @@ interface ReviewRow extends StatementCandidate { selected: boolean; duplicate: b
     .statement-controls .statement-file-shell input[type=file]{position:absolute;inset:0;width:100%;height:100%;min-height:0;opacity:0;padding:0;cursor:pointer}
     .statement-controls input:disabled{opacity:.55;cursor:not-allowed}.statement-hint{font-size:10px;line-height:1.6;color:var(--text-secondary);max-width:740px}
     .statement-import [role=status],.statement-import [role=alert]{font-size:11px;line-height:1.5;margin:14px 0;color:var(--text-secondary)}.statement-import [role=alert]{color:var(--negative)}
-    .statement-table-wrap{max-width:100%;overflow-x:auto;margin:16px 0}.statement-table{width:100%;min-width:690px;border-collapse:collapse;text-align:left}
+    .statement-table-wrap{min-width:0;container-type:inline-size;max-width:100%;overflow-x:auto;margin:16px 0}.statement-table{width:100%;min-width:0;border-collapse:collapse;text-align:left}
     .statement-table th,.statement-table td{padding:11px;border-bottom:1px solid var(--border);font-size:11px}.statement-table td input[type=text]{width:100%}.statement-table td small{display:block;color:var(--negative)}
+    @container(max-width:720px){
+      .statement-table td{padding:8px 0;border-bottom:0;font-size:13px}
+      .statement-table input,.statement-table select{font-size:16px}
+      .statement-table td input[type=checkbox]{width:22px;min-height:22px;height:22px;justify-self:end}
+    }
     @media(max-width:700px){.statement-import{padding:18px}.statement-controls{grid-template-columns:1fr;gap:12px}.statement-controls input,.statement-controls select{font-size:16px}}
   `]
 })

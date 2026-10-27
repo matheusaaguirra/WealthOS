@@ -172,3 +172,105 @@ html[data-theme='dark'] .status-tag{color:#c7def6}
   .dialog-actions button{min-height:48px;font-size:13px}
   .panel-heading p,.recurring-empty p,.portfolio-empty p{font-size:12px}
 }
+
+/* Layout follows the available block width, including narrow desktop panels. */
+app-root,.app-shell,.main-shell,main{display:block;min-width:0}
+main{width:100%}
+.panel,.metric-card,.full-account,.goal-card,.recurring-card,.user-card,
+.page-heading>div,.heading-actions,.panel-heading>div,.section-title>*,
+.dashboard-middle>*,.dashboard-bottom>*,.metrics-grid>*,.portfolio-metrics>*,
+.account-grid>*,.wide-account-grid>*,.user-grid>*,.form-grid>*,.stock-toolbar>*{min-width:0}
+.metrics-grid{grid-template-columns:minmax(0,1.2fr) repeat(3,minmax(0,1fr))}
+.portfolio-metrics{grid-template-columns:minmax(0,1.15fr) repeat(2,minmax(0,1fr))}
+.heading-actions,.panel-heading,.section-title,.table-footer,.user-card-actions{flex-wrap:wrap}
+.heading-actions{max-width:100%}
+.filter-bar>*{min-width:0;max-width:100%}
+.search-field{min-width:0;flex:1 1 220px}
+input,select,textarea{min-width:0;max-width:100%}
+.stock-toolbar{flex-wrap:wrap}
+.market-tabs{min-width:0;max-width:100%;flex:1 1 600px;flex-wrap:wrap;overflow:visible;gap:8px 22px}
+.market-tabs button{white-space:normal;text-align:left;padding:10px 0;min-height:44px}
+.stock-about-button{flex:none;margin-bottom:10px}
+.table-wrapper{min-width:0;max-width:100%;container-type:inline-size}
+.responsive-table{width:100%;table-layout:auto}
+.responsive-table th,.responsive-table td{overflow-wrap:anywhere;white-space:normal}
+.responsive-table .table-description,.responsive-table .position-actions{min-width:0;flex-wrap:wrap}
+.responsive-table .table-description>div{min-width:0}
+.responsive-table .table-description strong,.responsive-table .table-description small{white-space:normal;overflow-wrap:anywhere}
+.account-card{flex-wrap:wrap}
+.account-amount{min-width:0;max-width:100%}
+.account-amount strong,.transaction-value{white-space:normal;overflow-wrap:anywhere}
+.transaction-info{flex:1}
+.transaction-value{max-width:48%;min-width:0}
+.user-email,.user-card h2,.recurring-card h3,.goal-card h2{overflow-wrap:anywhere}
+.user-card-actions>*{flex:1 1 160px}
+.breadcrumb{min-width:0}.breadcrumb strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topbar-actions{flex:none}
+.external-chart-wrap,.external-chart-wrap>*{min-width:0;max-width:100%}
+.external-chart-wrap iframe,.fred-chart-frame img{width:100%;max-width:100%}
+.index-switch{grid-template-columns:repeat(2,minmax(0,1fr))}
+.index-option,.index-option>div{min-width:0}.index-option small{overflow-wrap:anywhere}
+.dialog{min-width:0}.dialog-heading>div{min-width:0}.dialog-heading h2{overflow-wrap:anywhere}
+
+/* A table becomes a set of labelled records when its own panel is narrow. */
+@container (max-width:720px){
+  .responsive-table{display:block;min-width:0!important}
+  .responsive-table thead{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .responsive-table tbody{display:block;padding:0 16px}
+  .responsive-table tr{display:block;padding:16px 0;border-bottom:1px solid var(--border)}
+  .responsive-table tr:last-child{border-bottom:0}
+  .responsive-table td{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:12px;align-items:start;width:100%;padding:8px 0;border:0;text-align:right;white-space:normal}
+  .responsive-table td::before{content:attr(data-label);font-size:11px;font-weight:600;text-align:left;color:var(--text-secondary)}
+  .responsive-table td>*{min-width:0;max-width:100%}
+  .responsive-table td .table-description,.responsive-table td .position-actions{justify-content:flex-end}
+  .responsive-table td .table-description{text-align:right}
+  .responsive-table td .position-return{align-items:flex-end}
+  .responsive-table td[colspan]{display:block;text-align:center;padding:20px 0}
+  .responsive-table td[colspan]::before{content:none}
+  .responsive-table td input[type=checkbox]{justify-self:end;width:22px;height:22px;min-height:22px}
+}
+@media(max-width:1200px){
+  .metrics-grid,.portfolio-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .portfolio-metrics .balance-card{grid-column:1/-1}
+}
+@media(max-width:700px){
+  .main-shell{margin-left:0;width:100%}
+  main{padding:24px 16px 0}
+  .topbar{gap:8px}.breadcrumb{flex:1}.topbar-actions{gap:2px}
+  .heading-actions{display:grid;grid-template-columns:minmax(0,1fr);width:100%;gap:10px}
+  .heading-actions>.primary-button,.month-picker{width:100%}
+  .month-picker{justify-content:space-between}.month-picker input{flex:1;width:0;text-align:center}
+  .metrics-grid,.portfolio-metrics{gap:10px}
+  .metric-card{padding:16px 14px}.metric-label{gap:6px;align-items:flex-start}
+  .metric-icon{flex:none}.metric-footer{flex-wrap:wrap}
+  .market-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));flex-basis:100%;gap:4px 16px;overflow:visible;padding:0}
+  .market-tabs button{font-size:12px;padding:12px 0}
+  .stock-toolbar{width:100%;gap:8px}.stock-about-button{margin:0 0 12px}
+  .filter-bar{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  .filter-bar>*,.filter-bar>select,.filter-bar>.search-field{width:100%;min-width:0}
+  .filter-bar .secondary-button{justify-content:center}
+  .categories-panel{display:block}
+  .category-list{margin-top:22px}.category-list>div{font-size:12px;gap:8px}
+  .category-list strong{font-size:12px}.category-list small{display:none}
+  .category-total{margin-top:20px}.category-stack{margin-top:20px}
+  .category-link{margin-top:20px}
+  .account-card>div:not(.account-amount){flex:1}
+  .account-amount{flex:1 1 100%;padding-left:44px;text-align:left}
+  .account-amount strong{font-size:16px}
+  .transaction-row{flex-wrap:wrap}.transaction-info{flex-basis:calc(100% - 50px)}
+  .transaction-value{margin-left:44px;max-width:calc(100% - 44px);text-align:left}
+  .transaction-info small{max-width:100%;font-size:11px;white-space:normal}
+  .transaction-info strong,.transaction-value strong{font-size:13px}
+  .index-switch{grid-template-columns:minmax(0,1fr)}
+  .stock-detail-heading,.google-detail-top,.google-detail-value{flex-wrap:wrap}
+  .table-footer{display:flex;gap:8px;padding:14px 16px;align-items:flex-start}
+  .table-footer>span{margin-left:0}
+  .page-footer{flex-wrap:wrap}.page-footer>span:first-child{max-width:100%}
+  .user-card-actions{flex-direction:column;align-items:stretch}
+  .user-card-actions>*{flex:auto;width:100%}
+}
+@media(max-width:380px){
+  .metrics-grid,.portfolio-metrics{grid-template-columns:minmax(0,1fr)}
+  .metric-value{font-size:26px}.portfolio-metrics .balance-card{grid-column:auto}
+  .topbar-actions .demo-badge{display:none}
+}
