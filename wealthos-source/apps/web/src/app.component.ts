@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TradingChartComponent } from './trading-chart.component';
 import { IconComponent } from './icon.component';
+import { PwaInstallComponent } from './pwa-install.component';
 import { CategoryPickerComponent } from './category-picker.component';
 import { AccountPickerComponent } from './account-picker.component';
 import { NumericInputDirective } from './numeric-input.directive';
@@ -19,7 +20,7 @@ interface Budget { id:string; category:string; limitCents:number; }
 interface Goal { id:string; name:string; targetCents:number; savedCents:number; icon:string; }
 interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; investments?:FixedIncomeInvestment[]; recurringExpenses?:RecurringExpense[]; }
 type View = 'dashboard'|'transactions'|'recurring'|'accounts'|'goals'|'stocks'|'profile';
-@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,CategoryPickerComponent,AccountPickerComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent],templateUrl:'./app.component.html'})
+@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,TradingChartComponent,IconComponent,CategoryPickerComponent,AccountPickerComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent,PwaInstallComponent],templateUrl:'./app.component.html'})
 export class AppComponent {
   theme:'light'|'dark'=document.documentElement.dataset['theme']==='dark'?'dark':'light';
   stockTab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'='portfolio';

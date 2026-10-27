@@ -1,0 +1,14 @@
+import '../../wealthos-source/node_modules/@angular/compiler/fesm2022/compiler.mjs';
+import assert from 'node:assert/strict';
+import {initializePwa,installPwa,pwaInstalled,pwaInstallReady,pwaInstallBusy,pwaInstallMessage} from '../../wealthos-source/apps/web/src/pwa-install';
+const handlers=new Map<string,Function>();let registrations=0,prompts=0;
+Object.assign(globalThis,{window:{matchMedia:()=>({matches:false,addEventListener(){}}),addEventListener:(name:string,fn:Function)=>handlers.set(name,fn)}});
+Object.defineProperty(globalThis,'navigator',{configurable:true,value:{standalone:false,serviceWorker:{register:async(path:string,options:{scope:string})=>{assert.equal(path,'/sw.js');assert.equal(options.scope,'/');registrations++;}}}});
+initializePwa();initializePwa();assert.equal(registrations,1);assert.equal(pwaInstalled(),false);
+let prevented=false;
+handlers.get('beforeinstallprompt')!({preventDefault(){prevented=true;},prompt:async()=>{prompts++;},userChoice:Promise.resolve({outcome:'dismissed'})});
+assert.equal(prevented,true);assert.equal(pwaInstallReady(),true);
+await installPwa();await installPwa();assert.equal(prompts,1);assert.equal(pwaInstallReady(),false);assert.equal(pwaInstallBusy(),false);assert.match(pwaInstallMessage(),/cancelada/);
+handlers.get('beforeinstallprompt')!({preventDefault(){},prompt:async()=>{prompts++;},userChoice:Promise.resolve({outcome:'accepted'})});
+await installPwa();assert.equal(pwaInstalled(),false);
+handlers.get('appinstalled')!();assert.equal(pwaInstalled(),true);assert.equal(pwaInstallReady(),false);
