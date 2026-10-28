@@ -36,10 +36,10 @@ interface ReviewRow extends StatementCandidate { selected: boolean; duplicate: b
         <div class="statement-table-wrap"><table class="statement-table responsive-table" role="table">
           <thead><tr role="row"><th scope="col" role="columnheader">{{ 'Importar' | tr }}</th><th scope="col" role="columnheader">{{ 'Data' | tr }}</th><th scope="col" role="columnheader">{{ 'Descrição' | tr }}</th><th scope="col" role="columnheader">{{ 'Tipo' | tr }}</th><th scope="col" role="columnheader">{{ 'Categoria' | tr }}</th><th scope="col" role="columnheader">{{ 'Valor' | tr }}</th></tr></thead>
           <tbody>@for (row of rows; track $index) {
-            <tr role="row"><td role="cell" [attr.data-label]="'Importar' | tr"><input type="checkbox" [(ngModel)]="row.selected" [disabled]="row.duplicate" [attr.aria-label]="'Importar '+row.description"></td>
-              <td role="cell" [attr.data-label]="'Data' | tr">{{ (row.date) | tr }}</td><td role="cell" [attr.data-label]="'Descrição' | tr"><input [(ngModel)]="row.description" (ngModelChange)="markDuplicates()" maxlength="120" [attr.aria-label]="'Descrição da linha '+($index+1)"></td>
+            <tr role="row"><td role="cell" [attr.data-label]="'Importar' | tr"><input type="checkbox" [(ngModel)]="row.selected" [disabled]="row.duplicate" [attr.aria-label]="'Importar {0}' | tr:[row.description]"></td>
+              <td role="cell" [attr.data-label]="'Data' | tr">{{ (row.date) | tr }}</td><td role="cell" [attr.data-label]="'Descrição' | tr"><input [(ngModel)]="row.description" (ngModelChange)="markDuplicates()" maxlength="120" [attr.aria-label]="'Descrição da linha {0}' | tr:[$index+1]"></td>
               <td role="cell" [attr.data-label]="'Tipo' | tr">{{ (row.type === 'INCOME' ? ('Entrada' | tr) : ('Saída' | tr)) | tr }}</td>
-              <td role="cell" [attr.data-label]="'Categoria' | tr"><select [(ngModel)]="row.category" [attr.aria-label]="'Categoria da linha '+($index+1)">
+              <td role="cell" [attr.data-label]="'Categoria' | tr"><select [(ngModel)]="row.category" [attr.aria-label]="'Categoria da linha {0}' | tr:[$index+1]">
                 @for (item of categories; track item) { <option [value]="item">{{ (item) | tr }}</option> }
               </select></td>
               <td role="cell" [attr.data-label]="'Valor' | tr"><span>{{ (money(row.amountCents)) | tr }} @if (row.duplicate) { <small>{{ 'Já lançado' | tr }}</small> }</span></td>

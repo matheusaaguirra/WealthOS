@@ -19,7 +19,7 @@ import { marketApi } from './services/site-api';
       @if(opened){
         <div class="symbol-dropdown">
           <div class="symbol-dropdown-heading">{{ 'Ações · FIIs · ETFs · BDRs' | tr }}</div>
-          <div [id]="inputId+'-options'" role="listbox" [attr.aria-label]="'Sugestões para '+label">
+          <div [id]="inputId+'-options'" role="listbox" [attr.aria-label]="'Sugestões para {0}' | tr:[label]">
             @for(stock of suggestions;track stock.ticker;let index=$index){
               <button type="button" role="option" tabindex="-1" [id]="inputId+'-option-'+index"
                 [attr.aria-selected]="activeIndex===index" [class.active]="activeIndex===index"

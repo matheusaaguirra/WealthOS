@@ -23,6 +23,7 @@ class CopyVisitor extends TmplAstRecursiveVisitor {
   }
   override visitBoundText(node:any) { inspect(node.value.ast); }
   override visitElement(node:any) {
+    for (const input of node.inputs) if (input.name==='aria-label' && /[À-ÿ]|'(?:Importar|Estornar|Sugestões)/.test(input.value.source) && !input.value.source.includes('| tr')) missing.add('untranslated accessible label: '+input.value.source);
     for (const input of node.inputs) if (['ariaLabel','placeholder','label','title','alt','attr.title','attr.aria-label','attr.data-label'].includes(input.name)) inspect(input.value.ast);
     return super.visitElement(node);
   }

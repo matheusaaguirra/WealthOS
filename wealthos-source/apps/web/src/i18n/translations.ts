@@ -3335,5 +3335,53 @@ export const translations: Record<string, readonly [string, string]> = {
   "última referência:": [
     "latest reference:",
     "última referencia:"
+  ],
+  "{0} de {1}: entrou {2}, gastos {3}": [
+    "{0} {1}: income {2}, expenses {3}",
+    "{0} de {1}: ingresos {2}, gastos {3}"
+  ],
+  "Estornar {0}": [
+    "Reverse {0}",
+    "Revertir {0}"
+  ],
+  "Editar classificação da conta {0}": [
+    "Edit classification for account {0}",
+    "Editar clasificación de la cuenta {0}"
+  ],
+  "Excluir conta {0}": [
+    "Delete account {0}",
+    "Eliminar cuenta {0}"
+  ],
+  "Adicionar {0} à minha carteira": [
+    "Add {0} to my portfolio",
+    "Añadir {0} a mi cartera"
+  ],
+  "Remover registro de {0}": [
+    "Remove record for {0}",
+    "Eliminar registro de {0}"
+  ],
+  "Variação no dia: {0}": [
+    "Daily change: {0}",
+    "Variación del día: {0}"
+  ],
+  "Histórico disponível de {0} recebido do Google Finance": [
+    "Available history for {0} from Google Finance",
+    "Historial disponible de {0} recibido de Google Finance"
+  ],
+  "Sugestões para {0}": [
+    "Suggestions for {0}",
+    "Sugerencias para {0}"
+  ],
+  "Importar {0}": [
+    "Import {0}",
+    "Importar {0}"
+  ],
+  "Descrição da linha {0}": [
+    "Description for row {0}",
+    "Descripción de la fila {0}"
+  ],
+  "Categoria da linha {0}": [
+    "Category for row {0}",
+    "Categoría de la fila {0}"
   ]
 };
