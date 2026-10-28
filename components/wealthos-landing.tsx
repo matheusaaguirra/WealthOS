@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { landingCopy, type LandingLocale } from '../lib/landing-copy';
 import styles from './wealthos-landing.module.css';
 import { useLandingMotion } from './use-landing-motion';
+import { buildFeedbackEmail, FEEDBACK_EMAIL } from '../lib/feedback-email';
 
 function Icon({ name = 'arrow', size = 20 }: { name?: string; size?: number }) {
   const paths: Record<string, React.ReactNode> = {
@@ -17,7 +18,7 @@ function Icon({ name = 'arrow', size = 20 }: { name?: string; size?: number }) {
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name] ?? paths.arrow}</svg>;
 }
-function Brand() { return <span className={styles.brand}><svg viewBox="0 0 40 40" width="35" height="35" fill="none" aria-hidden="true"><path d="M7 10c5-2 9-1 13 2v20c-4-3-8-4-13-2V10Z" fill="currentColor"/><path d="M33 10c-5-2-9-1-13 2v20c4-3 8-4 13-2V10Z" fill="currentColor" opacity=".55"/><path d="m24 24 2-3 2 1 2-3" stroke="#141715" strokeWidth="1.5"/></svg><span>Wealth<span className={styles.brandLight}>OS</span></span></span>; }
+function Brand() { return <span className={styles.brand}><svg viewBox="0 0 40 40" width="35" height="35" fill="none" aria-hidden="true"><path d="M7 10c5-2 9-1 13 2v20c-4-3-8-4-13-2V10Z" fill="currentColor"/><path d="M33 10c-5-2-9-1-13 2v20c4-3 8-4 13-2V10Z" fill="currentColor" opacity=".55"/><path d="m24 24 2-3 2 1 2-3" stroke="#0d1823" strokeWidth="1.5"/></svg><span>Wealth<span className={styles.brandLight}>OS</span></span></span>; }
 
 function preferredLanguage(): LandingLocale {
   let saved: string | null = null;
@@ -33,6 +34,7 @@ function preferredLanguage(): LandingLocale {
 
 export default function WealthOSLanding({ locale = 'pt', automatic = false }: { locale?: LandingLocale; automatic?: boolean }) {
   const [language, setLanguage] = useState<LandingLocale>(locale);
+  const [feedbackPrepared, setFeedbackPrepared] = useState(false);
   const [annual, setAnnual] = useState(false);
   const [separate, setSeparate] = useState(false);
   const [activeBar, setActiveBar] = useState<number | null>(null);
@@ -50,6 +52,16 @@ export default function WealthOSLanding({ locale = 'pt', automatic = false }: { 
     }
   }, [automatic, locale]);
   useLandingMotion(root);
+  function prepareFeedback(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const field = event.currentTarget.elements.namedItem('body') as HTMLTextAreaElement;
+    let draft: string;
+    try { draft = buildFeedbackEmail(field.value); }
+    catch { field.setCustomValidity(c.feedbackInvalid); field.reportValidity(); return; }
+    field.setCustomValidity('');
+    setFeedbackPrepared(true);
+    window.location.assign(draft);
+  }
   function chooseLanguage(value:string) {
     if(value!=='pt'&&value!=='en'&&value!=='es') return;
     try { localStorage.setItem('wealthos:language',value); } catch {}
@@ -115,7 +127,7 @@ export default function WealthOSLanding({ locale = 'pt', automatic = false }: { 
         <div data-reveal className={styles.sectionCopy}><p className={styles.eyebrow}>{c.future}</p><h2>{c.futureTitle}<br/><em>{c.futureItalic}</em></h2><p className={styles.body}>{c.futureBody}</p><p className={styles.assetTypes}>{c.investmentNote}</p><a className={styles.textLink} href="/login">{c.futureLink}<Icon name="diagonal"/></a></div>
       </section>
       <section className={`${styles.section} ${styles.details}`}><div data-reveal className={styles.detailHeading}><p className={styles.eyebrow}>{c.details}</p><h2>{c.detailTitle} <em>{c.detailItalic}</em></h2></div><div className={styles.detailGrid}>{c.features.map(([title,body],index)=><article data-reveal key={title}><span className={styles.detailIcon}><Icon name={['receipt','chart','phone'][index]} size={28}/></span><span className={styles.detailNumber}>0{index+1}</span><h3>{title}</h3><p>{body}</p></article>)}</div></section>
-      <section id="feedbacks" className={`${styles.section} ${styles.feedbackSection}`}><div data-reveal><p className={styles.eyebrow}>{c.feedbackEyebrow}</p><h2>{c.feedbackTitle}<br/><em>{c.feedbackItalic}</em></h2><p className={styles.body}>{c.feedbackBody}</p><span className={styles.feedbackSignature}>WealthOS <i>↗</i></span></div><form data-reveal className={styles.feedbackForm} action="https://github.com/matheusaaguirra/WealthOS/issues/new" method="get" target="_blank"><input type="hidden" name="title" value="[Feedback] WealthOS"/><label htmlFor="feedback-message">{c.feedbackLabel}</label><textarea id="feedback-message" name="body" required minLength={10} maxLength={1800} rows={5} placeholder={c.feedbackPlaceholder} aria-describedby="feedback-note"/><button className={styles.primary} type="submit">{c.feedbackSubmit}<Icon name="diagonal"/></button><p id="feedback-note">{c.feedbackNote}</p></form></section>
+      <section id="feedbacks" className={`${styles.section} ${styles.feedbackSection}`}><div data-reveal><p className={styles.eyebrow}>{c.feedbackEyebrow}</p><h2>{c.feedbackTitle}<br/><em>{c.feedbackItalic}</em></h2><p className={styles.body}>{c.feedbackBody}</p><span className={styles.feedbackSignature}>WealthOS <i>↗</i></span></div><form data-reveal className={styles.feedbackForm} onSubmit={prepareFeedback}><label htmlFor="feedback-message">{c.feedbackLabel}</label><textarea id="feedback-message" name="body" onInput={event=>{event.currentTarget.setCustomValidity('');setFeedbackPrepared(false);}} required minLength={10} maxLength={1800} rows={5} placeholder={c.feedbackPlaceholder} aria-describedby="feedback-note"/><button className={styles.primary} type="submit">{c.feedbackSubmit}<Icon name="diagonal"/></button><p id="feedback-note">{c.feedbackNote}</p><a className={styles.feedbackContact} href={`mailto:${FEEDBACK_EMAIL}`}>{FEEDBACK_EMAIL}</a>{feedbackPrepared&&<p className={styles.feedbackStatus} role="status">{c.feedbackPrepared}</p>}</form></section>
       <section className={`${styles.section} ${styles.faq}`}><div data-reveal><p className={styles.eyebrow}>{c.faq}</p><h2>{c.faqTitle}</h2></div><div data-reveal>{c.questions.map(([question,answer])=><details key={question}><summary>{question}<Icon name="plus" size={18}/></summary><p>{answer}</p></details>)}</div></section>
     </main>
     <footer className={styles.footer}><div className={styles.footerTop}><a href={language==='pt'?'/':`/${language}`} aria-label="WealthOS"><Brand/></a><p>{c.footer}</p><select aria-label={c.language} value={language} onChange={event=>chooseLanguage(event.target.value)}><option value="pt">Português</option><option value="en">English</option><option value="es">Español</option></select></div><div className={styles.footerBottom}><p>{c.disclaimer}</p><span>© {new Date().getFullYear()} WealthOS · {c.rights}</span></div></footer>
