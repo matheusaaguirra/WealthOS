@@ -1,13 +1,15 @@
+import { translate } from './i18n/language';
+import { TranslatePipe } from './i18n/translate.pipe';
 import { Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { IconComponent } from './icon.component';
 
-export interface SelectOption { value:string; label:string; description?:string; icon?:string; group?:string; }
+export interface SelectOption { value:string; label:string; description?:string; icon?:string; group?:string; localize?:boolean; }
 let sequence = 0;
 
 /** Shared themed selection control; uses the same model contract as a native select. */
 @Component({
-  selector:'app-select-field', standalone:true, imports:[IconComponent],
+  selector:'app-select-field', standalone:true, imports:[TranslatePipe,IconComponent],
   providers:[{provide:NG_VALUE_ACCESSOR,useExisting:forwardRef(()=>SelectFieldComponent),multi:true}],
   template:`
     <button #trigger type="button" class="select-trigger" role="combobox" aria-haspopup="listbox"
@@ -15,21 +17,21 @@ let sequence = 0;
       [attr.aria-controls]="opened?id:null" [attr.aria-activedescendant]="opened?id+'-'+activeIndex:null"
       (click)="toggle()" (keydown)="onKey($event)" (blur)="onTouched()">
       @if(selected?.icon){<span class="trigger-icon"><app-icon [name]="selected!.icon!"/></span>}
-      <span class="selected-label">{{selected?.label||placeholder}}</span>
+      <span class="selected-label">{{ selected ? optionLabel(selected) : (placeholder | tr) }}</span>
       <app-icon name="chevron-down" class="select-chevron" [class.rotated]="opened"/>
     </button>
     @if(opened){
       <div #menu class="select-menu" [id]="id" role="listbox" [attr.aria-label]="ariaLabel"
         [style.left.px]="left" [style.top.px]="top" [style.bottom.px]="bottom" [style.width.px]="width" [style.max-height.px]="maxHeight">
         @for(option of options;track option.value;let i=$index){
-          @if(option.group&&option.group!==options[i-1]?.group){<div class="select-group" role="presentation">{{option.group}}</div>}
+          @if(option.group&&option.group!==options[i-1]?.group){<div class="select-group" role="presentation">{{ (option.group) | tr }}</div>}
           <div role="option" class="select-option" [id]="id+'-'+i" [attr.aria-selected]="value===option.value"
             [class.active]="activeIndex===i" (pointerdown)="$event.preventDefault()" (click)="$event.preventDefault();choose(i)">
             @if(option.icon){<span class="option-icon"><app-icon [name]="option.icon"/></span>}
-            <span class="option-copy"><strong>{{option.label}}</strong>@if(option.description){<small>{{option.description}}</small>}</span>
+            <span class="option-copy"><strong>{{ optionLabel(option) }}</strong>@if(option.description){<small>{{ option.localize===false ? option.description : (option.description | tr) }}</small>}</span>
             <span class="option-check">@if(value===option.value){<app-icon name="check"/>}</span>
           </div>
-        }@empty{<p class="select-empty">Nenhuma opção disponível</p>}
+        }@empty{<p class="select-empty">{{ 'Nenhuma opção disponível' | tr }}</p>}
       </div>
     }
   `,
@@ -54,8 +56,8 @@ let sequence = 0;
 })
 export class SelectFieldComponent implements ControlValueAccessor, OnDestroy {
   @Input() options:readonly SelectOption[]=[];
-  @Input() ariaLabel='Selecionar opção';
-  @Input() placeholder='Selecione';
+  @Input() ariaLabel=translate('Selecionar opção');
+  @Input() placeholder=translate('Selecione');
   @Input() disabled=false;
   @Output() selectionChange=new EventEmitter<string>();
   @ViewChild('trigger') trigger?:ElementRef<HTMLButtonElement>;
@@ -65,6 +67,7 @@ export class SelectFieldComponent implements ControlValueAccessor, OnDestroy {
   private prefix='';private typedAt=0;private frame=0;
   onChange: (value:string)=>void=()=>{};onTouched:()=>void=()=>{};
   get selected(){return this.options.find(option=>option.value===this.value);}
+  optionLabel(option:SelectOption){return option.localize===false?option.label:translate(option.label);}
   writeValue(value:unknown){this.value=typeof value==='string'?value:'';}
   registerOnChange(fn:(value:string)=>void){this.onChange=fn;}
   registerOnTouched(fn:()=>void){this.onTouched=fn;}
@@ -111,7 +114,7 @@ export class SelectFieldComponent implements ControlValueAccessor, OnDestroy {
       event.preventDefault();if(!this.opened)this.open();
       const now=Date.now();this.prefix=(now-this.typedAt>700?'':this.prefix)+key;this.typedAt=now;
       const clean=(s:string)=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
-      const match=this.options.findIndex(o=>clean(o.label).startsWith(clean(this.prefix)));
+      const match=this.options.findIndex(o=>clean(this.optionLabel(o)).startsWith(clean(this.prefix)));
       if(match>=0){this.activeIndex=match;this.revealActive();}
     }
   }

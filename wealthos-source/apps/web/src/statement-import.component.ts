@@ -1,3 +1,5 @@
+import { formatLocale, translate } from './i18n/language';
+import { TranslatePipe } from './i18n/translate.pipe';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,44 +11,42 @@ export interface ExistingStatementRow extends StatementCandidate { accountId: st
 interface ReviewRow extends StatementCandidate { selected: boolean; duplicate: boolean; }
 
 @Component({
-  selector: 'app-statement-import', standalone: true, imports: [CommonModule, FormsModule],
+  selector: 'app-statement-import', standalone: true, imports:[TranslatePipe,CommonModule, FormsModule],
   template: `
     <section class="statement-import panel" aria-labelledby="statement-title">
-      <div class="panel-heading"><div><h2 id="statement-title">Importar extrato</h2><p>Selecione a conta, carregue o PDF e confira cada linha antes de salvar.</p></div></div>
+      <div class="panel-heading"><div><h2 id="statement-title">{{ 'Importar extrato' | tr }}</h2><p>{{ 'Selecione a conta, carregue o PDF e confira cada linha antes de salvar.' | tr }}</p></div></div>
       <div class="statement-controls">
-        <label>Conta do extrato
-          <select [(ngModel)]="accountId" (ngModelChange)="markDuplicates()" [disabled]="busy">
-            <option value="">Selecione uma conta</option>
-            @for (account of accounts; track account.id) { <option [value]="account.id">{{account.name}}</option> }
+        <label>{{ 'Conta do extrato' | tr }}<select [(ngModel)]="accountId" (ngModelChange)="markDuplicates()" [disabled]="busy">
+            <option value="">{{ 'Selecione uma conta' | tr }}</option>
+            @for (account of accounts; track account.id) { <option [value]="account.id">{{ account.name }}</option> }
           </select>
         </label>
-        <label>Extrato em PDF (até 10 MB e 20 páginas)
-          <span class="statement-file-shell" [class.file-disabled]="busy || !accountId">
-            <span class="statement-file-button">Escolher PDF</span>
-            <span class="statement-file-name">{{fileName || 'Nenhum PDF selecionado'}}</span>
+        <label>{{ 'Extrato em PDF (até 10 MB e 20 páginas)' | tr }}<span class="statement-file-shell" [class.file-disabled]="busy || !accountId">
+            <span class="statement-file-button">{{ 'Escolher PDF' | tr }}</span>
+            <span class="statement-file-name">{{ fileName || ('Nenhum PDF selecionado' | tr) }}</span>
             <input type="file" accept="application/pdf,.pdf" (change)="readFile($event)" [disabled]="busy || !accountId">
           </span>
         </label>
       </div>
-      <p class="statement-hint">Leitura no navegador. PDFs digitalizados como imagem e lançamentos ambíguos precisam ser conferidos manualmente.</p>
-      @if (busy) { <p role="status">Lendo o extrato…</p> }
-      @if (error) { <p role="alert">{{error}}</p> }
+      <p class="statement-hint">{{ 'Leitura no navegador. PDFs digitalizados como imagem e lançamentos ambíguos precisam ser conferidos manualmente.' | tr }}</p>
+      @if (busy) { <p role="status">{{ 'Lendo o extrato…' | tr }}</p> }
+      @if (error) { <p role="alert">{{ (error) | tr }}</p> }
       @if (rows.length) {
-        <p role="status">{{rows.length}} lançamento(s) encontrados. {{skipped}} linha(s) ignoradas e {{duplicates}} repetição(ões) no arquivo. Revise a prévia.</p>
+        <p role="status">{{ '{0} lançamento(s) encontrados. {1} linha(s) ignoradas e {2} repetição(ões) no arquivo. Revise a prévia.' | tr:[((rows.length) | tr),((skipped) | tr),((duplicates) | tr)] }}</p>
         <div class="statement-table-wrap"><table class="statement-table responsive-table" role="table">
-          <thead><tr role="row"><th scope="col" role="columnheader">Importar</th><th scope="col" role="columnheader">Data</th><th scope="col" role="columnheader">Descrição</th><th scope="col" role="columnheader">Tipo</th><th scope="col" role="columnheader">Categoria</th><th scope="col" role="columnheader">Valor</th></tr></thead>
+          <thead><tr role="row"><th scope="col" role="columnheader">{{ 'Importar' | tr }}</th><th scope="col" role="columnheader">{{ 'Data' | tr }}</th><th scope="col" role="columnheader">{{ 'Descrição' | tr }}</th><th scope="col" role="columnheader">{{ 'Tipo' | tr }}</th><th scope="col" role="columnheader">{{ 'Categoria' | tr }}</th><th scope="col" role="columnheader">{{ 'Valor' | tr }}</th></tr></thead>
           <tbody>@for (row of rows; track $index) {
-            <tr role="row"><td role="cell" data-label="Importar"><input type="checkbox" [(ngModel)]="row.selected" [disabled]="row.duplicate" [attr.aria-label]="'Importar '+row.description"></td>
-              <td role="cell" data-label="Data">{{row.date}}</td><td role="cell" data-label="Descrição"><input [(ngModel)]="row.description" (ngModelChange)="markDuplicates()" maxlength="120" [attr.aria-label]="'Descrição da linha '+($index+1)"></td>
-              <td role="cell" data-label="Tipo">{{row.type === 'INCOME' ? 'Entrada' : 'Saída'}}</td>
-              <td role="cell" data-label="Categoria"><select [(ngModel)]="row.category" [attr.aria-label]="'Categoria da linha '+($index+1)">
-                @for (item of categories; track item) { <option [value]="item">{{item}}</option> }
+            <tr role="row"><td role="cell" [attr.data-label]="'Importar' | tr"><input type="checkbox" [(ngModel)]="row.selected" [disabled]="row.duplicate" [attr.aria-label]="'Importar '+row.description"></td>
+              <td role="cell" [attr.data-label]="'Data' | tr">{{ (row.date) | tr }}</td><td role="cell" [attr.data-label]="'Descrição' | tr"><input [(ngModel)]="row.description" (ngModelChange)="markDuplicates()" maxlength="120" [attr.aria-label]="'Descrição da linha '+($index+1)"></td>
+              <td role="cell" [attr.data-label]="'Tipo' | tr">{{ (row.type === 'INCOME' ? ('Entrada' | tr) : ('Saída' | tr)) | tr }}</td>
+              <td role="cell" [attr.data-label]="'Categoria' | tr"><select [(ngModel)]="row.category" [attr.aria-label]="'Categoria da linha '+($index+1)">
+                @for (item of categories; track item) { <option [value]="item">{{ (item) | tr }}</option> }
               </select></td>
-              <td role="cell" data-label="Valor"><span>{{money(row.amountCents)}} @if (row.duplicate) { <small>Já lançado</small> }</span></td>
+              <td role="cell" [attr.data-label]="'Valor' | tr"><span>{{ (money(row.amountCents)) | tr }} @if (row.duplicate) { <small>{{ 'Já lançado' | tr }}</small> }</span></td>
             </tr>
           }</tbody>
         </table></div>
-        <button type="button" class="primary-button" (click)="confirm()" [disabled]="busy || !accountId || !selectedCount">Importar {{selectedCount}} lançamento(s)</button>
+        <button type="button" class="primary-button" (click)="confirm()" [disabled]="busy || !accountId || !selectedCount">{{ 'Importar {0} lançamento(s)' | tr:[((selectedCount) | tr)] }}</button>
       }
     </section>
   `,
@@ -79,7 +79,7 @@ export class StatementImportComponent {
   accountId = ''; rows: ReviewRow[] = []; error = ''; fileName = ''; busy = false; skipped = 0; duplicates = 0;
   readonly categories = ['Alimentação','Transporte','Saúde','Moradia','Salário','Lazer','Educação','Compras','Outros'];
   get selectedCount() { return this.rows.filter(r => r.selected && !r.duplicate && !!r.description.trim()).length; }
-  money(cents: number) { return new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' }).format(cents/100); }
+  money(cents: number) { return new Intl.NumberFormat(formatLocale(), { style:'currency', currency:'BRL' }).format(cents/100); }
   markDuplicates() {
     const seen = new Set(this.existing.filter(row => row.accountId === this.accountId && !row.reversedAt).map(statementFingerprint));
     for (const row of this.rows) {
@@ -92,9 +92,9 @@ export class StatementImportComponent {
     const input = event.target as HTMLInputElement, file = input.files?.[0];
     this.rows = []; this.error = ''; this.fileName = ''; this.skipped = 0; this.duplicates = 0;
     if (!file) return;
-    if (!this.accountId) { this.error = 'Selecione a conta do extrato primeiro.'; return; }
+    if (!this.accountId) { this.error = translate('Selecione a conta do extrato primeiro.'); return; }
     if (file.size > 10 * 1024 * 1024 || file.size === 0 || !/\.pdf$/i.test(file.name) || (file.type && file.type !== 'application/pdf')) {
-      this.error = 'Escolha um PDF de até 10 MB.'; input.value = ''; return;
+      this.error = translate('Escolha um PDF de até 10 MB.'); input.value = ''; return;
     }
     this.fileName = file.name;
     this.busy = true;
@@ -104,7 +104,7 @@ export class StatementImportComponent {
       const task = pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) });
       const doc = await task.promise;
       try {
-        if (doc.numPages > 20) throw new Error('O extrato deve ter até 20 páginas.');
+        if (doc.numPages > 20) throw new Error(translate('O extrato deve ter até 20 páginas.'));
         const lines: string[] = [];
         for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber++) {
           const content = await (await doc.getPage(pageNumber)).getTextContent();
@@ -115,13 +115,13 @@ export class StatementImportComponent {
           for (const word of words) { if (current.length && Math.abs(word.y-current[0].y)>2) flush(); current.push(word); }
           flush();
         }
-        if (!lines.length) throw new Error('O PDF não contém texto selecionável. Para extratos digitalizados, é necessário OCR.');
+        if (!lines.length) throw new Error(translate('O PDF não contém texto selecionável. Para extratos digitalizados, é necessário OCR.'));
         const parsed = parseStatementLines(lines);
         this.rows = parsed.rows.map(row => ({ ...row, selected:true, duplicate:false })); this.skipped = parsed.skipped; this.duplicates = parsed.duplicates;
         this.markDuplicates();
-        if (!this.rows.length) this.error = 'Não encontramos lançamentos com data completa e valor identificado como entrada ou saída. Nenhum dado foi salvo.';
+        if (!this.rows.length) this.error = translate('Não encontramos lançamentos com data completa e valor identificado como entrada ou saída. Nenhum dado foi salvo.');
       } finally { await task.destroy(); }
-    } catch (error) { this.error = error instanceof Error ? error.message : 'Não foi possível ler este PDF.'; }
+    } catch (error) { this.error = error instanceof Error ? error.message : translate('Não foi possível ler este PDF.'); }
     finally { this.busy=false; input.value=''; }
   }
   confirm() {

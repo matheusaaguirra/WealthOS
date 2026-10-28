@@ -3,6 +3,9 @@ import { isDevMode } from '@angular/core';
 import { inject } from '@vercel/analytics';
 import { AppComponent } from './app.component';
 import { initializePwa } from './pwa-install';
+import { initializeLanguage } from './i18n/language';
+async function start(){
+await initializeLanguage();
 initializePwa();
 inject({
   mode:isDevMode()?'development':'production',
@@ -12,4 +15,6 @@ inject({
     return {...event,url:url.toString()};
   },
 });
-bootstrapApplication(AppComponent).catch(error => console.error('Falha ao iniciar WealthOS', error));
+await bootstrapApplication(AppComponent);
+}
+void start().catch(error => console.error('Falha ao iniciar WealthOS', error));

@@ -1,41 +1,43 @@
+import { formatLocale, translate } from './i18n/language';
+import { TranslatePipe } from './i18n/translate.pipe';
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, OnDestroy, NgZone, Optional } from '@angular/core';
 import { matchStockSuggestions, StockSuggestion, listedAssetLabel } from './stock-suggestions';
 import { marketApi } from './services/site-api';
 
 @Component({
   selector:'app-stock-autocomplete',
-  standalone:true,
+  standalone:true, imports:[TranslatePipe],
   template:`
-    <label class="symbol-label" [for]="inputId">{{label}}</label>
+    <label class="symbol-label" [for]="inputId">{{ (label) | tr }}</label>
     <div class="symbol-field" [class.expanded]="opened">
       <svg class="symbol-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5" stroke-linecap="round"/></svg>
       <input [id]="inputId" [name]="inputId" type="text" [value]="value" [disabled]="disabled" [required]="required"
-        [placeholder]="placeholder" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="80"
+        [placeholder]="(placeholder) | tr" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="80"
         role="combobox" aria-autocomplete="list" aria-haspopup="listbox" [attr.aria-expanded]="opened"
         [attr.aria-controls]="opened?inputId+'-options':null" [attr.aria-activedescendant]="activeOptionId"
         [attr.aria-describedby]="inputId+'-help'" (input)="onInput($event)" (focus)="open()" (blur)="onBlur($event)" (keydown)="onKey($event)">
       @if(opened){
         <div class="symbol-dropdown">
-          <div class="symbol-dropdown-heading">Ações · FIIs · ETFs · BDRs</div>
+          <div class="symbol-dropdown-heading">{{ 'Ações · FIIs · ETFs · BDRs' | tr }}</div>
           <div [id]="inputId+'-options'" role="listbox" [attr.aria-label]="'Sugestões para '+label">
             @for(stock of suggestions;track stock.ticker;let index=$index){
               <button type="button" role="option" tabindex="-1" [id]="inputId+'-option-'+index"
                 [attr.aria-selected]="activeIndex===index" [class.active]="activeIndex===index"
                 (pointerdown)="$event.preventDefault()" (click)="choose(stock)">
-                <span class="symbol-monogram" aria-hidden="true">{{stock.ticker.slice(0,2)}}</span>
-                <span class="symbol-option-text"><strong>{{stock.ticker}}</strong><small>{{stock.name}}</small><span class="symbol-type">{{assetLabel(stock)}}</span></span>
+                <span class="symbol-monogram" aria-hidden="true">{{ stock.ticker.slice(0,2) }}</span>
+                <span class="symbol-option-text"><strong>{{ stock.ticker }}</strong><small>{{ stock.name }}</small><span class="symbol-type">{{ (assetLabel(stock)) | tr }}</span></span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m9 5 7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
             }
           </div>
-          @if(loading){<p class="symbol-empty" role="status">Buscando no catálogo…</p>}
-          @else if(!suggestions.length){<p class="symbol-empty" role="status">Nenhum ativo encontrado. Você também pode informar o ticker completo.</p>}
-          @if(hasMore&&!fallback){<button type="button" class="symbol-load-more" [disabled]="loading" (click)="loadMore()" (blur)="onBlur($event)" (keydown)="onMoreKey($event)">{{loading?'Carregando…':'Carregar mais ativos'}} ({{suggestions.length}} de {{total}})</button>}
-          <div class="symbol-directory-note" role="status">{{directoryNote}}</div>
+          @if(loading){<p class="symbol-empty" role="status">{{ 'Buscando no catálogo…' | tr }}</p>}
+          @else if(!suggestions.length){<p class="symbol-empty" role="status">{{ 'Nenhum ativo encontrado. Você também pode informar o ticker completo.' | tr }}</p>}
+          @if(hasMore&&!fallback){<button type="button" class="symbol-load-more" [disabled]="loading" (click)="loadMore()" (blur)="onBlur($event)" (keydown)="onMoreKey($event)">{{ '{0} ({1} de {2})' | tr:[((loading?('Carregando…' | tr):('Carregar mais ativos' | tr)) | tr),((suggestions.length) | tr),((total) | tr)] }}</button>}
+          <div class="symbol-directory-note" role="status">{{ (directoryNote) | tr }}</div>
         </div>
       }
     </div>
-    <span class="symbol-help" [id]="inputId+'-help'">Busque pelo nome ou ticker. Lista paginada de ativos cobertos pela fonte; cotação consultada separadamente.</span>
+    <span class="symbol-help" [id]="inputId+'-help'">{{ 'Busque pelo nome ou ticker. Lista paginada de ativos cobertos pela fonte; cotação consultada separadamente.' | tr }}</span>
   `,
   styles:[`
     :host{display:block;min-width:0;width:100%;text-align:left}
@@ -62,8 +64,8 @@ import { marketApi } from './services/site-api';
 })
 export class StockAutocompleteComponent implements OnDestroy {
   @Input({required:true}) inputId='';
-  @Input() label='Ativo listado';
-  @Input() placeholder='Ticker ou nome da empresa';
+  @Input() label=translate('Ativo listado');
+  @Input() placeholder=translate('Ticker ou nome da empresa');
   @Input() value='';
   @Input() disabled=false;
   @Input() required=false;
@@ -88,10 +90,10 @@ export class StockAutocompleteComponent implements OnDestroy {
   get suggestions(){return !this.fallback&&this.loadedQuery===this.value.trim()?this.rows:matchStockSuggestions(this.value,200);}
   get activeOptionId(){return this.opened&&this.activeIndex>=0?this.inputId+'-option-'+this.activeIndex:null;}
   get directoryNote(){
-    if(this.fallback)return this.error?'Catálogo online indisponível. Mostrando uma lista local parcial; digite um ticker se precisar.':'Sugestões locais parciais enquanto consultamos o catálogo BRAPI.';
-    if(this.error)return 'Não foi possível carregar mais ativos. Tente novamente; os resultados anteriores foram mantidos.';
-    const time=this.retrievedAt?new Intl.DateTimeFormat('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'}).format(new Date(this.retrievedAt)):'';
-    return 'BRAPI · '+this.rows.length+' de '+this.total+' resultados'+(time?' · consultado às '+time:'')+'. Cobertura conforme a fonte.'+(this.omittedCount?' '+this.omittedCount+' registro(s) incompatível(is) ou repetido(s) não exibido(s).':'');
+    if(this.fallback)return this.error?translate('Catálogo online indisponível. Mostrando uma lista local parcial; digite um ticker se precisar.'):translate('Sugestões locais parciais enquanto consultamos o catálogo BRAPI.');
+    if(this.error)return translate('Não foi possível carregar mais ativos. Tente novamente; os resultados anteriores foram mantidos.');
+    const time=this.retrievedAt?new Intl.DateTimeFormat(formatLocale(),{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'}).format(new Date(this.retrievedAt)):'';
+    return 'BRAPI · '+translate('{0} de {1} resultados',[this.rows.length,this.total])+(time?' '+translate('· consultado às')+' '+time:'')+translate('. Cobertura conforme a fonte.')+(this.omittedCount?' '+this.omittedCount+' '+translate('registro(s) incompatível(is) ou repetido(s) não exibido(s).'):'');
   }
   assetLabel(stock:StockSuggestion){return listedAssetLabel(stock.assetType);}
   open(){if(!this.disabled){this.opened=true;this.activeIndex=-1;this.scheduleSearch();}}
@@ -124,7 +126,7 @@ export class StockAutocompleteComponent implements OnDestroy {
       });
     }catch(error){
       if(version!==this.sequence||controller.signal.aborted)return;
-      this.update(()=>{this.error=error instanceof Error?error.message:'Catálogo indisponível.';if(page===1){this.fallback=true;this.hasMore=false;}else this.hasMore=true;});
+      this.update(()=>{this.error=error instanceof Error?error.message:translate('Catálogo indisponível.');if(page===1){this.fallback=true;this.hasMore=false;}else this.hasMore=true;});
     }finally{if(version===this.sequence)this.update(()=>{this.loading=false;this.request=undefined;});}
   }
   onMoreKey(event:KeyboardEvent){if(event.key==='Escape'){event.preventDefault();event.stopPropagation();this.element.nativeElement.querySelector<HTMLInputElement>('input')?.focus();this.close();}}

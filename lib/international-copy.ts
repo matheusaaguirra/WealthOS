@@ -11,10 +11,10 @@ type Copy = {
 export const internationalCopy: Record<InternationalLocale, Copy> = {
   en: {
     title: 'WealthOS — Personal finance and investment tracking',
-    description: 'Track income, expenses, recurring bills and investments with WealthOS. Keep everyday funds separate from benefits and savings. App available in Brazilian Portuguese.',
+    description: 'Track income, expenses, recurring bills and investments with WealthOS. Keep everyday funds separate from benefits and savings. Available in Portuguese, English and Spanish.',
     ogLocale: 'en_US', skip: 'Skip to content', navigation: 'Main navigation', languages: 'Choose language', featuresLink: 'What you can do', questionsLink: 'Questions', login: 'Log in',
     eyebrow: 'PERSONAL FINANCE, IN ONE PLACE', hero: ['Your money,', 'with more ', 'clarity.'],
-    intro: 'Understand what comes in, what goes out and what stays. Organize accounts, recurring expenses and investments with WealthOS, on your phone or computer.', cta: 'Organize my finances', helper: 'Sign in with Google or create an account with email.', availability: 'App interface in Brazilian Portuguese. Amounts are shown in Brazilian reais (BRL).',
+    intro: 'Understand what comes in, what goes out and what stays. Organize accounts, recurring expenses and investments with WealthOS, on your phone or computer.', cta: 'Organize my finances', helper: 'Sign in with Google or create an account with email.', availability: 'Interface available in Portuguese, English and Spanish. Amounts are shown in Brazilian reais (BRL).',
     notebookLabel: 'How to organize your accounts in WealthOS', notebookEyebrow: 'YOUR FINANCIAL WORKSPACE', notebookTitle: ['Every account.', 'In its place.'], accounts: [['Everyday wallet', 'Money for your daily routine', 'Available'], ['Meal allowance', 'Keep food spending separate', 'Separate'], ['Savings and investments', 'What you are building for later', 'Separate']], notebookNote: 'You decide which accounts count toward your main balance.',
     featuresEyebrow: 'FROM EACH ENTRY TO THE BIG PICTURE', featuresTitle: ['A financial routine', 'that works for you.'],
     features: [
@@ -26,7 +26,7 @@ export const internationalCopy: Record<InternationalLocale, Copy> = {
     questionsEyebrow: 'BEFORE YOU START', questionsTitle: 'Common questions.',
     questions: [
       ['What is WealthOS?', 'WealthOS is a personal finance workspace for recording income and expenses, organizing accounts, setting up recurring bills and tracking an investment portfolio.'],
-      ['Which language and currency does the app use?', 'The app interface is currently in Brazilian Portuguese and financial amounts are displayed in Brazilian reais (BRL). This page introduces the product in English. Investment coverage includes Brazilian assets and cryptocurrencies; it does not imply support for every international market.'],
+      ['Which language and currency does the app use?', 'The app detects your browser language and supports Portuguese, English and Spanish. You can override the language in the app. Financial amounts are displayed in Brazilian reais (BRL). Investment coverage includes Brazilian assets and cryptocurrencies; it does not imply support for every international market.'],
       ['Can I keep benefits and savings separate?', 'Yes. Choose which accounts contribute to your main wallet balance and which remain separate. You can still record spending against a separate account, such as a meal allowance.'],
       ['Does it connect to my bank automatically?', 'Transactions are entered by you or imported from a supported PDF statement. Review imported data before confirming entries. You do not need to provide your bank password. Compatibility with every bank or statement format is not guaranteed.'],
       ['Can I use it on my phone and export my records?', 'Yes. Use your mobile browser or install the web app through Minha conta (My account). You can export PDF reports with income, expenses, categories and accounts. An internet connection is required to access your records.'],
@@ -35,10 +35,10 @@ export const internationalCopy: Record<InternationalLocale, Copy> = {
   },
   es: {
     title: 'WealthOS — Control de finanzas personales e inversiones',
-    description: 'Organiza ingresos, gastos, pagos fijos e inversiones con WealthOS. Separa el saldo diario de tus beneficios y ahorros. Aplicación disponible en portugués de Brasil.',
+    description: 'Organiza ingresos, gastos, pagos fijos e inversiones con WealthOS. Separa el saldo diario de tus beneficios y ahorros. Disponible en portugués, inglés y español.',
     ogLocale: 'es_ES', skip: 'Saltar al contenido', navigation: 'Navegación principal', languages: 'Elegir idioma', featuresLink: 'Qué puedes hacer', questionsLink: 'Preguntas', login: 'Entrar',
     eyebrow: 'TUS FINANZAS PERSONALES, EN UN SOLO LUGAR', hero: ['Tu dinero,', 'con más ', 'claridad.'],
-    intro: 'Entiende qué entra, qué sale y qué queda. Organiza cuentas, gastos fijos e inversiones con WealthOS, desde el móvil o el ordenador.', cta: 'Organizar mis finanzas', helper: 'Accede con Google o crea una cuenta con tu correo.', availability: 'Interfaz de la aplicación en portugués de Brasil. Importes en reales brasileños (BRL).',
+    intro: 'Entiende qué entra, qué sale y qué queda. Organiza cuentas, gastos fijos e inversiones con WealthOS, desde el móvil o el ordenador.', cta: 'Organizar mis finanzas', helper: 'Accede con Google o crea una cuenta con tu correo.', availability: 'Interfaz disponible en portugués, inglés y español. Importes en reales brasileños (BRL).',
     notebookLabel: 'Cómo organizar tus cuentas en WealthOS', notebookEyebrow: 'TU ESPACIO FINANCIERO', notebookTitle: ['Cada cuenta.', 'En su lugar.'], accounts: [['Saldo principal', 'El dinero para el día a día', 'Disponible'], ['Vale de alimentación', 'Tus gastos de comida, separados', 'Separado'], ['Ahorros e inversiones', 'Lo que estás construyendo', 'Separado']], notebookNote: 'Tú decides qué cuentas forman parte del saldo principal.',
     featuresEyebrow: 'DE CADA REGISTRO A LA VISIÓN COMPLETA', featuresTitle: ['Una rutina financiera', 'que tenga sentido para ti.'],
     features: [
@@ -50,7 +50,7 @@ export const internationalCopy: Record<InternationalLocale, Copy> = {
     questionsEyebrow: 'ANTES DE EMPEZAR', questionsTitle: 'Preguntas frecuentes.',
     questions: [
       ['¿Qué es WealthOS?', 'Es un sistema de finanzas personales para registrar ingresos y gastos, organizar cuentas, configurar pagos fijos y seguir tu cartera de inversiones en un solo lugar.'],
-      ['¿En qué idioma y moneda funciona la aplicación?', 'La interfaz está actualmente en portugués de Brasil y los importes se muestran en reales brasileños (BRL). Esta página presenta el producto en español. La cobertura de inversiones incluye activos brasileños y criptomonedas, sin implicar compatibilidad con todos los mercados internacionales.'],
+      ['¿En qué idioma y moneda funciona la aplicación?', 'La aplicación detecta el idioma del navegador y admite portugués, inglés y español. También puedes elegir el idioma dentro de la aplicación. Los importes se muestran en reales brasileños (BRL). La cobertura de inversiones incluye activos brasileños y criptomonedas, sin implicar compatibilidad con todos los mercados internacionales.'],
       ['¿Puedo mantener separados mis beneficios y ahorros?', 'Sí. Tú eliges qué cuentas forman parte del saldo principal y cuáles tienen un saldo separado. También puedes registrar gastos desde una cuenta separada, como un vale de alimentación.'],
       ['¿Importa mis gastos bancarios automáticamente?', 'Los registros se introducen manualmente o mediante un extracto PDF compatible. Revisa los datos importados antes de confirmar los movimientos. No necesitas proporcionar tu contraseña bancaria. No se garantiza compatibilidad con todos los bancos o formatos de extracto.'],
       ['¿Puedo usarlo en el móvil y descargar mis datos?', 'Sí. Accede desde el navegador o instala la aplicación web en Minha conta (Mi cuenta). Puedes exportar informes PDF con ingresos, gastos, categorías y cuentas. Necesitas conexión a internet para consultar tus registros.'],

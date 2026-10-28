@@ -1,31 +1,32 @@
+import { TranslatePipe } from './i18n/translate.pipe';
 import { Component } from '@angular/core';
 import { IconComponent } from './icon.component';
 import { installPwa, pwaInstalled, pwaInstallReady, pwaInstallBusy, pwaInstallMessage } from './pwa-install';
 
 @Component({
-  selector:'app-pwa-install',standalone:true,imports:[IconComponent],
+  selector:'app-pwa-install',standalone:true,imports:[TranslatePipe,IconComponent],
   template:`<section class="install-card" aria-labelledby="install-title">
-    <div class="install-heading"><span class="install-logo"><app-icon name="logo"/></span><div><span class="install-kicker">WEALTHOS NO SEU DISPOSITIVO</span><h2 id="install-title">Seu controle, sempre à mão.</h2></div></div>
+    <div class="install-heading"><span class="install-logo"><app-icon name="logo"/></span><div><span class="install-kicker">{{ 'WEALTHOS NO SEU DISPOSITIVO' | tr }}</span><h2 id="install-title">{{ 'Seu controle, sempre à mão.' | tr }}</h2></div></div>
     @if(installed()){
-      <p>O app está instalado neste dispositivo. Abra pelo ícone do WealthOS na tela inicial ou na lista de aplicativos.</p>
-      <span class="installed-status"><app-icon name="check"/> App instalado</span>
+      <p>{{ 'O app está instalado neste dispositivo. Abra pelo ícone do WealthOS na tela inicial ou na lista de aplicativos.' | tr }}</p>
+      <span class="installed-status"><app-icon name="check"/> {{ 'App instalado' | tr }}</span>
     }@else{
-      <p>Instale o WealthOS para abrir suas finanças direto pela tela inicial, em uma janela própria.</p>
+      <p>{{ 'Instale o WealthOS para abrir suas finanças direto pela tela inicial, em uma janela própria.' | tr }}</p>
       @if(ready()||busy()){
-        <button class="primary-button" type="button" (click)="install()" [disabled]="busy()"><app-icon name="download"/> {{busy()?'Abrindo instalação…':'Instalar app'}}</button>
+        <button class="primary-button" type="button" (click)="install()" [disabled]="busy()"><app-icon name="download"/>  {{ (busy()?('Abrindo instalação…' | tr):('Instalar app' | tr)) | tr }}</button>
       }@else{
-        <button class="secondary-button" type="button" (click)="showInstructions=!showInstructions" [attr.aria-expanded]="showInstructions" aria-controls="install-instructions"><app-icon name="download"/> {{showInstructions?'Ocultar instruções':'Como instalar o app'}}</button>
+        <button class="secondary-button" type="button" (click)="showInstructions=!showInstructions" [attr.aria-expanded]="showInstructions" aria-controls="install-instructions"><app-icon name="download"/>  {{ (showInstructions?('Ocultar instruções' | tr):('Como instalar o app' | tr)) | tr }}</button>
       }
       @if(showInstructions){
         <div id="install-instructions" class="install-instructions">
-          @if(ios){<strong>No iPhone ou iPad</strong><p>Abra este site no Safari. Toque em Compartilhar, escolha “Adicionar à Tela de Início” e confirme em “Adicionar”. Se aparecer, ative “Abrir como App da Web”.</p>}
-          @else{<strong>No celular</strong><p>No Chrome ou Edge, abra o menu ⋮ e escolha “Instalar app” ou “Adicionar à tela inicial”.</p><strong>No computador</strong><p>No Chrome ou Edge, use o ícone de instalação na barra de endereço ou a opção “Instalar WealthOS” no menu do navegador.</p>}
-          <p class="install-note">Se a opção não aparecer, abra o site diretamente no navegador, fora de aplicativos como Instagram ou WhatsApp.</p>
+          @if(ios){<strong>{{ 'No iPhone ou iPad' | tr }}</strong><p>{{ 'Abra este site no Safari. Toque em Compartilhar, escolha “Adicionar à Tela de Início” e confirme em “Adicionar”. Se aparecer, ative “Abrir como App da Web”.' | tr }}</p>}
+          @else{<strong>{{ 'No celular' | tr }}</strong><p>{{ 'No Chrome ou Edge, abra o menu ⋮ e escolha “Instalar app” ou “Adicionar à tela inicial”.' | tr }}</p><strong>{{ 'No computador' | tr }}</strong><p>{{ 'No Chrome ou Edge, use o ícone de instalação na barra de endereço ou a opção “Instalar WealthOS” no menu do navegador.' | tr }}</p>}
+          <p class="install-note">{{ 'Se a opção não aparecer, abra o site diretamente no navegador, fora de aplicativos como Instagram ou WhatsApp.' | tr }}</p>
         </div>
       }
-      <small>Acesso e salvamento dos dados precisam de internet. Use a mesma conta do site.</small>
+      <small>{{ 'Acesso e salvamento dos dados precisam de internet. Use a mesma conta do site.' | tr }}</small>
     }
-    @if(message()){<p class="install-message" role="status">{{message()}}</p>}
+    @if(message()){<p class="install-message" role="status">{{ (message()) | tr }}</p>}
   </section>`,
   styles:[`
     :host{display:block;min-width:0;margin-bottom:24px}.install-card{padding:25px;border:1px solid var(--border);border-radius:11px;background:var(--surface)}

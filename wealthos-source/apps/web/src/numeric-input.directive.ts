@@ -1,6 +1,7 @@
 import { Directive, ElementRef, forwardRef, HostListener, Input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { moneyMaskDigits, moneyMaskModel, moneyMaskPaste, numericEdit, NumericOptions, numericPaste } from './numeric-input';
+import { displayNumeric, canonicalNumeric } from './i18n/language';
 
 @Directive({
   selector:'input[appNumeric]',
@@ -16,7 +17,7 @@ export class NumericInputDirective implements ControlValueAccessor {
     if(this.moneyMode===value)return;
     this.moneyMode=value;
     this.accepted=(value?moneyMaskModel(this.accepted,this.numericAllowNegative):numericPaste(this.accepted,this.options))??'';
-    this.input.value=this.accepted;
+    this.input.value=displayNumeric(this.accepted);
   }
   get numericMoneyMask(){return this.moneyMode;}
   private accepted='';
@@ -29,12 +30,12 @@ export class NumericInputDirective implements ControlValueAccessor {
   writeValue(value:unknown){
     const raw=value===null||value===undefined?'':String(value);
     this.accepted=(this.numericMoneyMask?moneyMaskModel(raw,this.numericAllowNegative):numericEdit(raw,this.options))??'';
-    this.input.value=this.accepted;
+    this.input.value=displayNumeric(this.accepted);
   }
   registerOnChange(fn:(value:string)=>void){this.onChange=fn;}
   registerOnTouched(fn:()=>void){this.onTouched=fn;}
   setDisabledState(disabled:boolean){this.input.disabled=disabled;}
-  @HostListener('focus') focus(){if(/^-?0(?:,0*)?$/.test(this.input.value))this.input.select();}
+  @HostListener('focus') focus(){if(/^-?0(?:,0*)?$/.test(this.accepted))this.input.select();}
   @HostListener('blur') blur(){
     if(this.numericMoneyMask){this.onTouched();return;}
     if(this.accepted==='-')this.commit('');
@@ -72,11 +73,11 @@ export class NumericInputDirective implements ControlValueAccessor {
       const digitsBefore=raw.slice(0,caret).replace(/\D/g,'').length;
       const deleting=event?.inputType.startsWith('delete')&&raw.length<this.accepted.length;
       const next=deleting&&raw.replace(/\D/g,'').replace(/0/g,'')===''?'':moneyMaskDigits(raw,this.numericAllowNegative);
-      if(next===null){this.input.value=this.accepted;this.placeMoneyCaret(Math.min(digitsBefore,this.accepted.replace(/\D/g,'').length));return;}
+      if(next===null){this.input.value=displayNumeric(this.accepted);this.placeMoneyCaret(Math.min(digitsBefore,this.accepted.replace(/\D/g,'').length));return;}
       this.commit(next);if(caret===raw.length)this.input.setSelectionRange(next.length,next.length);else this.placeMoneyCaret(digitsBefore);return;
     }
     const next=numericEdit(raw,this.options);
-    if(next===null){this.input.value=this.accepted;this.input.setSelectionRange(Math.min(caret,this.accepted.length),Math.min(caret,this.accepted.length));return;}
+    if(next===null){this.input.value=displayNumeric(this.accepted);this.input.setSelectionRange(Math.min(caret,this.accepted.length),Math.min(caret,this.accepted.length));return;}
     const nextCaret=Math.max(0,caret-(raw.length-next.length));
     this.commit(next);this.input.setSelectionRange(nextCaret,nextCaret);
   }
@@ -93,8 +94,9 @@ export class NumericInputDirective implements ControlValueAccessor {
   private replaceSelection(text:string){const start=this.input.selectionStart??this.input.value.length,end=this.input.selectionEnd??start;return this.input.value.slice(0,start)+text+this.input.value.slice(end);}
   private insertText(raw:string){
     if(this.input.disabled||this.input.readOnly)return;
+    const canonical=canonicalNumeric(raw);if(canonical===null)return;
     if(this.numericMoneyMask){
-      const pasted=moneyMaskPaste(raw,this.numericAllowNegative);if(pasted===null)return;
+      const pasted=moneyMaskPaste(canonical,this.numericAllowNegative);if(pasted===null)return;
       const wholeSelection=(this.input.selectionStart??0)===0&&(this.input.selectionEnd??0)===this.input.value.length;
       if(!wholeSelection&&this.input.value){
         const candidate=this.replaceSelection(pasted.replace(/\D/g,''));const next=moneyMaskDigits(candidate,this.numericAllowNegative);
@@ -102,14 +104,14 @@ export class NumericInputDirective implements ControlValueAccessor {
       }else this.commit(pasted);
       this.input.setSelectionRange(this.input.value.length,this.input.value.length);return;
     }
-    const pasted=numericPaste(raw,this.options);if(pasted===null)return;
+    const pasted=numericPaste(canonical,this.options);if(pasted===null)return;
     const start=this.input.selectionStart??this.input.value.length;
     const candidate=this.replaceSelection(pasted),next=numericEdit(candidate,this.options);
     if(next===null)return;
     const caret=Math.max(0,start+pasted.length-(candidate.length-next.length));
     this.commit(next);this.input.setSelectionRange(caret,caret);
   }
-  private commit(value:string){this.accepted=value;this.input.value=value;this.onChange(value);}
+  private commit(value:string){this.accepted=value;this.input.value=displayNumeric(value);this.onChange(value);}
   private placeMoneyCaret(digitPosition:number){
     if(digitPosition<=0){this.input.setSelectionRange(0,0);return;}
     let digits=0;for(let i=0;i<this.input.value.length;i++){if(/\d/.test(this.input.value[i]))digits++;if(digits===digitPosition){this.input.setSelectionRange(i+1,i+1);return;}}

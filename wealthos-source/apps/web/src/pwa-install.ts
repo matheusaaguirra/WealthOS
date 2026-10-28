@@ -1,3 +1,4 @@
+import { translate } from './i18n/language';
 import { signal } from '@angular/core';
 
 interface InstallPrompt extends Event {
@@ -36,7 +37,7 @@ export async function installPwa(){
   try{
     await event.prompt();
     const choice=await event.userChoice;
-    pwaInstallMessage.set(choice.outcome==='accepted'?'Instalação solicitada. Confirme as etapas exibidas pelo navegador.':'Instalação cancelada. Você pode instalar depois pelo menu do navegador.');
-  }catch{pwaInstallMessage.set('Não foi possível abrir a instalação. Use o menu do navegador para instalar o app.');}
+    pwaInstallMessage.set(choice.outcome==='accepted'?translate('Instalação solicitada. Confirme as etapas exibidas pelo navegador.'):translate('Instalação cancelada. Você pode instalar depois pelo menu do navegador.'));
+  }catch{pwaInstallMessage.set(translate('Não foi possível abrir a instalação. Use o menu do navegador para instalar o app.'));}
   finally{pwaInstallBusy.set(false);}
 }

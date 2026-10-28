@@ -1,34 +1,35 @@
+import { TranslatePipe } from './i18n/translate.pipe';
 import { Component, ElementRef, HostListener, Input, Output, EventEmitter, ViewChild } from '@angular/core';
 import { IconComponent } from './icon.component';
 
 @Component({
   selector: 'app-category-picker',
   standalone: true,
-  imports: [IconComponent],
+  imports:[TranslatePipe,IconComponent],
   template: `
     <div class="category-field">
-      <span class="category-label" id="category-label-{{id}}">Categoria</span>
+      <span class="category-label" id="category-label-{{id}}">{{ 'Categoria' | tr }}</span>
       <details #picker class="category-picker" [class.open-up]="openUp" (toggle)="positionMenu()" (keydown.escape)="close($event)">
         <summary #trigger [attr.aria-labelledby]="'category-label-'+id">
           <span class="chosen-icon"><app-icon [name]="icon(value)"/></span>
-          <span class="chosen-name">{{value}}</span>
+          <span class="chosen-name">{{ (value) | tr }}</span>
           <app-icon name="chevron-down" class="chevron"/>
         </summary>
-        <div class="category-options" aria-label="Categorias disponíveis">
-          @if (mode==='all') { <div class="group-label">Despesas</div> }
+        <div class="category-options" [attr.aria-label]="'Categorias disponíveis' | tr">
+          @if (mode==='all') { <div class="group-label">{{ 'Despesas' | tr }}</div> }
           @if (mode!=='income') {
           @for (item of expense; track item) {
             <button type="button" [attr.aria-pressed]="value===item" (click)="choose(item,trigger)">
-              <span class="option-icon"><app-icon [name]="icon(item)"/></span><span>{{item}}</span>
+              <span class="option-icon"><app-icon [name]="icon(item)"/></span><span>{{ (item) | tr }}</span>
               @if (value===item) { <app-icon name="check" class="option-check"/> }
             </button>
           }
           }
-          @if (mode==='all') { <div class="group-label income-label">Receitas</div> }
+          @if (mode==='all') { <div class="group-label income-label">{{ 'Receitas' | tr }}</div> }
           @if (mode!=='expense') {
           @for (item of income; track item) {
             <button type="button" [attr.aria-pressed]="value===item" (click)="choose(item,trigger)">
-              <span class="option-icon"><app-icon [name]="icon(item)"/></span><span>{{item}}</span>
+              <span class="option-icon"><app-icon [name]="icon(item)"/></span><span>{{ (item) | tr }}</span>
               @if (value===item) { <app-icon name="check" class="option-check"/> }
             </button>
           }

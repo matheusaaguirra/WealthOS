@@ -1,32 +1,33 @@
+import { TranslatePipe } from './i18n/translate.pipe';
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { IconComponent } from './icon.component';
 
 export interface PickerAccount { id:string; name:string; institution:string; color:string; balanceGroup?:'WALLET'|'SEPARATE'; }
 
 @Component({
-  selector: 'app-account-picker', standalone: true, imports: [IconComponent],
+  selector: 'app-account-picker', standalone: true, imports:[TranslatePipe,IconComponent],
   template: `
     <div class="account-field">
-      <span class="field-label" id="account-label-{{id}}">Conta</span>
+      <span class="field-label" id="account-label-{{id}}">{{ 'Conta' | tr }}</span>
       <details #picker [class.open-up]="openUp" (toggle)="positionMenu()" (keydown.escape)="close($event)">
         <summary #trigger [attr.aria-labelledby]="'account-label-'+id">
           @if (selected) {
             <span class="account-symbol" [style.border-color]="selected.color"><app-icon name="accounts"/></span>
-            <span class="account-copy"><strong>{{selected.name}}</strong><small>{{selected.institution}} · {{selected.balanceGroup==='SEPARATE'?'Saldo separado':'Carteira principal'}}</small></span>
+            <span class="account-copy"><strong>{{ selected.name }}</strong><small>{{ selected.institution }} · {{ (selected.balanceGroup==='SEPARATE'?('Saldo separado' | tr):('Carteira principal' | tr)) | tr }}</small></span>
           } @else {
-            <span class="account-symbol"><app-icon name="accounts"/></span><span class="account-copy"><strong>Selecione uma conta</strong></span>
+            <span class="account-symbol"><app-icon name="accounts"/></span><span class="account-copy"><strong>{{ 'Selecione uma conta' | tr }}</strong></span>
           }
           <app-icon name="chevron-down" class="chevron"/>
         </summary>
-        <div class="account-options" aria-label="Contas disponíveis">
-          <div class="options-label">SUAS CONTAS · {{accounts.length}}</div>
+        <div class="account-options" [attr.aria-label]="'Contas disponíveis' | tr">
+          <div class="options-label">{{ 'SUAS CONTAS · {0}' | tr:[((accounts.length) | tr)] }}</div>
           @for (account of accounts; track account.id) {
             <button type="button" [attr.aria-pressed]="value===account.id" (click)="choose(account.id,trigger)">
               <span class="account-symbol" [style.border-color]="account.color"><app-icon name="accounts"/></span>
-              <span class="account-copy"><strong>{{account.name}}</strong><small>{{account.institution}} · {{account.balanceGroup==='SEPARATE'?'Saldo separado':'Carteira principal'}}</small></span>
+              <span class="account-copy"><strong>{{ account.name }}</strong><small>{{ account.institution }} · {{ (account.balanceGroup==='SEPARATE'?('Saldo separado' | tr):('Carteira principal' | tr)) | tr }}</small></span>
               @if(value===account.id){<app-icon name="check" class="selected-check"/>}
             </button>
-          } @empty { <p class="empty-account">Adicione uma conta para registrar lançamentos.</p> }
+          } @empty { <p class="empty-account">{{ 'Adicione uma conta para registrar lançamentos.' | tr }}</p> }
         </div>
       </details>
     </div>

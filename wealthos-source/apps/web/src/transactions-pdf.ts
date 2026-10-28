@@ -1,3 +1,4 @@
+import { formatLocale, translate } from './i18n/language';
 /** Client-side PDF reports. Financial data never leaves the browser. */
 export interface PdfTransaction {
   date: string;
@@ -9,8 +10,8 @@ export interface PdfTransaction {
   reversedAt?: string | null;
 }
 
-const amount = (cents: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100);
-const date = (iso: string) => /^\d{4}-\d{2}-\d{2}$/.test(iso) ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : 'Data inválida';
+const amount = (cents: number) => new Intl.NumberFormat(formatLocale(), { style: 'currency', currency: 'BRL' }).format(cents / 100);
+const date = (iso: string) => /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Intl.DateTimeFormat(formatLocale(), {year:'numeric',month:'2-digit',day:'2-digit',timeZone:'UTC'}).format(new Date(iso+'T12:00:00Z')) : translate('Data inválida');
 const ascii = (text: string) => text.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[\u2013\u2014]/g, '-').replace(/[\u2018\u2019]/g, "'").replace(/[^\x20-\x7e]/g, '?');
 // Standard PDF fonts use WinAnsi; octal escapes retain Portuguese accents.
 const literal = (text: string) => '(' + Array.from(text.replace(/[\u2013\u2014]/g, '-').replace(/\s/g, ' '), char => {
@@ -34,14 +35,14 @@ function rectangle(page: Page, x: number, y: number, w: number, h: number, rgb: 
 
 /** Returns a complete A4 PDF. Amounts remain integer cents throughout the sums. */
 export function createTransactionsPdf(rows: readonly PdfTransaction[], month: string, generatedAt = new Date()): Uint8Array {
-  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error('Mês inválido para exportação.');
-  if (rows.length > 10_000) throw new Error('Exportação limitada a 10.000 lançamentos.');
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error(translate('Mês inválido para exportação.'));
+  if (rows.length > 10_000) throw new Error(translate('Exportação limitada a 10.000 lançamentos.'));
   for (const row of rows) {
-    if (!Number.isSafeInteger(row.amountCents) || row.amountCents <= 0 || row.amountCents > 1_000_000_000 || !/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !row.date.startsWith(month)) throw new Error('Lançamento inválido para o mês selecionado.');
+    if (!Number.isSafeInteger(row.amountCents) || row.amountCents <= 0 || row.amountCents > 1_000_000_000 || !/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !row.date.startsWith(month)) throw new Error(translate('Lançamento inválido para o mês selecionado.'));
   }
   const income = rows.filter(r => !r.reversedAt && r.type === 'INCOME').reduce((n, r) => n + r.amountCents, 0);
   const expense = rows.filter(r => !r.reversedAt && r.type === 'EXPENSE').reduce((n, r) => n + r.amountCents, 0);
-  const monthName = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${month}-02T12:00:00Z`));
+  const monthName = new Intl.DateTimeFormat(formatLocale(), { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${month}-02T12:00:00Z`));
   const pages: Page[] = [];
   const chunkSize = 29;
   const pageCount = Math.max(1, Math.ceil(rows.length / chunkSize));
@@ -50,31 +51,31 @@ export function createTransactionsPdf(rows: readonly PdfTransaction[], month: st
     pages.push(page);
     rectangle(page, 0, 742, 595, 100, '0.13 0.16 0.30');
     write(page, 42, 799, 'WEALTHOS', 17, 'F2', '1 1 1');
-    write(page, 42, 773, `Lancamentos - ${monthName}`, 13, 'F2', '1 1 1');
-    write(page, 42, 752, `Emitido em ${generatedAt.toLocaleDateString('pt-BR', { timeZone: 'UTC' })}`, 9, 'F1', '0.83 0.86 0.95');
+    write(page, 42, 773, translate('Lancamentos - {0}', [monthName]), 13, 'F2', '1 1 1');
+    write(page, 42, 752, translate('Emitido em {0}', [generatedAt.toLocaleDateString(formatLocale(), { timeZone: 'UTC' })]), 9, 'F1', '0.83 0.86 0.95');
     if (index === 0) {
       rectangle(page, 42, 681, 511, 48, '0.95 0.96 0.99');
-      write(page, 53, 710, `Entradas: ${amount(income)}`, 10, 'F2');
-      write(page, 275, 710, `Saidas: ${amount(expense)}`, 10, 'F2');
-      write(page, 53, 691, `Resultado: ${amount(income - expense)}`, 10, 'F2');
-      write(page, 275, 691, `${rows.length} lancamento(s)`, 10);
+      write(page, 53, 710, translate('Entradas: {0}', [amount(income)]), 10, 'F2');
+      write(page, 275, 710, translate('Saidas: {0}', [amount(expense)]), 10, 'F2');
+      write(page, 53, 691, translate('Resultado: {0}', [amount(income-expense)]), 10, 'F2');
+      write(page, 275, 691, translate('{0} lancamento(s)', [rows.length]), 10);
     }
     rectangle(page, 42, 650, 511, 25, '0.90 0.92 0.97');
-    write(page, 49, 658, 'DATA', 9, 'F2');
-    write(page, 111, 658, 'LANCAMENTO / CATEGORIA', 9, 'F2');
-    write(page, 392, 658, 'VALOR', 9, 'F2');
+    write(page, 49, 658, translate('DATA'), 9, 'F2');
+    write(page, 111, 658, translate('LANCAMENTO / CATEGORIA'), 9, 'F2');
+    write(page, 392, 658, translate('VALOR'), 9, 'F2');
     const slice = rows.slice(index * chunkSize, (index + 1) * chunkSize);
     slice.forEach((row, i) => {
       const y = 628 - i * 20;
       if (i % 2 === 1) rectangle(page, 42, y - 7, 511, 20, '0.975 0.980 0.992');
       write(page, 49, y, date(row.date), 8);
       write(page, 111, y, clipped(row.description, 39), 8.5, 'F2');
-      write(page, 111, y - 9, clipped(`${row.category} | ${row.account}${row.reversedAt ? ' | Estornado' : ''}`, 62), 6.5, 'F1', '0.40 0.45 0.55');
+      write(page, 111, y - 9, clipped(`${translate(row.category)} | ${row.account}${row.reversedAt ? ' '+translate('| Estornado') : ''}`, 62), 6.5, 'F1', '0.40 0.45 0.55');
       write(page, 392, y, `${row.type === 'INCOME' ? '+' : '-'} ${amount(row.amountCents)}`, 9, 'F2', row.reversedAt ? '0.48 0.51 0.58' : row.type === 'INCOME' ? '0.10 0.46 0.32' : '0.73 0.29 0.21');
     });
-    if (!rows.length) write(page, 49, 620, 'Nenhum lancamento neste mes.', 11);
+    if (!rows.length) write(page, 49, 620, translate('Nenhum lancamento neste mes.'), 11);
     rectangle(page, 42, 41, 511, 1, '0.88 0.89 0.92');
-    write(page, 42, 28, 'Relatorio gerado com os lancamentos selecionados no WealthOS.', 8, 'F1', '0.42 0.47 0.56');
+    write(page, 42, 28, translate('Relatorio gerado com os lancamentos selecionados no WealthOS.'), 8, 'F1', '0.42 0.47 0.56');
     write(page, 492, 28, `${index + 1} / ${pageCount}`, 8);
   }
   return serialize(pages);
@@ -120,7 +121,7 @@ const textWidth = (text: string, size: number) => Array.from(text).reduce((n, c)
 function wrap(text: string, width: number, size: number): string[] {
   const result: string[] = [];
   let line = '';
-  for (const char of text.trim().replace(/\s+/g, ' ') || 'Não informado') {
+  for (const char of text.trim().replace(/\s+/g, ' ') || translate('Não informado')) {
     if (line && textWidth(line + char, size) > width) {
       const space = line.lastIndexOf(' ');
       if (space > 0) { result.push(line.slice(0, space)); line = line.slice(space + 1); }
@@ -134,17 +135,17 @@ function wrap(text: string, width: number, size: number): string[] {
 
 /** Complete history, independent of the current month, account and search filters. */
 export function createFinancialReportPdf(rows: readonly PdfTransaction[], generatedAt = new Date()): Uint8Array {
-  if (rows.length > 10_000) throw new Error('Exportação limitada a 10.000 lançamentos.');
+  if (rows.length > 10_000) throw new Error(translate('Exportação limitada a 10.000 lançamentos.'));
   for (const row of rows) {
     if (!Number.isSafeInteger(row.amountCents) || row.amountCents <= 0 || row.amountCents > 1_000_000_000 ||
-      !/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !['INCOME', 'EXPENSE'].includes(row.type)) throw new Error('Lançamento inválido para exportação.');
+      !/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !['INCOME', 'EXPENSE'].includes(row.type)) throw new Error(translate('Lançamento inválido para exportação.'));
   }
   const sorted = [...rows].sort((a, b) => b.date.localeCompare(a.date));
   const active = sorted.filter(row => !row.reversedAt);
   const income = active.filter(r => r.type === 'INCOME').reduce((total, row) => total + row.amountCents, 0);
   const expense = active.filter(r => r.type === 'EXPENSE').reduce((total, row) => total + row.amountCents, 0);
   const categories = new Map<string, number>();
-  for (const row of active) if (row.type === 'EXPENSE') categories.set(row.category || 'Sem categoria', (categories.get(row.category || 'Sem categoria') || 0) + row.amountCents);
+  for (const row of active) if (row.type === 'EXPENSE') categories.set(row.category || translate('Sem categoria'), (categories.get(row.category || translate('Sem categoria')) || 0) + row.amountCents);
   const pages: Page[] = [];
   let page: Page = [], y = 0;
   const muted = '0.38 0.44 0.51', blue = '0.16 0.37 0.56';
@@ -152,7 +153,7 @@ export function createFinancialReportPdf(rows: readonly PdfTransaction[], genera
     page = []; pages.push(page);
     rectangle(page, 0, 750, 595, 92, '0.05 0.11 0.16');
     write(page, 42, 804, 'WEALTHOS', 12, 'F2', '0.64 0.79 0.91');
-    write(page, 42, 775, 'Relatório financeiro', 23, 'F2', '1 1 1');
+    write(page, 42, 775, translate('Relatório financeiro'), 23, 'F2', '1 1 1');
     write(page, 42, 724, section, 15, 'F2');
     y = 699;
   };
@@ -163,41 +164,41 @@ export function createFinancialReportPdf(rows: readonly PdfTransaction[], genera
   const section = (title: string) => {
     newPage(title);
     rectangle(page, 42, 674, 511, 23, '0.92 0.95 0.97');
-    write(page, 50, 682, 'DATA', 8, 'F2'); write(page, 111, 682, 'DESCRIÇÃO / CATEGORIA / CONTA', 8, 'F2');
-    write(page, 464, 682, 'VALOR (BRL)', 8, 'F2'); y = 655;
+    write(page, 50, 682, translate('DATA'), 8, 'F2'); write(page, 111, 682, translate('DESCRIÇÃO / CATEGORIA / CONTA'), 8, 'F2');
+    write(page, 464, 682, translate('VALOR (BRL)'), 8, 'F2'); y = 655;
   };
-  newPage('Resumo de todo o histórico');
-  const period = rows.length ? `${date(sorted[sorted.length - 1].date)} a ${date(sorted[0].date)}` : 'Sem lançamentos cadastrados';
-  write(page, 42, y, `Período: ${period}`, 10, 'F1', muted); y -= 31;
-  for (const [label, value, color] of [['Entradas', income, '0.10 0.43 0.31'], ['Saídas', expense, '0.65 0.20 0.18'], ['Resultado das movimentações', income - expense, blue]] as const) {
+  newPage(translate('Resumo de todo o histórico'));
+  const period = rows.length ? translate('{0} a {1}', [date(sorted[sorted.length-1].date), date(sorted[0].date)]) : translate('Sem lançamentos cadastrados');
+  write(page, 42, y, translate('Período: {0}', [period]), 10, 'F1', muted); y -= 31;
+  for (const [label, value, color] of [[translate('Entradas'), income, '0.10 0.43 0.31'], [translate('Saídas'), expense, '0.65 0.20 0.18'], [translate('Resultado das movimentações'), income - expense, blue]] as const) {
     rectangle(page, 42, y - 19, 511, 36, '0.95 0.97 0.98');
     write(page, 53, y - 5, label, 11, 'F2'); right(amount(value), y - 5, 12, color); y -= 43;
   }
   y -= 4;
-  for (const line of ['Todas as contas incluídas: carteira principal e saldos separados.', 'O resultado considera entradas menos saídas, sem os saldos iniciais.', `${active.length} lançamento(s) confirmado(s). Estornos não entram nos totais.`]) { write(page, 42, y, line, 9, 'F1', muted); y -= 16; }
-  y -= 23; write(page, 42, y, 'Gastos por categoria', 15, 'F2'); y -= 28;
-  if (!categories.size) write(page, 42, y, 'Nenhum gasto confirmado no histórico.', 10, 'F1', muted);
+  for (const line of [translate('Todas as contas incluídas: carteira principal e saldos separados.'), translate('O resultado considera entradas menos saídas, sem os saldos iniciais.'), translate('{0} lançamento(s) confirmado(s). Estornos não entram nos totais.', [active.length])]) { write(page, 42, y, line, 9, 'F1', muted); y -= 16; }
+  y -= 23; write(page, 42, y, translate('Gastos por categoria'), 15, 'F2'); y -= 28;
+  if (!categories.size) write(page, 42, y, translate('Nenhum gasto confirmado no histórico.'), 10, 'F1', muted);
   for (const [category, total] of [...categories].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR'))) {
-    const lines = wrap(category, 280, 10), height = Math.max(35, lines.length * 14 + 15);
-    if (y - height < 65) { newPage('Gastos por categoria - continuação'); }
+    const lines = wrap(translate(category), 280, 10), height = Math.max(35, lines.length * 14 + 15);
+    if (y - height < 65) { newPage(translate('Gastos por categoria - continuação')); }
     lines.forEach((line, i) => write(page, 49, y - i * 14, line, 10, 'F2'));
     right(amount(total), y, 10);
-    write(page, 397, y - 14, `${(total / expense * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}% dos gastos`, 8, 'F1', muted);
+    write(page, 397, y - 14, translate('{0}% dos gastos', [(total / expense * 100).toLocaleString(formatLocale(), { maximumFractionDigits: 1 })]), 8, 'F1', muted);
     rectangle(page, 42, y - height + 15, 511, 0.5, '0.85 0.89 0.91'); y -= height;
   }
   const groups = [
-    { title: 'Entradas', items: active.filter(r => r.type === 'INCOME') },
-    { title: 'Gastos e despesas', items: active.filter(r => r.type === 'EXPENSE') },
-    { title: 'Lançamentos estornados - fora dos totais', items: sorted.filter(r => r.reversedAt) },
+    { title: translate('Entradas'), items: active.filter(r => r.type === 'INCOME') },
+    { title: translate('Gastos e despesas'), items: active.filter(r => r.type === 'EXPENSE') },
+    { title: translate('Lançamentos estornados - fora dos totais'), items: sorted.filter(r => r.reversedAt) },
   ];
   for (const group of groups) {
     if (!group.items.length) continue;
     section(group.title);
     for (const row of group.items) {
       const description = wrap(row.description, 270, 10);
-      const details = wrap(`${row.category || 'Sem categoria'} | Conta: ${row.account}${row.reversedAt ? ' | Estornado' : ''}`, 270, 8);
+      const details = wrap(translate('{0} | Conta: {1}{2}', [translate(row.category || 'Sem categoria'), row.account, row.reversedAt ? ' '+translate('| Estornado') : '']), 270, 8);
       const height = description.length * 14 + details.length * 12 + 19;
-      if (y - height < 62) section(group.title + ' - continuação');
+      if (y - height < 62) section(group.title + translate(' - continuação'));
       write(page, 50, y, date(row.date), 8, 'F1', muted);
       description.forEach((line, i) => write(page, 111, y - i * 14, line, 10, 'F2'));
       details.forEach((line, i) => write(page, 111, y - description.length * 14 - i * 12 - 2, line, 8, 'F1', muted));
@@ -207,7 +208,7 @@ export function createFinancialReportPdf(rows: readonly PdfTransaction[], genera
   }
   pages.forEach((page, index) => {
     rectangle(page, 42, 44, 511, .5, '0.85 0.89 0.91');
-    write(page, 42, 29, `Emitido em ${generatedAt.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} | Dados pessoais - WealthOS`, 8, 'F1', muted);
+    write(page, 42, 29, translate('Emitido em {0} | Dados pessoais - WealthOS', [generatedAt.toLocaleDateString(formatLocale(), { timeZone: 'America/Sao_Paulo' })]), 8, 'F1', muted);
     write(page, 487, 29, `${index + 1} / ${pages.length}`, 8, 'F1', muted);
   });
   return serialize(pages);

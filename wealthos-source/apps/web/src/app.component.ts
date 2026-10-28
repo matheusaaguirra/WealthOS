@@ -1,3 +1,6 @@
+import { TranslatePipe } from './i18n/translate.pipe';
+import { LanguagePickerComponent } from './language-picker.component';
+import { formatLocale, overviewPath, translate } from './i18n/language';
 import { Component, HostListener, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,23 +24,24 @@ interface Budget { id:string; category:string; limitCents:number; }
 interface Goal { id:string; name:string; targetCents:number; savedCents:number; icon:string; }
 interface State { accounts:Account[]; transactions:Transaction[]; budgets:Budget[]; goals:Goal[]; investments?:FixedIncomeInvestment[]; recurringExpenses?:RecurringExpense[]; }
 type View = 'dashboard'|'transactions'|'recurring'|'accounts'|'goals'|'stocks'|'profile';
-@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,SelectFieldComponent,TradingChartComponent,IconComponent,CategoryPickerComponent,AccountPickerComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent,PwaInstallComponent],templateUrl:'./app.component.html'})
+@Component({selector:'app-root',standalone:true,imports:[TranslatePipe,LanguagePickerComponent,CommonModule,FormsModule,SelectFieldComponent,TradingChartComponent,IconComponent,CategoryPickerComponent,AccountPickerComponent,StockAutocompleteComponent,NumericInputDirective,StatementImportComponent,PwaInstallComponent],templateUrl:'./app.component.html'})
 export class AppComponent {
+  readonly overviewPath=overviewPath();
   theme:'light'|'dark'=document.documentElement.dataset['theme']==='dark'?'dark':'light';
   stockTab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'='portfolio';
   stockPeriod:'day'|'month'|'year'='day';
   stockSearch=''; stockSector='ALL';
-  readonly transactionTypeOptions:SelectOption[]=[{value:'ALL',label:'Todos os tipos',icon:'transactions'},{value:'INCOME',label:'Receitas',icon:'income'},{value:'EXPENSE',label:'Despesas',icon:'expense'}];
+  readonly transactionTypeOptions:SelectOption[]=[{value:'ALL',label:translate('Todos os tipos'),icon:'transactions'},{value:'INCOME',label:translate('Receitas'),icon:'income'},{value:'EXPENSE',label:translate('Despesas'),icon:'expense'}];
   get transactionAccountOptions():SelectOption[]{return [
-    {value:'ALL',label:'Todas as contas',icon:'accounts',group:'Visão do saldo'},
-    {value:'WALLET',label:'Carteira principal',description:'Contas do dia a dia',icon:'wallet',group:'Visão do saldo'},
-    {value:'SEPARATE',label:'Saldos separados',description:'Benefícios, reserva e investimentos',icon:'accounts',group:'Visão do saldo'},
-    ...this.state.accounts.map(a=>({value:a.id,label:a.name,description:a.institution+' · '+(a.balanceGroup==='SEPARATE'?'Saldo separado':'Carteira principal'),icon:'accounts',group:'Suas contas'}))
+    {value:'ALL',label:translate('Todas as contas'),icon:'accounts',group:translate('Visão do saldo')},
+    {value:'WALLET',label:translate('Carteira principal'),description:translate('Contas do dia a dia'),icon:'wallet',group:translate('Visão do saldo')},
+    {value:'SEPARATE',label:translate('Saldos separados'),description:translate('Benefícios, reserva e investimentos'),icon:'accounts',group:translate('Visão do saldo')},
+    ...this.state.accounts.map(a=>({value:a.id,label:a.name,localize:false,description:a.institution+' · '+(a.balanceGroup==='SEPARATE'?translate('Saldo separado'):translate('Carteira principal')),icon:'accounts',group:translate('Suas contas')}))
   ];}
-  get sectorOptions():SelectOption[]{return [{value:'ALL',label:'Todos os setores'},...this.sectors.map(sector=>({value:sector,label:sector}))];}
-  readonly chartRangeOptions:SelectOption[]=[{value:'1d',label:'Dia'},{value:'5d',label:'5 pregões'},{value:'1mo',label:'1 mês'}];
-  readonly cryptoOptions:SelectOption[]=[{value:'BTC',label:'BTC',description:'Bitcoin'},{value:'ETH',label:'ETH',description:'Ethereum'},{value:'SOL',label:'SOL',description:'Solana'},{value:'XRP',label:'XRP'},{value:'ADA',label:'ADA',description:'Cardano'},{value:'DOGE',label:'DOGE',description:'Dogecoin'},{value:'BNB',label:'BNB'},{value:'USDT',label:'USDT',description:'Tether'}];
-  readonly investmentIndexerOptions:SelectOption[]=[{value:'',label:'Não informado'},{value:'CDI',label:'CDI'},{value:'SELIC',label:'Selic'},{value:'IPCA',label:'IPCA +'},{value:'PREFIXADO',label:'Prefixado'}];
+  get sectorOptions():SelectOption[]{return [{value:'ALL',label:translate('Todos os setores')},...this.sectors.map(sector=>({value:sector,label:sector}))];}
+  readonly chartRangeOptions:SelectOption[]=[{value:'1d',label:translate('Dia')},{value:'5d',label:translate('5 pregões')},{value:'1mo',label:translate('1 mês')}];
+  readonly cryptoOptions:SelectOption[]=[{value:'BTC',label:'BTC',description:translate('Bitcoin')},{value:'ETH',label:'ETH',description:translate('Ethereum')},{value:'SOL',label:'SOL',description:translate('Solana')},{value:'XRP',label:'XRP'},{value:'ADA',label:'ADA',description:translate('Cardano')},{value:'DOGE',label:'DOGE',description:translate('Dogecoin')},{value:'BNB',label:'BNB'},{value:'USDT',label:'USDT',description:translate('Tether')}];
+  readonly investmentIndexerOptions:SelectOption[]=[{value:'',label:translate('Não informado')},{value:'CDI',label:'CDI'},{value:'SELIC',label:translate('Selic')},{value:'IPCA',label:'IPCA +'},{value:'PREFIXADO',label:translate('Prefixado')}];
 
   quotes:StockQuote[]=[];
   holdings:Holding[]=[];
@@ -51,10 +55,10 @@ export class AppComponent {
   private emptyInvestmentDraft():FixedIncomeDraft{return{id:'',type:'TESOURO',name:'',institution:'',invested:'',currentValue:'',investedOn:this.localToday(),maturityOn:'',indexer:'',rate:'',valueUpdatedOn:this.localToday()};}
   investmentTypeLabel(type:string){return this.fixedIncomeTypes.find(item=>item.value===type)?.label??type;}
   investmentRateLabel(row:FixedIncomeInvestment){
-    if(!row.indexer)return 'Não informado';
+    if(!row.indexer)return translate('Não informado');
     if(row.rateBasisPoints===null)return row.indexer;
-    const rate=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:2}).format(row.rateBasisPoints/100);
-    return row.indexer==='CDI'||row.indexer==='SELIC'?rate+'% do '+row.indexer:row.indexer==='IPCA'?'IPCA + '+rate+'% a.a.':rate+'% a.a. prefixado';
+    const rate=new Intl.NumberFormat(formatLocale(),{maximumFractionDigits:2}).format(row.rateBasisPoints/100);
+    return row.indexer==='CDI'||row.indexer==='SELIC'?rate+translate('% do {0}',[row.indexer]):row.indexer==='IPCA'?'IPCA + '+rate+translate('% a.a.'):rate+translate('% a.a. prefixado');
   }
   openFixedIncome(row?:FixedIncomeInvestment){
     if(this.busy||!this.user||!this.dataReady)return;
@@ -64,7 +68,7 @@ export class AppComponent {
   }
   askDeleteInvestment(row:FixedIncomeInvestment){if(this.busy||!this.user||!this.dataReady)return;this.openModal('deleteFixedIncome');this.pendingDeleteInvestment=row;}
 
-  readonly stockPeriods:{key:'day'|'month'|'year';label:string}[]=[{key:'day',label:'Dia'}];
+  readonly stockPeriods:{key:'day'|'month'|'year';label:string}[]=[{key:'day',label:translate('Dia')}];
   get sectors(){return [...new Set(this.sampleQuotes.map(q=>q.sector))].sort();}
   get periodLabel(){return this.stockPeriods.find(p=>p.key===this.stockPeriod)!.label;}
   get marketQuotes(){const term=this.stockSearch.trim().toLocaleLowerCase('pt-BR');return this.sampleQuotes.filter(q=>(this.stockSector==='ALL'||q.sector===this.stockSector)&&(!term||(q.ticker+' '+q.name).toLocaleLowerCase('pt-BR').includes(term))).sort((a,b)=>(b.changes[this.stockPeriod]??-Infinity)-(a.changes[this.stockPeriod]??-Infinity));}
@@ -77,12 +81,12 @@ export class AppComponent {
   get portfolioCost(){const positions=this.positions;return positions.length&&positions.every(p=>p.costBasisCents!==null)?this.safeTotal(positions.map(p=>p.costBasisCents!)):null;}
   private safeTotal(values:number[]):number|null{let total=0;for(const value of values){total+=value;if(!Number.isSafeInteger(total))return null;}return total;}
   quoteChange(q:StockQuote){return q.changes[this.stockPeriod];}
-  signedPercent(value:number|null){return value===null?'Indisponível':(value>0?'+':'')+new Intl.NumberFormat('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(value)+'%';}
-  optionalMoney(value:number|null){return value===null?'Indisponível':this.money(value);}
+  signedPercent(value:number|null){return value===null?translate('Indisponível'):(value>0?'+':'')+new Intl.NumberFormat(formatLocale(),{minimumFractionDigits:2,maximumFractionDigits:2}).format(value)+'%';}
+  optionalMoney(value:number|null){return value===null?translate('Indisponível'):this.money(value);}
   toggleTheme(){this.theme=this.theme==='dark'?'light':'dark';document.documentElement.dataset['theme']=this.theme;document.documentElement.style.colorScheme=this.theme;document.querySelector('meta[name="theme-color"]')?.setAttribute('content',this.theme==='dark'?'#0d1823':'#f5f7f8');try{localStorage.setItem('wealthos:theme',this.theme);}catch{}}
-  openHolding(holding?:Holding){if(!this.portfolioReady){this.notify('Carregue sua carteira antes de editar.');this.navigate('profile');return;}this.openModal('holding');this.holdingDraft=holding?{id:holding.id,ticker:holding.ticker,quantity:String(holding.quantity),averagePrice:holding.averagePriceCents===null?'':(holding.averagePriceCents/100).toFixed(2).replace('.',','),unknownCost:holding.averagePriceCents===null}:{id:'',ticker:'',quantity:'',averagePrice:'',unknownCost:true};}
+  openHolding(holding?:Holding){if(!this.portfolioReady){this.notify(translate('Carregue sua carteira antes de editar.'));this.navigate('profile');return;}this.openModal('holding');this.holdingDraft=holding?{id:holding.id,ticker:holding.ticker,quantity:String(holding.quantity),averagePrice:holding.averagePriceCents===null?'':(holding.averagePriceCents/100).toFixed(2).replace('.',','),unknownCost:holding.averagePriceCents===null}:{id:'',ticker:'',quantity:'',averagePrice:'',unknownCost:true};}
   askDeleteHolding(holding:Holding){this.openModal('deleteHolding');this.pendingDelete=holding;}
-  exportPortfolio(){const blob=new Blob([JSON.stringify({schemaVersion:1,quotes:'brapi-when-available',holdings:this.holdings},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='wealthos-minha-carteira.json';a.click();URL.revokeObjectURL(url);this.notify('Carteira exportada.');}
+  exportPortfolio(){const blob=new Blob([JSON.stringify({schemaVersion:1,quotes:'brapi-when-available',holdings:this.holdings},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='wealthos-minha-carteira.json';a.click();URL.revokeObjectURL(url);this.notify(translate('Carteira exportada.'));}
 
   user:SiteUser|null=null;portfolioReady=false;dataReady=false;revision=0;authNotice='';showPassword=false;
   authConfig:AuthConfig|null=null;
@@ -94,7 +98,7 @@ export class AppComponent {
   cryptoLoading=false;cryptoLoaded=false;cryptoError='';cryptoData:CryptoResponse|null=null;
   selectedIndex='BMFBOVESPA:IBOV';selectedCrypto='BTC';
   readonly sandboxTickers=['PETR4','VALE3','ITUB4','MGLU3'];
-  readonly indexOptions=[{symbol:'BMFBOVESPA:IBOV',name:'Ibovespa',currency:'BRL · pontos'},{symbol:'FRED:SP500',name:'S&P 500',currency:'FRED · série diária · pontos'}];
+  readonly indexOptions=[{symbol:'BMFBOVESPA:IBOV',name:translate('Ibovespa'),currency:translate('BRL · pontos')},{symbol:'FRED:SP500',name:'S&P 500',currency:translate('FRED · série diária · pontos')}];
   readonly cryptoSymbols:Record<string,string>={BTC:'COINBASE:BTCUSD',ETH:'COINBASE:ETHUSD',SOL:'BINANCE:SOLUSDT',XRP:'BINANCE:XRPUSDT',ADA:'BINANCE:ADAUSDT',DOGE:'BINANCE:DOGEUSDT',BNB:'BINANCE:BNBUSDT',USDT:'KRAKEN:USDTUSD'};
   constructor(private zone:NgZone){void this.initializeAuth();}
   get availableQuotes(){return this.sampleQuotes.filter(q=>q.priceCents!==null);}
@@ -104,18 +108,18 @@ export class AppComponent {
   get chartMin(){return this.chartPoints.length?Math.min(...this.chartPoints.map(p=>p.close)):null;}
   get chartMax(){return this.chartPoints.length?Math.max(...this.chartPoints.map(p=>p.close)):null;}
   get cryptoSymbol(){return this.cryptoSymbols[this.selectedCrypto]||'COINBASE:BTCUSD';}
-  get cryptoChartCurrency(){return this.cryptoSymbol.includes('USDT')?'USDT':'USD';}
+  get cryptoChartCurrency(){return this.cryptoSymbol.includes('USDT')?'USDT':translate('USD');}
   get stockExternalSymbol(){return this.sandboxTickers.includes(this.selectedTicker)?'BMFBOVESPA:'+this.selectedTicker:null;}
-  timestamp(value:string|null|undefined){if(!value)return 'Horário indisponível';const d=new Date(value);return Number.isFinite(d.getTime())?new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'short',timeZone:'America/Sao_Paulo'}).format(d):'Horário indisponível';}
-  usdBrl(value:number|null){return value===null?'Indisponível':this.money(Math.round(value*100));}
-  usd(value:number|null){return value===null?'Indisponível':this.hideValues?'••••••':new Intl.NumberFormat('pt-BR',{style:'currency',currency:'USD',maximumFractionDigits:value<1?6:2}).format(value);}
-  historyDate(value:string){const date=new Date(/^\d{4}-\d{2}-\d{2}$/.test(value)?value+'T12:00:00Z':value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeZone:'UTC'}).format(date):'Data indisponível';}
+  timestamp(value:string|null|undefined){if(!value)return translate('Horário indisponível');const d=new Date(value);return Number.isFinite(d.getTime())?new Intl.DateTimeFormat(formatLocale(),{dateStyle:'short',timeStyle:'short',timeZone:'America/Sao_Paulo'}).format(d):translate('Horário indisponível');}
+  usdBrl(value:number|null){return value===null?translate('Indisponível'):this.money(Math.round(value*100));}
+  usd(value:number|null){return value===null?translate('Indisponível'):this.hideValues?'••••••':new Intl.NumberFormat(formatLocale(),{style:'currency',currency:translate('USD'),maximumFractionDigits:value<1?6:2}).format(value);}
+  historyDate(value:string){const date=new Date(/^\d{4}-\d{2}-\d{2}$/.test(value)?value+'T12:00:00Z':value);return Number.isFinite(date.getTime())?new Intl.DateTimeFormat(formatLocale(),{dateStyle:'short',timeZone:'UTC'}).format(date):translate('Data indisponível');}
   async initializeAuth(){
     this.authLoading=true;this.authError='';
     const authError=new URLSearchParams(window.location.search).get('auth_error');
-    if(authError)this.authError=authError==='google'?'Não foi possível entrar com Google. Tente novamente ou use e-mail e senha.':'Não foi possível confirmar o acesso. Tente entrar novamente.';
-    try{const [config,session]=await Promise.all([siteAuth.config(),siteAuth.me()]);this.authConfig=config;if(!config.supabaseConfigured)this.authError='O acesso está temporariamente indisponível. Tente novamente mais tarde.';if(session.user)await this.applyUser(session.user);else history.replaceState(null,'','/login');}
-    catch(e){this.authError=e instanceof Error?e.message:'Não foi possível verificar a sessão.';}
+    if(authError)this.authError=authError==='google'?translate('Não foi possível entrar com Google. Tente novamente ou use e-mail e senha.'):translate('Não foi possível confirmar o acesso. Tente entrar novamente.');
+    try{const [config,session]=await Promise.all([siteAuth.config(),siteAuth.me()]);this.authConfig=config;if(!config.supabaseConfigured)this.authError=translate('O acesso está temporariamente indisponível. Tente novamente mais tarde.');if(session.user)await this.applyUser(session.user);else history.replaceState(null,'','/login');}
+    catch(e){this.authError=e instanceof Error?e.message:translate('Não foi possível verificar a sessão.');}
     finally{this.authLoading=false;}
   }
   async applyUser(user:SiteUser){
@@ -125,21 +129,21 @@ export class AppComponent {
     history.replaceState(null,'','/dashboard');this.view='dashboard';void this.loadPortfolioQuotes();
     if(!this.state.accounts.length)this.openModal('account');
   }
-  private validateHoldings(holdings:Holding[]){if(!Array.isArray(holdings))throw new Error('Resposta da carteira inválida.');const tickers=new Set<string>();for(const h of holdings){stockPosition(h);if(tickers.has(h.ticker))throw new Error('Ticker duplicado na carteira.');tickers.add(h.ticker);}}
+  private validateHoldings(holdings:Holding[]){if(!Array.isArray(holdings))throw new Error(translate('Resposta da carteira inválida.'));const tickers=new Set<string>();for(const h of holdings){stockPosition(h);if(tickers.has(h.ticker))throw new Error(translate('Ticker duplicado na carteira.'));tickers.add(h.ticker);}}
   async submitUser(){
     if(this.authBusy)return;this.authBusy=true;this.authError='';this.authNotice='';
-    try{const email=this.userEmail.trim();if(!email||!this.userPassword)throw new Error('Informe e-mail e senha.');
+    try{const email=this.userEmail.trim();if(!email||!this.userPassword)throw new Error(translate('Informe e-mail e senha.'));
       const data=this.userRegister?await siteAuth.register(this.userName.trim(),email,this.userPassword):await siteAuth.login(email,this.userPassword);
-      if(!data.user){this.authNotice='message' in data&&data.message?data.message:'Confira seu e-mail para confirmar a conta e entrar.';this.userRegister=false;return;}
-      await this.applyUser(data.user);this.notify('Bem-vindo! Seus dados foram carregados.');
-    }catch(e){this.authError=e instanceof Error?e.message:'Não foi possível entrar.';}
+      if(!data.user){this.authNotice='message' in data&&data.message?data.message:translate('Confira seu e-mail para confirmar a conta e entrar.');this.userRegister=false;return;}
+      await this.applyUser(data.user);this.notify(translate('Bem-vindo! Seus dados foram carregados.'));
+    }catch(e){this.authError=e instanceof Error?e.message:translate('Não foi possível entrar.');}
     finally{this.userPassword='';this.authBusy=false;}
   }
-  async reloadUserPortfolio(){if(!this.user||this.authBusy)return;this.authBusy=true;this.authError='';try{await this.applyUser(this.user);}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível carregar seus dados.';}finally{this.authBusy=false;}}
-  async logoutUser(){if(this.authBusy)return;this.authBusy=true;this.authError='';try{await siteAuth.logout();this.user=null;this.holdings=[];this.state={accounts:[],transactions:[],budgets:[],goals:[]};this.dataReady=false;this.portfolioReady=false;this.userPassword='';this.view='dashboard';this.modal=null;this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.quotes=[];this.revision=0;history.replaceState(null,'','/login');}catch(e){this.authError=e instanceof Error?e.message:'Não foi possível sair.';}finally{this.authBusy=false;}}
+  async reloadUserPortfolio(){if(!this.user||this.authBusy)return;this.authBusy=true;this.authError='';try{await this.applyUser(this.user);}catch(e){this.authError=e instanceof Error?e.message:translate('Não foi possível carregar seus dados.');}finally{this.authBusy=false;}}
+  async logoutUser(){if(this.authBusy)return;this.authBusy=true;this.authError='';try{await siteAuth.logout();this.user=null;this.holdings=[];this.state={accounts:[],transactions:[],budgets:[],goals:[]};this.dataReady=false;this.portfolioReady=false;this.userPassword='';this.view='dashboard';this.modal=null;this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.quotes=[];this.revision=0;history.replaceState(null,'','/login');}catch(e){this.authError=e instanceof Error?e.message:translate('Não foi possível sair.');}finally{this.authBusy=false;}}
   beginGoogle(){if(this.authBusy)return;this.authBusy=true;window.location.assign('/auth/google');}
-  private async commitHoldings(next:Holding[]){if(!this.user||!this.portfolioReady)throw new Error('Entre na sua conta e carregue a carteira antes de editar.');this.validateHoldings(next);const saved=await siteAuth.savePortfolio(next);this.validateHoldings(saved.holdings);this.holdings=saved.holdings;}
-  async refreshMarket(){if(this.marketLoading)return;this.marketLoading=true;this.marketError='';let fails=0;for(const ticker of this.sandboxTickers){try{await this.fetchQuote(ticker,'1mo','brapi');}catch(e){fails++;this.marketError=e instanceof Error?e.message:'Cotações indisponíveis.';}}this.marketLoaded=true;this.marketLoading=false;if(fails===0)this.marketError='';}
+  private async commitHoldings(next:Holding[]){if(!this.user||!this.portfolioReady)throw new Error(translate('Entre na sua conta e carregue a carteira antes de editar.'));this.validateHoldings(next);const saved=await siteAuth.savePortfolio(next);this.validateHoldings(saved.holdings);this.holdings=saved.holdings;}
+  async refreshMarket(){if(this.marketLoading)return;this.marketLoading=true;this.marketError='';let fails=0;for(const ticker of this.sandboxTickers){try{await this.fetchQuote(ticker,'1mo','brapi');}catch(e){fails++;this.marketError=e instanceof Error?e.message:translate('Cotações indisponíveis.');}}this.marketLoaded=true;this.marketLoading=false;if(fails===0)this.marketError='';}
   private async fetchQuote(ticker:string,range='1mo',provider:'google'|'brapi'='google'){
     const response=provider==='google'?await marketApi.googleFinance(ticker,range):await marketApi.stock(ticker,range);
     const quote:StockQuote={ticker:response.ticker,name:response.name||ticker,sector:({PETR4:'Petróleo e gás',VALE3:'Mineração',ITUB4:'Bancos',MGLU3:'Varejo',WEGE3:'Indústria',BBAS3:'Bancos'} as Record<string,string>)[ticker]||'Não classificado',priceCents:response.priceCents,changes:{day:response.changePercent,month:null,year:null}};
@@ -148,15 +152,15 @@ export class AppComponent {
   }
   async loadPortfolioQuotes(){for(const h of this.holdings){if(this.marketResponses[h.ticker]?.source==='google-finance')continue;try{await this.fetchQuote(h.ticker);}catch{}}}
   async showStockChart(ticker:string){this.stockTab='detail';this.selectedTicker=ticker;await this.loadStockChart();}
-  async loadStockChart(){if(this.chartLoading)return;this.selectedTicker=this.selectedTicker.trim().toUpperCase();this.stockDetail=null;if(!/^[A-Z0-9]{4}\d{1,2}F?$/.test(this.selectedTicker)){this.chartError='Informe um ticker válido, como WEGE3 ou BBAS3.';return;}this.chartLoading=true;this.chartError='';try{this.stockDetail=await this.fetchQuote(this.selectedTicker,this.chartRange);this.chartError=this.stockDetail.error||'';}catch(e){this.chartError=e instanceof Error?e.message:'Não foi possível consultar o Google Finance.';}finally{this.chartLoading=false;}}
-  async askFinance(){if(this.chartLoading)return;this.financeQuestionError='';const question=this.financeQuestion.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();const tickers=[...new Set(question.match(/\b[A-Z0-9]{4}\d{1,2}F?\b/g)||[])];if(tickers.length>1){this.financeQuestionError='Consulte uma ação por vez. Exemplo: Como está WEGE3?';return;}let ticker=tickers[0];if(!ticker){const aliases=[{name:/\bPETROBRAS\b/,ticker:'PETR4'},{name:/\bVALE\b/,ticker:'VALE3'},{name:/\bWEG\b/,ticker:'WEGE3'},{name:/\bITAU\b/,ticker:'ITUB4'},{name:/\bBANCO DO BRASIL\b/,ticker:'BBAS3'}].filter(alias=>alias.name.test(question));if(aliases.length===1)ticker=aliases[0].ticker;}if(!ticker){this.financeQuestionError='Inclua o ticker na pergunta, como WEGE3, BBAS3 ou PETR4.';return;}this.selectedTicker=ticker;this.stockTab='detail';this.chartRange='1mo';await this.loadStockChart();}
+  async loadStockChart(){if(this.chartLoading)return;this.selectedTicker=this.selectedTicker.trim().toUpperCase();this.stockDetail=null;if(!/^[A-Z0-9]{4}\d{1,2}F?$/.test(this.selectedTicker)){this.chartError=translate('Informe um ticker válido, como WEGE3 ou BBAS3.');return;}this.chartLoading=true;this.chartError='';try{this.stockDetail=await this.fetchQuote(this.selectedTicker,this.chartRange);this.chartError=this.stockDetail.error||'';}catch(e){this.chartError=e instanceof Error?e.message:translate('Não foi possível consultar o Google Finance.');}finally{this.chartLoading=false;}}
+  async askFinance(){if(this.chartLoading)return;this.financeQuestionError='';const question=this.financeQuestion.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();const tickers=[...new Set(question.match(/\b[A-Z0-9]{4}\d{1,2}F?\b/g)||[])];if(tickers.length>1){this.financeQuestionError=translate('Consulte uma ação por vez. Exemplo: Como está WEGE3?');return;}let ticker=tickers[0];if(!ticker){const aliases=[{name:/\bPETROBRAS\b/,ticker:'PETR4'},{name:/\bVALE\b/,ticker:'VALE3'},{name:/\bWEG\b/,ticker:'WEGE3'},{name:/\bITAU\b/,ticker:'ITUB4'},{name:/\bBANCO DO BRASIL\b/,ticker:'BBAS3'}].filter(alias=>alias.name.test(question));if(aliases.length===1)ticker=aliases[0].ticker;}if(!ticker){this.financeQuestionError=translate('Inclua o ticker na pergunta, como WEGE3, BBAS3 ou PETR4.');return;}this.selectedTicker=ticker;this.stockTab='detail';this.chartRange='1mo';await this.loadStockChart();}
   get googleFinanceUrl(){const ticker=this.stockDetail?.ticker||this.selectedTicker;return 'https://www.google.com/finance/quote/'+encodeURIComponent(/^[A-Z0-9]{4}\d{1,2}F?$/.test(ticker)?ticker:'PETR4')+':BVMF?hl=pt-BR';}
-  metricFigure(value:number|string|null|undefined,currency=false){if(value===null||value===undefined||value==='')return 'Indisponível';if(this.hideValues)return '••••••';if(typeof value==='string')return value;return new Intl.NumberFormat('pt-BR',{notation:'compact',maximumFractionDigits:2,...(currency?{style:'currency',currency:'BRL'}:{})}).format(value);}
-  async refreshCrypto(){if(this.cryptoLoading)return;this.cryptoLoading=true;this.cryptoError='';try{this.cryptoData=await marketApi.crypto();this.cryptoError=this.cryptoData.error||'';}catch(e){this.cryptoError=e instanceof Error?e.message:'Cotações de cripto indisponíveis.';this.cryptoData=null;}finally{this.cryptoLoaded=true;this.cryptoLoading=false;}}
+  metricFigure(value:number|string|null|undefined,currency=false){if(value===null||value===undefined||value==='')return translate('Indisponível');if(this.hideValues)return '••••••';if(typeof value==='string')return value;return new Intl.NumberFormat(formatLocale(),{notation:'compact',maximumFractionDigits:2,...(currency?{style:'currency',currency:'BRL'}:{})}).format(value);}
+  async refreshCrypto(){if(this.cryptoLoading)return;this.cryptoLoading=true;this.cryptoError='';try{this.cryptoData=await marketApi.crypto();this.cryptoError=this.cryptoData.error||'';}catch(e){this.cryptoError=e instanceof Error?e.message:translate('Cotações de cripto indisponíveis.');this.cryptoData=null;}finally{this.cryptoLoaded=true;this.cryptoLoading=false;}}
   selectStockTab(tab:'market'|'portfolio'|'fixedIncome'|'detail'|'indices'|'crypto'){this.stockTab=tab;if(tab==='market'&&!this.marketLoaded)void this.refreshMarket();if(tab==='portfolio')void this.loadPortfolioQuotes();if(tab==='detail'&&!this.stockDetail)void this.loadStockChart();if(tab==='crypto'&&!this.cryptoLoaded)void this.refreshCrypto();}
 
   view:View = 'dashboard';
-  navigation:{key:View;label:string;icon:string}[]=[{key:'dashboard',label:'Visão geral',icon:'dashboard'},{key:'transactions',label:'Lançamentos',icon:'transactions'},{key:'recurring',label:'Gastos fixos',icon:'recurring'},{key:'accounts',label:'Minhas contas',icon:'accounts'},{key:'goals',label:'Metas e sonhos',icon:'goals'},{key:'stocks',label:'Investimentos',icon:'stocks'},{key:'profile',label:'Minha conta',icon:'profile'}];
+  navigation:{key:View;label:string;icon:string}[]=[{key:'dashboard',label:translate('Visão geral'),icon:'dashboard'},{key:'transactions',label:translate('Lançamentos'),icon:'transactions'},{key:'recurring',label:translate('Gastos fixos'),icon:'recurring'},{key:'accounts',label:translate('Minhas contas'),icon:'accounts'},{key:'goals',label:translate('Metas e sonhos'),icon:'goals'},{key:'stocks',label:translate('Investimentos'),icon:'stocks'},{key:'profile',label:translate('Minha conta'),icon:'profile'}];
   categories=['Alimentação','Moradia','Transporte','Compras','Saúde','Lazer','Educação','Salário','Freelance','Outros'];
   private _month = this.localToday().slice(0,7);
   get month(){return this._month;}
@@ -180,10 +184,10 @@ export class AppComponent {
   get recurringMonthlyTotal(){return this.scheduledRecurring.reduce((sum,rule)=>sum+rule.amountCents,0);}
   get recurringPendingTotal(){return this.dueRecurring.reduce((sum,rule)=>sum+rule.amountCents,0);}
   recurringPosted(rule:RecurringExpense){return this.state.transactions.some(t=>t.recurringRuleId===rule.id&&t.recurringMonth===this.month);}
-  recurringStatus(rule:RecurringExpense){if(!rule.active)return 'Pausado';if(this.recurringPosted(rule))return 'Lançado neste mês';if(this.month<rule.startMonth)return 'Começa em '+rule.startMonth;if(rule.endMonth&&this.month>rule.endMonth)return 'Encerrado';return 'Pendente neste mês';}
+  recurringStatus(rule:RecurringExpense){if(!rule.active)return translate('Pausado');if(this.recurringPosted(rule))return translate('Lançado neste mês');if(this.month<rule.startMonth)return translate('Começa em ')+rule.startMonth;if(rule.endMonth&&this.month>rule.endMonth)return translate('Encerrado');return translate('Pendente neste mês');}
   openRecurring(rule?:RecurringExpense){this.openModal('recurring');this.recurringDraft=rule?{...rule,amount:(rule.amountCents/100).toFixed(2).replace('.',','),endMonth:rule.endMonth??''}:{id:'',description:'',amount:'',accountId:defaultAccountId(this.state.accounts),category:'Moradia',day:1,startMonth:this.month,endMonth:'',active:true};}
-  async generateRecurring(){if(this.busy||!this.dataReady||!this.user)return;const due=this.dueRecurring;if(!due.length)return;const previous=this.state;this.busy=true;try{const generated:Transaction[]=due.map(rule=>({id:this.uuid(),idempotencyKey:this.uuid(),accountId:rule.accountId,description:rule.description,category:rule.category,amountCents:rule.amountCents,date:recurringDate(rule,this.month),type:'EXPENSE',recurringRuleId:rule.id,recurringMonth:this.month}));this.state={...this.state,transactions:[...this.state.transactions,...generated]};await this.persist();this.notify(generated.length+' despesa(s) fixa(s) lançada(s) neste mês.');}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:'Não foi possível lançar as despesas.');}finally{this.busy=false;}}
-  async toggleRecurring(rule:RecurringExpense){if(this.busy)return;const previous=this.state;this.busy=true;try{this.state={...this.state,recurringExpenses:this.recurringRules.map(r=>r.id===rule.id?{...r,active:!r.active}:r)};await this.persist();this.notify(rule.active?'Despesa fixa pausada.':'Despesa fixa reativada.');}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:'Não foi possível alterar.');}finally{this.busy=false;}}
+  async generateRecurring(){if(this.busy||!this.dataReady||!this.user)return;const due=this.dueRecurring;if(!due.length)return;const previous=this.state;this.busy=true;try{const generated:Transaction[]=due.map(rule=>({id:this.uuid(),idempotencyKey:this.uuid(),accountId:rule.accountId,description:rule.description,category:rule.category,amountCents:rule.amountCents,date:recurringDate(rule,this.month),type:'EXPENSE',recurringRuleId:rule.id,recurringMonth:this.month}));this.state={...this.state,transactions:[...this.state.transactions,...generated]};await this.persist();this.notify(generated.length+translate(' despesa(s) fixa(s) lançada(s) neste mês.'));}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:translate('Não foi possível lançar as despesas.'));}finally{this.busy=false;}}
+  async toggleRecurring(rule:RecurringExpense){if(this.busy)return;const previous=this.state;this.busy=true;try{this.state={...this.state,recurringExpenses:this.recurringRules.map(r=>r.id===rule.id?{...r,active:!r.active}:r)};await this.persist();this.notify(rule.active?translate('Despesa fixa pausada.'):translate('Despesa fixa reativada.'));}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:translate('Não foi possível alterar.'));}finally{this.busy=false;}}
   private transactionKey = this.uuid();
   private returnFocus:HTMLElement|null=null;
   private toastTimer:ReturnType<typeof setTimeout>|undefined;
@@ -197,16 +201,16 @@ export class AppComponent {
   get mainAccount():Account|null{return this.walletAccounts[0]??null;}
   get totalBalance(){return this.walletAccounts.reduce((s,a)=>s+this.accountBalance(a),0);}
   get savingsRate(){return this.summary.incomeCents>0?Math.round((this.summary.incomeCents-this.summary.expenseCents)/this.summary.incomeCents*100):0;}
-  get monthLabel(){return new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(this.month+'-02T12:00:00Z'));}
-  get filteredTransactions(){const accounts=this.filterAccount==='ALL'?null:new Set(this.filterAccount==='WALLET'?this.walletAccounts.map(a=>a.id):this.filterAccount==='SEPARATE'?this.separateAccounts.map(a=>a.id):[this.filterAccount]);return this.state.transactions.filter(t=>t.date.startsWith(this.month)&&(this.filterType==='ALL'||t.type===this.filterType)&&(!accounts||accounts.has(t.accountId))&&(!this.search||[t.description,t.category,this.accountName(t.accountId)].join(' ').toLocaleLowerCase('pt-BR').includes(this.search.toLocaleLowerCase('pt-BR')))).sort((a,b)=>b.date.localeCompare(a.date));}
+  get monthLabel(){return new Intl.DateTimeFormat(formatLocale(),{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(this.month+'-02T12:00:00Z'));}
+  get filteredTransactions(){const accounts=this.filterAccount==='ALL'?null:new Set(this.filterAccount==='WALLET'?this.walletAccounts.map(a=>a.id):this.filterAccount==='SEPARATE'?this.separateAccounts.map(a=>a.id):[this.filterAccount]);return this.state.transactions.filter(t=>t.date.startsWith(this.month)&&(this.filterType==='ALL'||t.type===this.filterType)&&(!accounts||accounts.has(t.accountId))&&(!this.search||[t.description,t.category,translate(t.category),this.accountName(t.accountId)].join(' ').toLocaleLowerCase('pt-BR').includes(this.search.toLocaleLowerCase('pt-BR')))).sort((a,b)=>b.date.localeCompare(a.date));}
   get recentTransactions(){return this.walletTransactions.filter(t=>t.date.startsWith(this.month)).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);}
-  get expenseCategories(){const all=new Map<string,number>();for(const t of this.walletTransactions){if(t.type==='EXPENSE'&&!t.reversedAt&&t.date.startsWith(this.month))all.set(t.category,(all.get(t.category)||0)+t.amountCents);}const sorted=[...all].map(([name,total])=>({name,total})).sort((a,b)=>b.total-a.total);return sorted.length>4?[...sorted.slice(0,3),{name:'Demais categorias',total:sorted.slice(3).reduce((sum,c)=>sum+c.total,0)}]:sorted;}
-  get graph(){const dates=Array.from({length:6},(_,i)=>{const d=new Date(this.month+'-02T12:00:00Z');d.setUTCMonth(d.getUTCMonth()-5+i);return d.toISOString().slice(0,7);});const vals=dates.filter(m=>m>='2000-01').map(m=>({month:m,...summarize(this.walletTransactions,m)}));const max=Math.max(100000,...vals.flatMap(v=>[v.incomeCents,v.expenseCents]));return vals.map(v=>({...v,incomeHeight:Math.max(2,v.incomeCents/max*100),expenseHeight:Math.max(2,v.expenseCents/max*100),label:new Intl.DateTimeFormat('pt-BR',{month:'short',timeZone:'UTC'}).format(new Date(v.month+'-02T12:00:00Z')).replace('.','')}));}
+  get expenseCategories(){const all=new Map<string,number>();for(const t of this.walletTransactions){if(t.type==='EXPENSE'&&!t.reversedAt&&t.date.startsWith(this.month))all.set(t.category,(all.get(t.category)||0)+t.amountCents);}const sorted=[...all].map(([name,total])=>({name,total})).sort((a,b)=>b.total-a.total);return sorted.length>4?[...sorted.slice(0,3),{name:translate('Demais categorias'),total:sorted.slice(3).reduce((sum,c)=>sum+c.total,0)}]:sorted;}
+  get graph(){const dates=Array.from({length:6},(_,i)=>{const d=new Date(this.month+'-02T12:00:00Z');d.setUTCMonth(d.getUTCMonth()-5+i);return d.toISOString().slice(0,7);});const vals=dates.filter(m=>m>='2000-01').map(m=>({month:m,...summarize(this.walletTransactions,m)}));const max=Math.max(100000,...vals.flatMap(v=>[v.incomeCents,v.expenseCents]));return vals.map(v=>({...v,incomeHeight:Math.max(2,v.incomeCents/max*100),expenseHeight:Math.max(2,v.expenseCents/max*100),label:new Intl.DateTimeFormat(formatLocale(),{month:'short',timeZone:'UTC'}).format(new Date(v.month+'-02T12:00:00Z')).replace('.','')}));}
   private uuid():string{if(typeof crypto.randomUUID==='function')return crypto.randomUUID();const bytes=crypto.getRandomValues(new Uint8Array(16));bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;const hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');return [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),hex.slice(16,20),hex.slice(20)].join('-');}
   localToday(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
-  money(value:number){return this.hideValues?'••••••':new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(value/100);}
-  dateLabel(date:string){return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));}
-  accountName(id:string){return this.state.accounts.find(a=>a.id===id)?.name||'Conta indisponível';}
+  money(value:number){return this.hideValues?'••••••':new Intl.NumberFormat(formatLocale(),{style:'currency',currency:'BRL'}).format(value/100);}
+  dateLabel(date:string){return new Intl.DateTimeFormat(formatLocale(),{day:'2-digit',month:'short',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));}
+  accountName(id:string){return this.state.accounts.find(a=>a.id===id)?.name||translate('Conta indisponível');}
   accountBalance(a:Account){return balance(a.openingBalanceCents,this.state.transactions.filter(t=>t.accountId===a.id));}
   percent(value:number,total:number){return total>0?Math.min(100,Math.round(value/total*100)):0;}
   categoryIcon(c:string){return ({'Alimentação':'food','Moradia':'home','Transporte':'car','Compras':'bag','Saúde':'heart','Lazer':'sparkles','Educação':'book','Salário':'income','Freelance':'briefcase'} as Record<string,string>)[c]||'circle';}
@@ -238,58 +242,58 @@ export class AppComponent {
   closeModal(){if(this.busy)return;this.modal=null;this.editingAccountId='';this.pendingDeleteAccount=null;this.accountDeleteConfirmed=false;this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.error='';const target=this.returnFocus;setTimeout(()=>{if(!this.modal&&target?.isConnected)target.focus();});}
   @HostListener('document:keydown',['$event']) onKey(event:KeyboardEvent){if(event.key==='Escape'){this.closeModal();this.mobileMenu=false;}if(event.key==='Tab'&&this.modal){const items=Array.from(document.querySelectorAll<HTMLElement>('.dialog button:not([disabled]):not([tabindex="-1"]),.dialog input:not([disabled]),.dialog select:not([disabled]),.dialog summary,.dialog a[href]')).filter(el=>el.offsetParent!==null);const first=items[0],last=items[items.length-1];if(!items.length){event.preventDefault();document.querySelector<HTMLElement>('.dialog')?.focus();}else if(event.shiftKey&&(document.activeElement===first||document.activeElement===document.querySelector('.dialog'))){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}}
   notify(message:string){this.toast=message;clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>this.toast='',4500);}
-  private async persist(){if(!this.user||!this.dataReady)throw new Error('Entre na sua conta e carregue os dados antes de salvar.');const saved=await siteAuth.saveFinance(this.state,this.revision);this.state=saved.state;this.revision=saved.revision;}
+  private async persist(){if(!this.user||!this.dataReady)throw new Error(translate('Entre na sua conta e carregue os dados antes de salvar.'));const saved=await siteAuth.saveFinance(this.state,this.revision);this.state=saved.state;this.revision=saved.revision;}
   async save(){if(this.busy||!this.user||!this.dataReady||!this.modal)return;const previous=this.state;this.error='';this.busy=true;try{
     if(this.modal==='deleteAccount'){
       const id=this.pendingDeleteAccount?.id;
-      if(!id||!this.state.accounts.some(a=>a.id===id))throw new Error('Conta não encontrada. Recarregue seus dados.');
-      if(!this.accountDeleteConfirmed)throw new Error('Confirme a exclusão da conta e dos registros vinculados.');
+      if(!id||!this.state.accounts.some(a=>a.id===id))throw new Error(translate('Conta não encontrada. Recarregue seus dados.'));
+      if(!this.accountDeleteConfirmed)throw new Error(translate('Confirme a exclusão da conta e dos registros vinculados.'));
       this.state={...this.state,accounts:this.state.accounts.filter(a=>a.id!==id),transactions:this.state.transactions.filter(t=>t.accountId!==id),...(this.state.recurringExpenses===undefined?{}:{recurringExpenses:this.recurringRules.filter(r=>r.accountId!==id)})};
       await this.persist();
       if(this.filterAccount===id)this.filterAccount='ALL';
-      this.busy=false;this.closeModal();this.notify('Conta e registros vinculados excluídos.');return;
+      this.busy=false;this.closeModal();this.notify(translate('Conta e registros vinculados excluídos.'));return;
     }else if(this.modal==='fixedIncome'){
       const row=fixedIncomeFromDraft(this.investmentDraft,this.investmentDraft.id||this.uuid());
-      if(this.investmentDraft.id&&!this.fixedIncomeInvestments.some(item=>item.id===row.id))throw new Error('O investimento não foi encontrado. Recarregue os dados.');
+      if(this.investmentDraft.id&&!this.fixedIncomeInvestments.some(item=>item.id===row.id))throw new Error(translate('O investimento não foi encontrado. Recarregue os dados.'));
       const investments=this.investmentDraft.id?this.fixedIncomeInvestments.map(item=>item.id===row.id?row:item):[...this.fixedIncomeInvestments,row];
-      if(investments.length>200)throw new Error('O limite é de 200 registros de renda fixa.');
+      if(investments.length>200)throw new Error(translate('O limite é de 200 registros de renda fixa.'));
       this.state={...this.state,investments};
     }else if(this.modal==='recurring'){
       const d=this.recurringDraft;const amountCents=parseMoneyToCents(d.amount);validateAmount(amountCents);
-      if(!this.state.accounts.some(a=>a.id===d.accountId))throw new Error('Selecione uma conta válida.');
-      if(!d.description.trim()||d.description.length>120)throw new Error('Informe uma descrição de até 120 caracteres.');
-      if(!Number.isInteger(Number(d.day))||Number(d.day)<1||Number(d.day)>31)throw new Error('O dia deve estar entre 1 e 31.');
-      if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(d.startMonth)||d.endMonth&&(!/^\d{4}-(0[1-9]|1[0-2])$/.test(d.endMonth)||d.endMonth<d.startMonth))throw new Error('Confira os meses de início e término.');
+      if(!this.state.accounts.some(a=>a.id===d.accountId))throw new Error(translate('Selecione uma conta válida.'));
+      if(!d.description.trim()||d.description.length>120)throw new Error(translate('Informe uma descrição de até 120 caracteres.'));
+      if(!Number.isInteger(Number(d.day))||Number(d.day)<1||Number(d.day)>31)throw new Error(translate('O dia deve estar entre 1 e 31.'));
+      if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(d.startMonth)||d.endMonth&&(!/^\d{4}-(0[1-9]|1[0-2])$/.test(d.endMonth)||d.endMonth<d.startMonth))throw new Error(translate('Confira os meses de início e término.'));
       const rule:RecurringExpense={id:d.id||this.uuid(),accountId:d.accountId,description:d.description.trim(),category:d.category,amountCents,day:Number(d.day),startMonth:d.startMonth,...(d.endMonth?{endMonth:d.endMonth}:{}),active:d.active};
       this.state={...this.state,recurringExpenses:d.id?this.recurringRules.map(r=>r.id===d.id?rule:r):[...this.recurringRules,rule]};
     }else if(this.modal==='deleteFixedIncome'){
-      if(!this.pendingDeleteInvestment)throw new Error('Selecione um investimento.');
+      if(!this.pendingDeleteInvestment)throw new Error(translate('Selecione um investimento.'));
       this.state={...this.state,investments:this.fixedIncomeInvestments.filter(item=>item.id!==this.pendingDeleteInvestment!.id)};
     }else if(this.modal==='holding'){
-      const ticker=this.holdingDraft.ticker.trim().toUpperCase();if(!/^[A-Z0-9]{4}\d{1,2}F?$/.test(ticker))throw new Error('Use um ticker brasileiro, como PETR4, TAEE11 ou PETR4F.');
-      if(!/^\d+$/.test(this.holdingDraft.quantity.trim()))throw new Error('Informe uma quantidade inteira de cotas ou ações.');
-      const quantity=Number(this.holdingDraft.quantity);if(!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)throw new Error('A quantidade deve ser de 1 a 1.000.000 de cotas ou ações.');
+      const ticker=this.holdingDraft.ticker.trim().toUpperCase();if(!/^[A-Z0-9]{4}\d{1,2}F?$/.test(ticker))throw new Error(translate('Use um ticker brasileiro, como PETR4, TAEE11 ou PETR4F.'));
+      if(!/^\d+$/.test(this.holdingDraft.quantity.trim()))throw new Error(translate('Informe uma quantidade inteira de cotas ou ações.'));
+      const quantity=Number(this.holdingDraft.quantity);if(!Number.isSafeInteger(quantity)||quantity<1||quantity>1000000)throw new Error(translate('A quantidade deve ser de 1 a 1.000.000 de cotas ou ações.'));
       const averagePriceCents=this.holdingDraft.unknownCost?null:parseMoneyToCents(this.holdingDraft.averagePrice);
-      if(this.holdings.some(h=>h.ticker===ticker&&h.id!==this.holdingDraft.id))throw new Error('Este ticker já está na carteira. Edite a posição existente.');
+      if(this.holdings.some(h=>h.ticker===ticker&&h.id!==this.holdingDraft.id))throw new Error(translate('Este ticker já está na carteira. Edite a posição existente.'));
       const holding:Holding={id:this.holdingDraft.id||this.uuid(),ticker,quantity,averagePriceCents};stockPosition(holding,this.quotes.find(q=>q.ticker===ticker));
-      const next=this.holdingDraft.id?this.holdings.map(h=>h.id===holding.id?holding:h):[...this.holdings,holding];await this.commitHoldings(next);this.busy=false;this.closeModal();this.notify('Posição salva na sua conta.');void this.loadPortfolioQuotes();return;
+      const next=this.holdingDraft.id?this.holdings.map(h=>h.id===holding.id?holding:h):[...this.holdings,holding];await this.commitHoldings(next);this.busy=false;this.closeModal();this.notify(translate('Posição salva na sua conta.'));void this.loadPortfolioQuotes();return;
     }else if(this.modal==='deleteHolding'){
-      await this.commitHoldings(this.holdings.filter(h=>h.id!==this.pendingDelete?.id));this.pendingDelete=null;this.busy=false;this.closeModal();this.notify('Posição removida da carteira.');return;
+      await this.commitHoldings(this.holdings.filter(h=>h.id!==this.pendingDelete?.id));this.pendingDelete=null;this.busy=false;this.closeModal();this.notify(translate('Posição removida da carteira.'));return;
     }else if(this.modal==='transaction'){
       const cents=parseMoneyToCents(this.draft.amount);validateAmount(cents);validateDate(this.draft.date);
-      if(!this.draft.description.trim())throw new Error('Informe uma descrição.');if(!this.state.accounts.some(a=>a.id===this.draft.accountId))throw new Error('Selecione uma conta.');
+      if(!this.draft.description.trim())throw new Error(translate('Informe uma descrição.'));if(!this.state.accounts.some(a=>a.id===this.draft.accountId))throw new Error(translate('Selecione uma conta.'));
       const input={accountId:this.draft.accountId,description:this.draft.description.trim(),amountCents:cents,type:this.draft.type as 'INCOME'|'EXPENSE',category:this.draft.category,date:this.draft.date,idempotencyKey:this.transactionKey};
       const t:Transaction={id:this.uuid(),...input};this.state={...this.state,transactions:[...this.state.transactions.filter(item=>item.id!==t.id),t]};
     }else if(this.modal==='account'){
       const original=this.editingAccountId?this.state.accounts.find(a=>a.id===this.editingAccountId):null;
-      if(this.editingAccountId&&!original)throw new Error('Conta não encontrada. Recarregue seus dados.');
+      if(this.editingAccountId&&!original)throw new Error(translate('Conta não encontrada. Recarregue seus dados.'));
       const account=createAccountFromDraft(this.draft,original?.id??this.uuid());
       if(original)account.openingBalanceCents=original.openingBalanceCents;
       this.state={...this.state,accounts:original?this.state.accounts.map(a=>a.id===original.id?{...a,...account}:a):[...this.state.accounts,account]};
     }else if(this.modal==='goal'){
-      if(!this.draft.name.trim())throw new Error('Dê um nome à sua meta.');const targetCents=parseMoneyToCents(this.draft.target);validateAmount(targetCents);const savedCents=this.parseAllowZero(this.draft.saved);if(savedCents<0||savedCents>targetCents)throw new Error('O valor guardado deve estar entre zero e o valor da meta.');this.state={...this.state,goals:[...this.state.goals,{id:this.uuid(),name:this.draft.name.trim(),targetCents,savedCents,icon:'goals'}]};
+      if(!this.draft.name.trim())throw new Error(translate('Dê um nome à sua meta.'));const targetCents=parseMoneyToCents(this.draft.target);validateAmount(targetCents);const savedCents=this.parseAllowZero(this.draft.saved);if(savedCents<0||savedCents>targetCents)throw new Error(translate('O valor guardado deve estar entre zero e o valor da meta.'));this.state={...this.state,goals:[...this.state.goals,{id:this.uuid(),name:this.draft.name.trim(),targetCents,savedCents,icon:'goals'}]};
     }else if(this.modal==='progress'){
-      const amount=parseMoneyToCents(this.draft.amount);validateAmount(amount);const g=this.state.goals.find(g=>g.id===this.draft.goalId)!;if(g.savedCents+amount>g.targetCents)throw new Error('O aporte ultrapassa o valor da meta.');this.state={...this.state,goals:this.state.goals.map(goal=>goal.id===g.id?{...goal,savedCents:goal.savedCents+amount}:goal)};
+      const amount=parseMoneyToCents(this.draft.amount);validateAmount(amount);const g=this.state.goals.find(g=>g.id===this.draft.goalId)!;if(g.savedCents+amount>g.targetCents)throw new Error(translate('O aporte ultrapassa o valor da meta.'));this.state={...this.state,goals:this.state.goals.map(goal=>goal.id===g.id?{...goal,savedCents:goal.savedCents+amount}:goal)};
     }
 
     await this.persist();
@@ -297,12 +301,12 @@ export class AppComponent {
     const createdPrincipal=this.modal==='account'&&this.accountOnboarding;
     const returnFocus=this.returnFocus;
     this.busy=false;this.closeModal();
-    this.notify(createdPrincipal?'Conta principal salva. Você já pode registrar seus lançamentos.':'Tudo certo! Alteração salva na sua conta.');
+    this.notify(createdPrincipal?translate('Conta principal salva. Você já pode registrar seus lançamentos.'):translate('Tudo certo! Alteração salva na sua conta.'));
     if(resumeTransaction){this.openModal('transaction');this.returnFocus=returnFocus;}
-  }catch(error){this.state=previous;this.error=error instanceof Error?error.message:'Não foi possível salvar. Tente novamente.';}finally{this.busy=false;}}
-  async reverse(t:Transaction){if(t.reversedAt||this.busy||!this.user)return;const previous=this.state;this.busy=true;try{const updated:Transaction={...t,reversedAt:new Date().toISOString()};this.state={...this.state,transactions:this.state.transactions.map(item=>item.id===t.id?updated:item)};await this.persist();this.notify('Lançamento estornado. Saldo atualizado.');}catch(error){this.state=previous;this.notify(error instanceof Error?error.message:'Não foi possível estornar.');}finally{this.busy=false;}}
-  exportData(){if(!this.user||!this.dataReady)return;try{downloadFinancialReportPdf(this.state.transactions.map(t=>({...t,account:this.accountName(t.accountId)})));this.notify('Relatório financeiro em PDF gerado.');}catch(error){this.notify(error instanceof Error?error.message:'Não foi possível gerar o PDF. Tente novamente.');}}
-  exportTransactionsPdf(){downloadTransactionsPdf(this.filteredTransactions.map(t=>({...t,account:this.accountName(t.accountId)})),this.month);this.notify('PDF dos lançamentos gerado.');}
+  }catch(error){this.state=previous;this.error=error instanceof Error?error.message:translate('Não foi possível salvar. Tente novamente.');}finally{this.busy=false;}}
+  async reverse(t:Transaction){if(t.reversedAt||this.busy||!this.user)return;const previous=this.state;this.busy=true;try{const updated:Transaction={...t,reversedAt:new Date().toISOString()};this.state={...this.state,transactions:this.state.transactions.map(item=>item.id===t.id?updated:item)};await this.persist();this.notify(translate('Lançamento estornado. Saldo atualizado.'));}catch(error){this.state=previous;this.notify(error instanceof Error?error.message:translate('Não foi possível estornar.'));}finally{this.busy=false;}}
+  exportData(){if(!this.user||!this.dataReady)return;try{downloadFinancialReportPdf(this.state.transactions.map(t=>({...t,account:this.accountName(t.accountId)})));this.notify(translate('Relatório financeiro em PDF gerado.'));}catch(error){this.notify(error instanceof Error?error.message:translate('Não foi possível gerar o PDF. Tente novamente.'));}}
+  exportTransactionsPdf(){downloadTransactionsPdf(this.filteredTransactions.map(t=>({...t,account:this.accountName(t.accountId)})),this.month);this.notify(translate('PDF dos lançamentos gerado.'));}
   async importStatementRows(rows:ImportedStatementRow[]){
     if(this.busy||!this.user||!this.dataReady||!rows.length)return;
     const previous=this.state;this.busy=true;
@@ -311,14 +315,14 @@ export class AppComponent {
       const added:Transaction[]=[];
       for(const row of rows){
         validateDate(row.date);validateAmount(row.amountCents);
-        if(!this.state.accounts.some(a=>a.id===row.accountId)||!['INCOME','EXPENSE'].includes(row.type)||!this.categories.includes(row.category)||!row.description.trim()||row.description.length>120)throw new Error('Revise as linhas do extrato antes de importar.');
+        if(!this.state.accounts.some(a=>a.id===row.accountId)||!['INCOME','EXPENSE'].includes(row.type)||!this.categories.includes(row.category)||!row.description.trim()||row.description.length>120)throw new Error(translate('Revise as linhas do extrato antes de importar.'));
         const key=row.accountId+':'+statementFingerprint(row);if(seen.has(key))continue;seen.add(key);
         added.push({id:this.uuid(),idempotencyKey:this.uuid(),accountId:row.accountId,date:row.date,description:row.description.trim(),amountCents:row.amountCents,type:row.type,category:row.category});
       }
-      if(!added.length){this.notify('Todos os lançamentos selecionados já estão cadastrados.');return;}
-      if(this.state.transactions.length+added.length>2000)throw new Error('Limite de 2.000 lançamentos atingido.');
-      this.state={...this.state,transactions:[...this.state.transactions,...added]};await this.persist();this.notify(added.length+' lançamento(s) importado(s).');
-    }catch(error){this.state=previous;this.notify(error instanceof Error?error.message:'Não foi possível importar o extrato.');}finally{this.busy=false;}
+      if(!added.length){this.notify(translate('Todos os lançamentos selecionados já estão cadastrados.'));return;}
+      if(this.state.transactions.length+added.length>2000)throw new Error(translate('Limite de 2.000 lançamentos atingido.'));
+      this.state={...this.state,transactions:[...this.state.transactions,...added]};await this.persist();this.notify(added.length+translate(' lançamento(s) importado(s).'));
+    }catch(error){this.state=previous;this.notify(error instanceof Error?error.message:translate('Não foi possível importar o extrato.'));}finally{this.busy=false;}
   }
   private parseAllowZero(input:string){return /^(?:0+)(?:,0{1,2})?$/.test(input.trim())?0:parseMoneyToCents(input);}
 }

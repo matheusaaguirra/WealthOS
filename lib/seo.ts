@@ -24,7 +24,7 @@ export const structuredData = {
   '@graph': [
     { '@type': 'Organization', '@id': `${SITE_URL}/#organization`, name: 'WealthOS', url: PUBLIC_URL, logo: `${SITE_URL}/icons/app-512.png` },
     { '@type': 'WebSite', '@id': `${SITE_URL}/#website`, name: 'WealthOS', url: PUBLIC_URL, inLanguage: ['pt', 'en', 'es'], publisher: { '@id': `${SITE_URL}/#organization` } },
-    { '@type': 'WebApplication', '@id': `${PUBLIC_URL}#application`, name: 'WealthOS', url: PUBLIC_URL, description: SITE_DESCRIPTION, applicationCategory: 'FinanceApplication', operatingSystem: 'Web', inLanguage: 'pt-BR', browserRequirements: 'Requer conexão com a internet e navegador atualizado.', featureList: ['Controle de receitas e despesas por categoria', 'Gastos fixos mensais', 'Contas com saldos separados', 'Carteira de investimentos', 'Relatórios em PDF', 'Instalação como PWA'], publisher: { '@id': `${SITE_URL}/#organization` } },
+    { '@type': 'WebApplication', '@id': `${PUBLIC_URL}#application`, name: 'WealthOS', url: PUBLIC_URL, description: SITE_DESCRIPTION, applicationCategory: 'FinanceApplication', operatingSystem: 'Web', inLanguage: ['pt', 'en', 'es'], browserRequirements: 'Requer conexão com a internet e navegador atualizado.', featureList: ['Controle de receitas e despesas por categoria', 'Gastos fixos mensais', 'Contas com saldos separados', 'Carteira de investimentos', 'Relatórios em PDF', 'Instalação como PWA'], publisher: { '@id': `${SITE_URL}/#organization` } },
   ],
 };
 
