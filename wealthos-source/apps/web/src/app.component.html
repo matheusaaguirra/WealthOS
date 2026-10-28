@@ -16,7 +16,7 @@
         @if(authNotice){<p class="auth-success" role="status">{{authNotice}}</p>}
         <button class="primary-button auth-submit" type="submit" [disabled]="authBusy||!authConfig?.emailPasswordEnabled">{{authBusy?'Aguarde…':userRegister?'Criar minha conta':'Entrar na minha conta'}}<span aria-hidden="true"><app-icon name="external"/></span></button>
       </form>
-      <p class="auth-switch">{{userRegister?'Já tem uma conta?':'Ainda não tem uma conta?'}} <button type="button" (click)="userRegister=!userRegister;authError='';authNotice=''" [disabled]="authBusy">{{userRegister?'Entrar':'Criar conta'}}</button></p><p class="auth-footnote"><span aria-hidden="true"><app-icon name="shield"/></span> Seus dados protegidos. Seus planos em primeiro lugar.</p>
+      <p class="auth-switch">{{userRegister?'Já tem uma conta?':'Ainda não tem uma conta?'}} <button type="button" (click)="userRegister=!userRegister;authError='';authNotice=''" [disabled]="authBusy">{{userRegister?'Entrar':'Criar conta'}}</button></p><p class="auth-learn"><a href="/sobre">Conheça os recursos do WealthOS <span aria-hidden="true">↗</span></a></p><p class="auth-footnote"><span aria-hidden="true"><app-icon name="shield"/></span> Seus dados protegidos. Seus planos em primeiro lugar.</p>
     </div></section>
   </main>
 }@else if(!dataReady){

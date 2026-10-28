@@ -321,3 +321,5 @@ html[data-theme='dark']{color-scheme:dark}
   .filter-bar>app-select-field,.stock-table-panel .filter-bar>app-select-field{width:100%;min-width:0}
   .chart-controls>label app-select-field{min-width:0;width:100%}
 }
+
+.auth-learn{margin:18px 0 0;font-size:12px}.auth-learn a{display:inline-flex;align-items:center;gap:8px;min-height:44px;color:var(--text-secondary);text-underline-offset:4px}.auth-learn a:hover{text-decoration:underline}.auth-learn a:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:3px}
