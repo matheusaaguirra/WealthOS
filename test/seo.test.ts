@@ -2,13 +2,40 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import robots from '../app/robots';
 import sitemap from '../app/sitemap';
-import { PUBLIC_URL, SITE_URL, structuredData } from '../lib/seo';
+import { PUBLIC_URL, SITE_URL, structuredData, internationalMetadata, internationalStructuredData, languageAlternates } from '../lib/seo';
+import { internationalCopy } from '../lib/international-copy';
 
-test('the sitemap contains only the canonical public page, never account URLs', () => {
-  assert.deepEqual(sitemap(), [{ url: PUBLIC_URL }]);
+test('the sitemap contains every public language and never account URLs', () => {
+  assert.deepEqual(sitemap().map(page => page.url).sort(), [PUBLIC_URL, `${SITE_URL}/en`, `${SITE_URL}/es`].sort());
+  for (const page of sitemap()) assert.deepEqual(page.alternates?.languages, languageAlternates);
   for (const { url } of sitemap()) {
     assert.equal(new URL(url).origin, SITE_URL);
     assert.doesNotMatch(url, /login|dashboard|\/app\/|\/api\/|\/auth\//);
+  }
+});
+
+test('international pages use self canonicals, reciprocal language alternatives and translated metadata', () => {
+  assert.deepEqual(Object.keys(languageAlternates).sort(), ['en', 'es', 'pt', 'x-default']);
+  assert.equal(languageAlternates['x-default'], `${SITE_URL}/en`);
+  for (const locale of ['en', 'es'] as const) {
+    const metadata = internationalMetadata(locale);
+    assert.equal(metadata.alternates?.canonical, `${SITE_URL}/${locale}`);
+    assert.deepEqual(metadata.alternates?.languages, languageAlternates);
+    assert.equal(metadata.title, internationalCopy[locale].title);
+    assert.match(metadata.description!, locale === 'en' ? /Brazilian Portuguese/ : /portugués de Brasil/);
+  }
+});
+
+test('translated pages distinguish their language from the actual app language and disclose BRL', () => {
+  for (const locale of ['en', 'es'] as const) {
+    const graph = internationalStructuredData(locale)['@graph'];
+    const page = graph.find(node => node['@type'] === 'WebPage')!;
+    const app = graph.find(node => node['@type'] === 'WebApplication')!;
+    assert.equal(page.inLanguage, locale);
+    assert.equal(page.url, `${SITE_URL}/${locale}`);
+    assert.equal(app.inLanguage, 'pt-BR');
+    assert.match(internationalCopy[locale].availability, /BRL/);
+    assert.equal(internationalCopy[locale].questions.length, 5);
   }
 });
 

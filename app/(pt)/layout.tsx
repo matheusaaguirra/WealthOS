@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from '../lib/seo';
+import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from '../../lib/seo';
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: SITE_TITLE,

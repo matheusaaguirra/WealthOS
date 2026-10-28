@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
-import { PUBLIC_URL, SITE_DESCRIPTION, SITE_TITLE, structuredData } from '../../lib/seo';
-import styles from './sobre.module.css';
+import { PUBLIC_URL, SITE_DESCRIPTION, SITE_TITLE, structuredData } from '../../../lib/seo';
+import { languageAlternates } from '../../../lib/seo';
+import styles from '../../../components/public-landing.module.css';
 
 export const metadata: Metadata = {
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
-  alternates: { canonical: PUBLIC_URL },
-  openGraph: { type: 'website', locale: 'pt_BR', siteName: 'WealthOS', url: PUBLIC_URL, title: SITE_TITLE, description: SITE_DESCRIPTION, images: [{ url: '/sobre/opengraph-image', width: 1200, height: 630, alt: 'WealthOS — Seu dinheiro, com mais clareza.' }] },
-  twitter: { card: 'summary_large_image', title: SITE_TITLE, description: SITE_DESCRIPTION, images: ['/sobre/opengraph-image'] },
+  alternates: { canonical: PUBLIC_URL, languages: languageAlternates },
+  openGraph: { type: 'website', locale: 'pt_BR', siteName: 'WealthOS', url: PUBLIC_URL, title: SITE_TITLE, description: SITE_DESCRIPTION, images: [{ url: '/sobre/social-card', width: 1200, height: 630, alt: 'WealthOS — Seu dinheiro, com mais clareza.' }] },
+  twitter: { card: 'summary_large_image', title: SITE_TITLE, description: SITE_DESCRIPTION, images: ['/sobre/social-card'] },
 };
 
 const questions = [
@@ -28,6 +29,7 @@ export default function About() {
       <a className={styles.brand} href="/sobre" aria-label="WealthOS, apresentação"><img src="/favicon.svg" width="36" height="36" alt="" />Wealth<span>OS</span></a>
       <nav aria-label="Navegação principal"><a className={styles.navLink} href="#recursos">O que você pode fazer</a><a className={styles.navLink} href="#duvidas">Dúvidas</a><a className={styles.login} href="/login">Entrar <Arrow /></a></nav>
     </header>
+    <div className={styles.languageBar}><nav aria-label="Escolher idioma"><a href="/sobre" hrefLang="pt" lang="pt" aria-current="page">Português</a><a href="/en" hrefLang="en" lang="en">English</a><a href="/es" hrefLang="es" lang="es">Español</a></nav></div>
     <main id="conteudo">
       <section className={styles.hero} aria-labelledby="titulo">
         <div className={styles.heroText}>
