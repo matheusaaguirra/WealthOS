@@ -7,7 +7,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/dev-preview.mjs",
     "build": "npm run build:web && next build",
     "start": "next start",
     "test": "node --import tsx --test test/*.test.ts",

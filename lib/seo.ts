@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { internationalCopy, type InternationalLocale } from './international-copy';
 export const SITE_URL = 'https://wealthos.com.br';
-export const PUBLIC_URL = `${SITE_URL}/sobre`;
+export const PUBLIC_URL = `${SITE_URL}/`;
 export const SITE_TITLE = 'WealthOS — Controle financeiro pessoal e investimentos';
 export const SITE_DESCRIPTION = 'Organize receitas, despesas e gastos fixos, separe o saldo das suas contas e acompanhe investimentos. Conheça o controle financeiro pessoal do WealthOS.';
 export const languageAlternates = { pt: PUBLIC_URL, en: `${SITE_URL}/en`, es: `${SITE_URL}/es`, 'x-default': `${SITE_URL}/en` };
