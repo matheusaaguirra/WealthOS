@@ -1,86 +1,168 @@
-# WealthOS
+<div align="center">
+  <a href="https://wealthos.com.br">
+    <img src="public/icons/app-192.png" alt="Logo do WealthOS" width="88" height="88" />
+  </a>
 
-## Lançamentos e extratos
+  <h1>WealthOS</h1>
+  <p><strong>Seu dinheiro. Suas escolhas.</strong></p>
+  <p>Contas, lançamentos e investimentos em um só lugar.<br />Uma visão clara do que entra, do que sai e do que você está construindo.</p>
 
-- Valores em reais usam máscara de centavos: digitar `232323` exibe `2.323,23`.
-- **Gastos fixos** é uma tela própria no menu. As regras mensais aparecem na programação do mês selecionado; use **Lançar gastos deste mês** para registrar os pendentes no saldo e nos relatórios. Cada regra gera no máximo um lançamento por mês, mesmo após estorno. Pausar a regra não remove lançamentos anteriores.
-- A importação de extratos PDF lê texto localmente no navegador, até 10 MB e 20 páginas. Revise conta, descrição e categoria na prévia antes de salvar. PDFs digitalizados como imagem precisam de OCR externo; linhas ambíguas são ignoradas.
-- **Exportar PDF** em Lançamentos gera um relatório A4 do mês e dos filtros atuais. **Baixar meus dados** na tela Minha conta mantém a exportação completa em JSON.
+  <p>
+    <img alt="Angular 20" src="https://img.shields.io/badge/Angular-20-172633?style=flat-square&amp;logo=angular&amp;logoColor=84b9e8" />
+    <img alt="Next.js 16" src="https://img.shields.io/badge/Next.js-16-172633?style=flat-square&amp;logo=nextdotjs&amp;logoColor=white" />
+    <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-172633?style=flat-square&amp;logo=typescript&amp;logoColor=84b9e8" />
+    <img alt="Supabase" src="https://img.shields.io/badge/Supabase-172633?style=flat-square&amp;logo=supabase&amp;logoColor=84b9e8" />
+    <img alt="Vercel" src="https://img.shields.io/badge/Vercel-172633?style=flat-square&amp;logo=vercel&amp;logoColor=white" />
+  </p>
 
-Gestão financeira pessoal com interface Angular, API Next.js e **Supabase Auth + PostgreSQL**. A aplicação começa em `/login`; o painel e os dados pessoais exigem sessão válida.
+  <p><a href="https://wealthos.com.br"><strong>Conhecer o WealthOS</strong></a> · <a href="https://wealthos.com.br/login">Entrar na aplicação</a> · <a href="#rodando-localmente">Rodar localmente</a></p>
+  <p><sub>Personal finance management · Português, English &amp; Español</sub></p>
+</div>
 
-Site: https://wealthos-two-pi.vercel.app
+---
 
-## Funcionalidades
+## Sobre o projeto
 
-- Login e cadastro por e-mail/senha. O projeto de produção está configurado para cadastro sem confirmação de e-mail. Entrada Google por OAuth/PKCE depende de habilitar o provedor com credenciais válidas.
-- Contas, lançamentos, estornos, orçamentos, metas, ativos listados e registros de renda fixa salvos por usuário no Supabase.
-- Usuários novos começam com dados vazios. Dados da antiga demonstração não são carregados nem importados.
-- Temas azul claro/escuro, catálogo paginado de ativos listados, gráficos, índices e criptomoedas.
-- Cadastro manual de Tesouro Direto, CDB, LCI, LCA e LC, com indexadores CDI, IPCA e prefixado. Valores e rendimentos ausentes não são estimados.
-- Campos numéricos rejeitam letras e notação científica, normalizam zeros iniciais e preservam centavos.
-- Valores monetários em centavos, validação no servidor, RLS e controle de versão para impedir sobrescritas por abas desatualizadas.
+O WealthOS é uma aplicação de gestão financeira pessoal para acompanhar a rotina e o patrimônio. Você pode organizar receitas e despesas por categoria, separar o dinheiro de uso diário das reservas e benefícios, planejar gastos fixos e acompanhar sua carteira de investimentos.
 
-## Configuração do Supabase
+A interface foi pensada para celular e desktop, com temas claro e escuro. A aplicação também pode ser instalada como **PWA**, pela opção em **Minha conta**.
 
-1. Crie ou selecione um projeto Supabase exclusivo para o WealthOS.
-2. Aplique `supabase/migrations/202610220001_wealthos.sql` nesse projeto. A migração cria apenas tabelas novas, políticas RLS e a função de gravação; não remove registros existentes.
-3. Configure na Vercel, para o projeto WealthOS:
+A página inicial apresenta o produto; o acesso ao painel e aos dados financeiros exige autenticação. Novos usuários começam com os próprios registros vazios. Os valores da demonstração na landing page são apenas ilustrativos.
 
-| Variável | Valor |
+## O que você pode fazer
+
+| Área | Recursos |
 | --- | --- |
-| `SUPABASE_URL` | URL HTTPS do projeto Supabase |
-| `SUPABASE_PUBLISHABLE_KEY` | Chave publishable (ou anon legada) desse projeto |
-| `APP_URL` | `https://wealthos-two-pi.vercel.app` |
-| `BRAPI_TOKEN` | Opcional, limitado pelo plano usado |
+| **Visão geral** | Saldo da carteira principal, entradas, saídas e gráficos por período. |
+| **Lançamentos** | Receitas e despesas por conta e categoria, busca, filtros, estornos e relatórios em PDF. |
+| **Gastos fixos** | Regras mensais com valor, vencimento e conta; programação dos gastos pendentes e pausa de recorrências. |
+| **Minhas contas** | Carteira principal e saldos separados para reservas ou vale-refeição, com movimentações em cada conta. |
+| **Metas e sonhos** | Objetivos financeiros e acompanhamento do progresso. |
+| **Investimentos** | Carteira, ativos listados, renda fixa, gráfico individual, índices e criptomoedas. |
+| **Minha conta** | Preferências, idioma, instalação do aplicativo e relatório financeiro completo em PDF. |
 
-A aplicação usa somente a chave publishable e os tokens do usuário com RLS. **Não precisa de service role nem secret key administrativa.** Nenhuma chave real deve ser incluída no GitHub. Os cookies de autenticação são HttpOnly, SameSite=Lax e Secure em produção.
+### Detalhes que fazem diferença
 
-4. Em Supabase Auth → URL Configuration, use o domínio de produção como Site URL e permita `https://wealthos-two-pi.vercel.app/auth/callback` e `/auth/confirm`. Cadastre separadamente as URLs de desenvolvimento que realmente usar.
-5. Habilite o provedor de e-mail e desative `Confirm email` em Authentication → Sign In / Providers para permitir cadastro com sessão imediata, conforme a configuração desejada para o WealthOS. A aplicação continua tratando confirmação pendente caso outro ambiente a exija.
-6. Para Google, crie um cliente OAuth Web no Google Cloud e habilite o provedor Google no Supabase com seu Client ID e Client Secret. O redirect URI registrado no Google deve ser a URL de callback exibida pelo Supabase, não a URL do painel WealthOS. Mantenha o Client Secret somente na configuração do provedor.
-7. Publique novamente e valide cadastro, login, dados persistidos após recarregar, logout e isolamento entre duas contas. O OAuth Google deve ser verificado com uma conta real após ativar o provedor.
+- **Saldos separados:** uma conta pode ficar fora do saldo da carteira principal e continuar disponível para registrar gastos.
+- **Valores com centavos:** na entrada monetária em português, digitar `232323` exibe `2.323,23`. Os cálculos financeiros trabalham com valores inteiros em centavos.
+- **Gastos recorrentes sem duplicidade:** cada regra gera no máximo um lançamento por mês. O registro no saldo acontece ao confirmar **Lançar gastos deste mês**; pausar uma regra preserva o histórico.
+- **Extratos PDF com revisão:** leitura local no navegador, com prévia para conferir conta, descrição e categoria antes de salvar.
+- **Relatórios para consultar:** PDF dos lançamentos do mês com os filtros aplicados, ou PDF de todo o histórico em **Minha conta**.
+- **Três idiomas:** português, inglês e espanhol, com detecção do idioma do navegador e escolha manual. A moeda permanece **real brasileiro — BRL**.
 
-Sem Supabase configurado, a tela de login aparece e informa indisponibilidade. Sem Google habilitado no provedor, o botão aparece indisponível. Não há fallback de visitante, armazenamento financeiro no navegador nem autenticação simulada.
+## Tecnologia e arquitetura
 
-## Desenvolvimento
+| Camada | Implementação |
+| --- | --- |
+| **Interface da aplicação** | Angular 20 e TypeScript. |
+| **Landing page e servidor** | Next.js 16 e React 19, com rotas de API no mesmo projeto. |
+| **Autenticação e dados** | Supabase Auth e PostgreSQL, com políticas de Row Level Security (RLS). |
+| **Núcleo financeiro** | Pacote TypeScript compartilhado em `@wealthos/finance`. |
+| **Publicação** | Vercel, com integração ao repositório GitHub. |
+| **Testes** | Node.js Test Runner, `tsx` e PGlite para testes locais de banco e RLS. |
 
-Node.js 24:
+O build compila a interface Angular para `public/app` e depois gera a aplicação Next.js. O servidor atende a landing page, a autenticação, as APIs e o acesso protegido ao painel.
+
+O código original de **NestJS e Prisma** permanece em `wealthos-source` como referência histórica. Ele não é o backend usado pela aplicação atual.
+
+## Rodando localmente
+
+### 1. Preparar o ambiente
+
+Você precisa de **Node.js 24**, npm e um projeto Supabase configurado para desenvolvimento.
 
 ```bash
+git clone https://github.com/matheusaaguirra/WealthOS.git
+cd WealthOS
 npm ci
 npm ci --prefix wealthos-source --ignore-scripts
 ```
 
-Copie `.env.example` para `.env.local` e preencha as variáveis do projeto correto antes de usar autenticação ou executar migrações. As migrações Supabase são aplicadas pelo painel, CLI vinculada ao projeto ou integração de gerenciamento. O script legado `scripts/migrate.mjs` corresponde ao backend anterior; não é a migração desta versão.
+### 2. Configurar as variáveis
 
-```bash
-npm run dev
-npm test
-npm run build
+Copie `.env.example` para `.env.local` na raiz e preencha os valores do seu ambiente. Para desenvolvimento, ajuste `APP_URL` para a origem local:
+
+```dotenv
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sua-chave-publicavel
+APP_URL=http://localhost:3000
+BRAPI_TOKEN=
 ```
 
-`npm run build` recompila o frontend Angular e depois o servidor Next.js. A Vercel usa a raiz do repositório, com as configurações de `vercel.json`. A conexão GitHub publica a branch `main`.
+| Variável | Uso |
+| --- | --- |
+| `SUPABASE_URL` | URL do projeto Supabase. |
+| `SUPABASE_PUBLISHABLE_KEY` | Chave publicável do mesmo projeto; também aceita a chave `anon` legada. |
+| `APP_URL` | Origem da aplicação: `http://localhost:3000` localmente ou `https://wealthos.com.br` em produção. |
+| `BRAPI_TOKEN` | Token opcional do provedor de cotações, sujeito aos limites do plano contratado. |
 
-## Estrutura
+O esquema está em [`supabase/migrations`](supabase/migrations). Em um projeto novo, aplique a migração antes de testar persistência. Não reaplique a migração inicial em um banco já configurado. O comando `db:migrate:legacy` pertence ao backend antigo.
 
-- `wealthos-source/apps/web/src`: interface Angular.
-- `wealthos-source/packages/finance`: cálculos financeiros compartilhados.
-- `app/api/finance` e `app/api/portfolio`: dados privados do usuário.
-- `app/api/auth` e `app/auth`: login, cadastro, logout e callbacks.
-- `lib/supabase`: cliente SSR e integração de autenticação.
-- `proxy.ts`: bloqueio do painel e da entrada HTML antiga sem sessão.
-- `supabase/migrations`: esquema, políticas RLS e controle de concorrência.
-- `test`: testes de validação, persistência, isolamento e provedores.
+Configure as URLs de retorno do Auth para o ambiente utilizado. O login Google exige um cliente OAuth válido no Google Cloud e o provedor habilitado no Supabase; o segredo OAuth permanece na configuração do provedor. Consulte os guias de [autenticação](docs/AUTH.md) e [Google OAuth](docs/GOOGLE-OAUTH-SETUP.md).
 
-O NestJS/Prisma original e os adaptadores anteriores foram preservados como referência; não atendem o login ou os dados da versão atual. Os testes antigos desses módulos são regressões históricas. Os testes atuais de RLS usam PostgreSQL em WebAssembly/PGlite, com papéis `authenticated` e `anon`, e não substituem a verificação do projeto Supabase remoto.
+### 3. Compilar a interface e iniciar
 
-## Limites
+```bash
+npm run build:web
+npm run dev
+```
 
-O cadastro de contas e posições é manual; não há conexão a banco ou corretora e nenhuma compra ou venda é executada. A consulta Google Finance depende do HTML público e pode ficar indisponível. Não há estimativa de preços em caso de erro. A amostra BRAPI mantém as restrições do plano. A recuperação de senha não foi incluída nesta entrega.
+Abra **[localhost:3000](http://localhost:3000)**. Depois de alterar o código Angular, execute `npm run build:web` novamente para atualizar os arquivos servidos. As alterações na landing page Next.js são acompanhadas pelo servidor de desenvolvimento.
 
-A integração remota só deve ser considerada concluída após aplicar a migração e verificar os fluxos no domínio publicado. Para rollback, restaure o código anterior sem apagar as tabelas de usuário. Qualquer limpeza de dados reais precisa de backup e autorização próprios.
+### Comandos úteis
 
-## Verificação desta rodada
+| Comando | Finalidade |
+| --- | --- |
+| `npm run dev` | Inicia o servidor Next.js de desenvolvimento. |
+| `npm run build:web` | Compila o núcleo financeiro e a interface Angular. |
+| `npm run build` | Gera o build completo: Angular e Next.js. |
+| `npm start` | Executa o servidor após o build de produção. |
+| `npm test` | Executa a suíte de testes da raiz, com compilação prévia do núcleo financeiro. |
+| `npm run typecheck` | Verifica os tipos do projeto Next.js. |
 
-Consulte [o relatório de equipes e QA](docs/qa-report-2026-10-23.md) e [a configuração Google OAuth](docs/GOOGLE-OAUTH-SETUP.md) para evidências e pendências externas.
+## Organização do repositório
+
+| Caminho | Conteúdo |
+| --- | --- |
+| [`app`](app) | Páginas públicas, rotas de API e callbacks de autenticação. |
+| [`components`](components) | Componentes da landing page e suas interações. |
+| [`lib`](lib) | Autenticação, persistência, validação, dados de mercado e conteúdo público. |
+| [`wealthos-source/apps/web/src`](wealthos-source/apps/web/src) | Interface Angular, componentes, estilos e traduções. |
+| [`wealthos-source/packages/finance`](wealthos-source/packages/finance) | Regras e cálculos financeiros compartilhados. |
+| [`supabase/migrations`](supabase/migrations) | Esquema do banco, políticas RLS e controle de concorrência. |
+| [`public`](public) | Ícones, manifests PWA e arquivos compilados da interface. |
+| [`test`](test) | Testes de autenticação, validação, cálculos, persistência e integrações. |
+| [`docs`](docs) | Guias técnicos, revisões e registros de verificação. |
+
+## Dados e segurança
+
+- Dados financeiros vinculados ao usuário autenticado, com políticas RLS no PostgreSQL.
+- Cookies de autenticação `HttpOnly`, `SameSite=Lax` e `Secure` em produção.
+- Validação no servidor e controle de versão para rejeitar gravações de abas desatualizadas.
+- A aplicação usa a chave publicável e a sessão do usuário; não exige uma chave administrativa `service_role`.
+- Registros financeiros são persistidos no servidor. O navegador pode guardar preferências de interface, como idioma.
+
+Os testes locais de RLS usam PostgreSQL em WebAssembly/PGlite e não substituem a validação do banco remoto. Credenciais e arquivos `.env.local` não devem ser publicados no repositório.
+
+## Escopo e limitações
+
+- **Bancos e corretoras:** contas, movimentações e posições são cadastradas manualmente ou importadas de extratos compatíveis. Não há sincronização por Open Finance nem execução de compras e vendas.
+- **Importação PDF:** arquivos com texto, até **10 MB e 20 páginas**. PDFs digitalizados precisam de OCR externo; linhas ambíguas podem ser ignoradas. Revise a prévia antes de confirmar.
+- **Mercado:** cotações dependem da disponibilidade e das restrições dos provedores. Valores ou rentabilidades sem dados suficientes aparecem indisponíveis.
+- **PWA:** a instalação depende do suporte do navegador e do sistema. É necessária conexão para acessar os registros financeiros; não há edição financeira offline.
+- **Feedback:** o formulário atual prepara uma mensagem no aplicativo de e-mail do visitante. O envio direto pelo servidor está pendente da ativação da integração de e-mail.
+
+## Documentação complementar
+
+- [Autenticação e sessões](docs/AUTH.md)
+- [Configuração do Google OAuth](docs/GOOGLE-OAUTH-SETUP.md)
+- [Fontes de dados de mercado](docs/MARKET-SOURCES.md)
+- [Integração Google Finance](docs/GOOGLE-FINANCE.md)
+- [Idiomas e traduções](wealthos-source/apps/web/src/i18n/README.md)
+
+---
+
+<div align="center">
+  <strong>WealthOS</strong><br />
+  <a href="https://wealthos.com.br">wealthos.com.br</a> · Desenvolvido por <a href="https://github.com/matheusaaguirra">Matheus Aguirra</a>
+</div>
