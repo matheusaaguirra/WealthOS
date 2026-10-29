@@ -1,0 +1,40 @@
+name: Growth AI — Relatório sob demanda
+
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: "Tema do relatório"
+        type: choice
+        required: true
+        default: general
+        options:
+          - general
+          - seo
+          - content
+          - acquisition
+          - cro
+
+permissions:
+  contents: read
+
+jobs:
+  growth-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Gerar plano Growth
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROWTH_TOPIC: ${{ inputs.topic }}
+        run: node growth/run.mjs
+      - name: Disponibilizar relatório
+        uses: actions/upload-artifact@v4
+        with:
+          name: growth-report
+          path: growth/output/report.md
+          retention-days: 14
