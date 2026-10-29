@@ -1,0 +1,30 @@
+{
+  "product": "WealthOS",
+  "website": "https://wealthos.com.br",
+  "audience": "Consumidores que desejam organizar finanças pessoais",
+  "markets": [
+    "pt-BR",
+    "en-US",
+    "it-IT"
+  ],
+  "channels": [
+    "SEO",
+    "LinkedIn",
+    "Instagram",
+    "conteúdo educativo",
+    "comunidades relevantes"
+  ],
+  "goal": "Aumentar cadastros qualificados e ativação",
+  "constraints": [
+    "Sem alegações de ganho financeiro garantido",
+    "Sem mensagens não solicitadas",
+    "Sem dados inventados",
+    "Sem publicação ou anúncios sem aprovação"
+  ],
+  "metrics": [
+    "organic_sessions",
+    "signup_conversion_rate",
+    "activation_rate",
+    "retention_30d"
+  ]
+}
