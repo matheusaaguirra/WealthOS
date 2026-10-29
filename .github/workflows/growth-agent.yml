@@ -27,9 +27,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Gerar plano Growth
+      - name: Gerar plano Growth sem API
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROWTH_TOPIC: ${{ inputs.topic }}
         run: node growth/run.mjs
       - name: Disponibilizar relatório
