@@ -1,28 +1,21 @@
-# WealthOS Growth AI
+# WealthOS Growth — modo gratuito (sem API)
 
-MVP de agente Growth de planejamento e análise, independente do produto. **Não publica conteúdo nem faz prospecção automaticamente.**
+Este MVP produz checklists e propostas de experimentos de crescimento B2C para o WealthOS, **sem chamar APIs de modelos de IA e sem cobrança por tokens**.
 
-## Execução 100% na nuvem
-1. Abrir o repositório GitHub > Settings > Secrets and variables > Actions.
-2. Configurar o secret `OPENAI_API_KEY` (não adicionar chaves a arquivos).
-3. Abrir Actions > **Growth AI — Relatório sob demanda** > Run workflow.
-4. Escolher o tema (SEO, content, acquisition, CRO ou general).
-5. Baixar o artefato `growth-report` gerado pela execução.
+## Executar na nuvem
+1. Revisar e integrar o PR da branch `feature/growth-agent`.
+2. Abrir **Actions** no repositório GitHub.
+3. Escolher **Growth AI — Relatório sob demanda** e clicar em **Run workflow**.
+4. Selecionar general, seo, content, acquisition ou cro.
+5. Baixar o artefato `growth-report` ao finalizar.
 
-A workflow só é executada manualmente; gera um arquivo Markdown com ideias e decisões pendentes. Usa API de IA externa, que pode ter custo por uso. Sem chave, registra erro e não produz relatório.
+Nenhuma chave `OPENAI_API_KEY` é necessária. O processo é manual, não envia mensagens, não publica e não altera o site. O relatório não é produzido por um modelo de IA; ele usa regras e templates locais versionados.
 
-## Instalação opcional de skills
-Num ambiente com Node.js e um executor compatível:
-```bash
-npx skills add coreyhaines31/marketingskills --list
-```
-A instalação é opcional para este MVP. O comando **não** precisa ser executado no computador pessoal e não é executado automaticamente pelo workflow.
+## Skills de marketing
+A documentação de papéis fica em `growth/AGENT.md`. O pacote https://github.com/coreyhaines31/marketingskills contém instruções para agentes compatíveis, mas **não é instalado nem executado neste MVP**. Para usar as skills com IA generativa, seria preciso configurar um executor compatível (local ou em nuvem), com custos e limites próprios.
 
-## Próximas integrações (não ativadas)
-- Google Search Console: consultas e indexação.
-- Analytics próprio ou GA4: funil agregado visita > cadastro > ativação.
-- Ferramenta de agendamento de posts: publicação somente após aprovação.
-- Painel protegido de experimentos e relatórios.
+## Custos
+GitHub Actions normalmente oferece uso gratuito em repositórios públicos com runners padrão, sujeito às políticas e limites atuais da plataforma. Não há cobrança de API neste fluxo. Publicidade paga, serviços externos ou futuras integrações podem gerar custos se forem habilitados separadamente.
 
-## Segurança
-Não adicionar dados de usuários, leads identificáveis, extratos financeiros ou segredos ao brief. O relatório é apenas planejamento, não evidência de desempenho real.
+## Próximos passos
+Conectar medições agregadas do Search Console e de analytics, com autorização e revisão de privacidade. Não incluir informações financeiras de usuários, leads identificáveis ou credenciais nos relatórios.
