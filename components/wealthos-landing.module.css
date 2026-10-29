@@ -9,3 +9,5 @@
 @media(prefers-reduced-motion:reduce){.page *,.page *:before,.page *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.heroCopy,.heroVisual,.dashboard,.accountScene,.floatingAccount{transform:none!important}.portfolioPath{stroke-dashoffset:0}.page[data-motion=ready] [data-reveal]{opacity:1;transform:none!important}.scrollCue i:after{transform:translateX(15px)}.primary:before{display:none}}
 
 .feedbackStatus{font-size:11px!important;color:#d2e7f6!important}.feedbackForm .primary:disabled{cursor:default}
+
+.resourceLinks{display:flex;gap:12px 24px;flex-wrap:wrap;padding:24px 0;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}.resourceLinks a{display:inline-flex;align-items:center;min-height:44px}.resourceLinks a:hover{color:var(--accent)}

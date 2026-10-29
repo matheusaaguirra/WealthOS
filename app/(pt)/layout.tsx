@@ -1,3 +1,4 @@
+import PublicAnalytics from '../../components/public-analytics';
 import type { Metadata } from 'next';
 import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from '../../lib/seo';
 export const metadata: Metadata = {
@@ -10,4 +11,4 @@ export const metadata: Metadata = {
   icons: { icon: '/favicon.svg',apple:'/icons/apple-touch-icon.png' },
   appleWebApp:{capable:true,title:'WealthOS',statusBarStyle:'default'},
 };
-export default function RootLayout({ children }: { children: React.ReactNode }) { return <html lang="pt-BR"><body style={{margin:0}}>{children}</body></html>; }
+export default function RootLayout({ children }: { children: React.ReactNode }) { return <html lang="pt-BR"><body style={{margin:0}}>{children}<PublicAnalytics/></body></html>; }

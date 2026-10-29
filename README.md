@@ -152,6 +152,15 @@ Os testes locais de RLS usam PostgreSQL em WebAssembly/PGlite e não substituem 
 - **PWA:** a instalação depende do suporte do navegador e do sistema. É necessária conexão para acessar os registros financeiros; não há edição financeira offline.
 - **Feedback:** o formulário atual prepara uma mensagem no aplicativo de e-mail do visitante. O envio direto pelo servidor está pendente da ativação da integração de e-mail.
 
+## Guias e descoberta internacional
+
+A central de conteúdo público reúne guias em **português, inglês, espanhol, francês, alemão e italiano**, com URLs próprias, páginas estáticas e links entre versões equivalentes. Os temas são controle mensal, separação de saldos e revisão de extratos PDF (este último, inicialmente em inglês).
+
+- [Guias em português](https://wealthos.com.br/guias) · [English](https://wealthos.com.br/en/guides) · [Español](https://wealthos.com.br/es/guias)
+- [Français](https://wealthos.com.br/fr/guides) · [Deutsch](https://wealthos.com.br/de/ratgeber) · [Italiano](https://wealthos.com.br/it/guide)
+
+O simulador dos guias faz um cálculo local em BRL, USD ou EUR, sem enviar nem salvar os valores. Ele **não adiciona suporte multimoeda à aplicação**, que continua em BRL e em três idiomas. O Vercel Analytics também está integrado às páginas públicas; é necessário que Web Analytics esteja habilitado no projeto para receber os dados.
+
 ## Documentação complementar
 
 - [Autenticação e sessões](docs/AUTH.md)
