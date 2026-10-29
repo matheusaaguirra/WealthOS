@@ -18,7 +18,15 @@ function Icon({ name = 'arrow', size = 20 }: { name?: string; size?: number }) {
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name] ?? paths.arrow}</svg>;
 }
-function Brand() { return <span className={styles.brand}><svg viewBox="0 0 40 40" width="35" height="35" fill="none" aria-hidden="true"><path d="M7 10c5-2 9-1 13 2v20c-4-3-8-4-13-2V10Z" fill="currentColor"/><path d="M33 10c-5-2-9-1-13 2v20c4-3 8-4 13-2V10Z" fill="currentColor" opacity=".55"/><path d="m24 24 2-3 2 1 2-3" stroke="#0d1823" strokeWidth="1.5"/></svg><span>Wealth<span className={styles.brandLight}>OS</span></span></span>; }
+function BookMark({ size = 35 }: { size?: number }) {
+  return <svg viewBox="0 0 40 40" width={size} height={size} fill="none" aria-hidden="true">
+    <rect width="40" height="40" rx="11" fill="#193F59"/>
+    <path d="M9 11.8c4-1.6 7.5-1.1 11 1.6v16.4c-3.5-2.7-7-3.2-11-1.6V11.8Z" fill="#F4F3E9"/>
+    <path d="M31 11.8c-4-1.6-7.5-1.1-11 1.6v16.4c3.5-2.7 7-3.2 11-1.6V11.8Z" fill="#91BDC3"/>
+    <path d="m23.5 23.2 2.1-2.8 1.7 1.3 1.5-2.1" stroke="#193F59" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>;
+}
+function Brand() { return <span className={styles.brand}><BookMark/><span>Wealth<span className={styles.brandLight}>OS</span></span></span>; }
 
 function preferredLanguage(): LandingLocale {
   let saved: string | null = null;
@@ -78,7 +86,7 @@ export default function WealthOSLanding({ locale = 'pt', automatic = false }: { 
     </header>
     <main id="content">
       <section data-hero className={styles.hero} aria-labelledby="landing-title">
-        <div className={styles.heroGrid} aria-hidden="true"/><span className={styles.heroEdition} aria-hidden="true">W / 01</span>
+        <div className={styles.heroGrid} aria-hidden="true"/><span className={styles.heroEdition} aria-hidden="true"><BookMark size={20}/><span>01</span></span>
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}><span/>{c.eyebrow}</p>
           <h1 id="landing-title" key={language}><span className={styles.titleLine}><span>{c.title}</span></span><span className={styles.titleLine}><em>{c.italic}</em></span></h1>
@@ -89,7 +97,7 @@ export default function WealthOSLanding({ locale = 'pt', automatic = false }: { 
         <div data-visual className={styles.heroVisual}>
           <span className={styles.visualCaption}>{c.workspace}<i>↙</i></span>
           <div className={styles.dashboard}><div className={styles.panelSheen} aria-hidden="true"/>
-            <div className={styles.demoTop}><span className={styles.miniMark}><Icon name="leaf" size={16}/>WEALTHOS</span><span className={styles.demoDot}/></div>
+            <div className={styles.demoTop}><span className={styles.miniMark}><BookMark size={20}/>WEALTHOS</span><span className={styles.demoDot}/></div>
             <div className={styles.demoHeading}><span>{c.overview}</span><div className={styles.segment}><button type="button" aria-pressed={!annual} onClick={()=>setAnnual(false)}>{c.month}</button><button type="button" aria-pressed={annual} onClick={()=>setAnnual(true)}>{c.year}</button></div></div>
             <div className={styles.balance}><span>{c.balance}</span><strong key={String(annual)} aria-live="polite">{money(annual?18940:8420)}</strong><span className={styles.balanceRule}/></div>
             <div className={styles.movement}><div><span><i/> {c.income}</span><strong>{money(annual?68400:6800)}</strong></div><div><span><i/> {c.expense}</span><strong>{money(annual?49460:4280)}</strong></div></div>
@@ -108,7 +116,7 @@ export default function WealthOSLanding({ locale = 'pt', automatic = false }: { 
         <div data-reveal className={styles.sectionCopy}><p className={styles.eyebrow}>{c.order}</p><h2>{c.orderTitle}<br/><em>{c.orderItalic}</em></h2><p className={styles.body}>{c.orderBody}</p><div className={styles.accountTabs} aria-label={c.toggleLabel}><button type="button" aria-pressed={!separate} onClick={()=>setSeparate(false)}><Icon name="wallet"/><span><strong>{c.wallet}</strong><small>{c.walletBody}</small></span><span className={styles.radio}/></button><button type="button" aria-pressed={separate} onClick={()=>setSeparate(true)}><Icon name="leaf"/><span><strong>{c.savings}</strong><small>{c.savingsBody}</small></span><span className={styles.radio}/></button></div></div>
         <div data-reveal className={styles.accountScene}>
           <div className={styles.ledger} data-group={separate?'separate':'wallet'}>
-            <div className={styles.ledgerTop}><span>W /</span><span>{c.workspace}</span><Icon name="plus" size={16}/></div>
+            <div className={styles.ledgerTop}><span className={styles.blockMark}><BookMark size={32}/></span><span>{c.workspace}</span><Icon name="plus" size={16}/></div>
             <div className={styles.ledgerBalance}><span>{separate?c.savings:c.wallet}</span><strong key={String(separate)}>{money(separate?13140:8420)}</strong></div>
             <div className={styles.ledgerRows}>
               {[c.wallet,c.meal,c.reserve].map((name,index)=><div className={styles.ledgerRow} data-selected={separate?index>0:index===0} key={name}><span>0{index+1}</span><span className={styles.ledgerIcon}><Icon name={index===0?'wallet':index===1?'receipt':'leaf'}/></span><div><strong>{name}</strong><small>{index===0?c.included:c.excluded}</small></div><b>{money([8420,640,12500][index])}</b></div>)}
@@ -118,7 +126,7 @@ export default function WealthOSLanding({ locale = 'pt', automatic = false }: { 
       </section>
       <section className={`${styles.section} ${styles.investmentSection}`}>
         <div data-reveal data-portfolio className={styles.investmentVisual}>
-          <div className={styles.portfolioHeader}><span>W /</span><span>{c.investments}</span><Icon name="diagonal" size={17}/></div>
+          <div className={styles.portfolioHeader}><span className={styles.blockMark}><BookMark size={32}/></span><span>{c.investments}</span><Icon name="diagonal" size={17}/></div>
           <div className={styles.portfolioAmount}><span>{c.assets[activeAsset]}</span><strong key={activeAsset}>{[45,35,20][activeAsset]}<span>%</span></strong><small>{c.distribution}</small></div>
           <div className={styles.portfolioChart}><svg viewBox="0 0 500 160" fill="none" aria-label={c.demo} role="img"><path d="M0 40H500M0 80H500M0 120H500" stroke="currentColor" opacity=".1"/>{['M0 144C30 144 30 120 65 125S110 112 135 115S165 80 195 88S220 92 250 68S290 76 315 48S350 58 385 28S440 45 500 8','M0 150C60 148 80 134 135 129S200 110 250 108S315 82 355 79S430 55 500 40','M0 110C35 50 75 140 115 85S175 133 210 65S265 122 305 58S370 90 400 33S450 60 500 20'].map((path,index)=><path key={path} className={styles.portfolioPath} data-active={activeAsset===index} d={path} pathLength="1" stroke="currentColor" strokeWidth={activeAsset===index?2.5:1} strokeLinecap="round"/>)}</svg></div>
           <div className={styles.allocation}>{c.assets.map((name,index)=><button type="button" aria-pressed={activeAsset===index} key={name} onClick={()=>setActiveAsset(index)}><i/><span>{name}</span><strong>{[45,35,20][index]}%</strong></button>)}</div>
