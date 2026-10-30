@@ -16,7 +16,7 @@ let stored=validateFinancialState({accounts:[a,b],transactions:[tx(a.id,101),{..
 let revision=0,writes=0,failWrite=false,deferWrite=false,release:(()=>void)|undefined;
 globalThis.fetch=async(input,init)=>{
  if(String(input)==='/api/portfolio')return Response.json({holdings:[holding]});
- assert.equal(String(input),'/api/finance');
+ assert.ok(['/api/finance','/api/finance/recurring'].includes(String(input)));
  if(init?.method==='PUT'){
   writes++;const data=JSON.parse(String(init.body));assert.equal(data.revision,revision);
   const next=validateFinancialState(data.state);

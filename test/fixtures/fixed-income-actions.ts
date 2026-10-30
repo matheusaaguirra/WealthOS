@@ -8,7 +8,7 @@ const account={id:crypto.randomUUID(),name:'Conta',institution:'Banco',color:'#2
 let stored:any={accounts:[account],transactions:[],budgets:[],goals:[]},revision=0,writes=0,failWrite=false,deferWrite=false,release:(()=>void)|undefined;
 globalThis.fetch=async(input,init)=>{
  if(String(input)==='/api/portfolio')return Response.json({holdings:[]});
- assert.equal(String(input),'/api/finance');
+ assert.ok(['/api/finance','/api/finance/recurring'].includes(String(input)));
  if(init?.method==='PUT'){
   writes++;const payload=JSON.parse(String(init.body));assert.equal(payload.revision,revision);
   if(deferWrite)await new Promise<void>(resolve=>release=resolve);

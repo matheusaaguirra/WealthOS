@@ -17,7 +17,7 @@ export function guideStructuredData(locale:GuideLocale,guide?:Guide) {
  const home=locale==='pt'?`${SITE_URL}/`:locale==='en'||locale==='es'?`${SITE_URL}/${locale}`:`${SITE_URL}/en`;
  const breadcrumbs=[{name:'WealthOS',item:home},{name:c.hub,item:`${SITE_URL}${guideRoots[locale]}`},...(guide?[{name:guide.title,item:url}]:[])];
  return {'@context':'https://schema.org','@graph':[
-  {'@type':guide?'Article':'CollectionPage','@id':`${url}#content`,url,inLanguage:locale,...(guide?{headline:guide.title,datePublished:'2026-10-29',dateModified:'2026-10-29',author:{'@type':'Organization',name:'WealthOS',url:`${SITE_URL}/`}}:{name:c.title,hasPart:guides[locale].map(item=>({'@type':'Article',headline:item.title,url:`${SITE_URL}${guidePath(locale,item)}`}))}),description:guide?.description??c.intro,publisher:{'@type':'Organization',name:'WealthOS',url:`${SITE_URL}/`,logo:{'@type':'ImageObject',url:`${SITE_URL}/icons/app-512.png`}}},
+  {'@type':guide?'Article':'CollectionPage','@id':`${url}#content`,url,inLanguage:locale,...(guide?{headline:guide.title,datePublished:'2026-10-29',dateModified:guide.key==='monthly'?'2026-10-30':'2026-10-29',author:{'@type':'Organization',name:'WealthOS',url:`${SITE_URL}/`}}:{name:c.title,hasPart:guides[locale].map(item=>({'@type':'Article',headline:item.title,url:`${SITE_URL}${guidePath(locale,item)}`}))}),description:guide?.description??c.intro,publisher:{'@type':'Organization',name:'WealthOS',url:`${SITE_URL}/`,logo:{'@type':'ImageObject',url:`${SITE_URL}/icons/app-512.png`}}},
   {'@type':'BreadcrumbList',itemListElement:breadcrumbs.map((item,index)=>({'@type':'ListItem',position:index+1,...item}))},
  ]};
 }

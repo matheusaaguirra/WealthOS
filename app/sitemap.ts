@@ -6,7 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
  const landing = ['pt', 'en', 'es'].map(locale => ({ url: languageAlternates[locale as 'pt' | 'en' | 'es'], alternates: { languages: languageAlternates } }));
  const resources = guideLocales.flatMap(locale => [
   {url:`${SITE_URL}${guidePath(locale)}`,lastModified:'2026-10-29',alternates:{languages:guideAlternates(locale)}},
-  ...guides[locale].map(guide=>({url:`${SITE_URL}${guidePath(locale,guide)}`,lastModified:'2026-10-29',alternates:{languages:guideAlternates(locale,guide)}})),
+  ...guides[locale].map(guide=>({url:`${SITE_URL}${guidePath(locale,guide)}`,lastModified:guide.key==='monthly'?'2026-10-30':'2026-10-29',alternates:{languages:guideAlternates(locale,guide)}})),
  ]);
  return [...landing,...resources];
 }

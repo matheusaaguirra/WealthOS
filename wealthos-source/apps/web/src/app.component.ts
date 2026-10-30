@@ -17,7 +17,7 @@ import { downloadTransactionsPdf, downloadFinancialReportPdf } from './transacti
 import { StockAutocompleteComponent } from './stock-autocomplete.component';
 import { createAccountFromDraft, defaultAccountId, isWalletAccount, type AccountBalanceGroup } from './account-setup';
 import {siteAuth,marketApi,SiteUser,AuthConfig,StockResponse,CryptoResponse} from './services/site-api';
-import { balance, summarize, parseMoneyToCents, validateAmount, validateDate, assertNoDuplicate, Entry, stockPosition, sectorPerformance, StockQuote, Holding, FIXED_INCOME_TYPES, FixedIncomeInvestment, FixedIncomeDraft, fixedIncomeFromDraft, summarizeFixedIncome, RecurringExpense, dueRecurringExpenses, recurringDate } from '@wealthos/finance';
+import { balance, summarize, parseMoneyToCents, validateAmount, validateDate, assertNoDuplicate, Entry, stockPosition, sectorPerformance, StockQuote, Holding, FIXED_INCOME_TYPES, FixedIncomeInvestment, FixedIncomeDraft, fixedIncomeFromDraft, summarizeFixedIncome, RecurringExpense, dueRecurringExpenses, recurringDate, recurringToday, dueRecurringThroughDate } from '@wealthos/finance';
 interface Account { id:string; name:string; institution:string; color:string; openingBalanceCents:number; balanceGroup?:AccountBalanceGroup; balanceCents?:number; }
 interface Transaction extends Entry { description:string; category:string; idempotencyKey:string; recurringRuleId?:string; recurringMonth?:string; }
 interface Budget { id:string; category:string; limitCents:number; }
@@ -124,10 +124,14 @@ export class AppComponent {
   }
   async applyUser(user:SiteUser){
     this.modal=null;this.accountOnboarding=false;this.resumeTransactionAfterSetup=false;this.user=user;this.state={accounts:[],transactions:[],budgets:[],goals:[]};this.holdings=[];this.dataReady=false;this.portfolioReady=false;
-    const [finance,portfolio]=await Promise.all([siteAuth.finance<State>(),siteAuth.portfolio()]);
-    this.validateHoldings(portfolio.holdings);this.state=finance.state;this.revision=finance.revision;this.holdings=portfolio.holdings;this.dataReady=true;this.portfolioReady=true;this.authError='';
+    const [finance,portfolio]=await Promise.all([this.loadFinancialState(),siteAuth.portfolio()]);
+    this.validateHoldings(portfolio.holdings);this.state=finance.state;this.revision=finance.revision;this.holdings=portfolio.holdings;this.recurringSyncError=finance.syncError;this.dataReady=true;this.portfolioReady=true;this.authError='';
     history.replaceState(null,'','/dashboard');this.view='dashboard';void this.loadPortfolioQuotes();
     if(!this.state.accounts.length)this.openModal('account');
+  }
+  private async loadFinancialState(){
+    try{return {...await siteAuth.syncRecurring<State>(),syncError:''};}
+    catch(error){const saved=await siteAuth.finance<State>();return {...saved,syncError:error instanceof Error?error.message:translate('Não foi possível atualizar os gastos fixos. Tente novamente.')};}
   }
   private validateHoldings(holdings:Holding[]){if(!Array.isArray(holdings))throw new Error(translate('Resposta da carteira inválida.'));const tickers=new Set<string>();for(const h of holdings){stockPosition(h);if(tickers.has(h.ticker))throw new Error(translate('Ticker duplicado na carteira.'));tickers.add(h.ticker);}}
   async submitUser(){
@@ -180,14 +184,32 @@ export class AppComponent {
   recurringDraft={id:'',description:'',amount:'',accountId:'',category:'Moradia',day:1,startMonth:this.month,endMonth:'',active:true};
   get recurringRules(){return this.state.recurringExpenses??[];}
   get dueRecurring(){return dueRecurringExpenses(this.recurringRules,this.state.transactions,this.month);}
+  get readyRecurring(){return dueRecurringThroughDate(this.recurringRules,this.state.transactions,this.month,this.recurringToday());}
   get scheduledRecurring(){return this.recurringRules.filter(rule=>rule.active&&this.month>=rule.startMonth&&(!rule.endMonth||this.month<=rule.endMonth));}
   get recurringMonthlyTotal(){return this.scheduledRecurring.reduce((sum,rule)=>sum+rule.amountCents,0);}
   get recurringPendingTotal(){return this.dueRecurring.reduce((sum,rule)=>sum+rule.amountCents,0);}
   recurringPosted(rule:RecurringExpense){return this.state.transactions.some(t=>t.recurringRuleId===rule.id&&t.recurringMonth===this.month);}
-  recurringStatus(rule:RecurringExpense){if(!rule.active)return translate('Pausado');if(this.recurringPosted(rule))return translate('Lançado neste mês');if(this.month<rule.startMonth)return translate('Começa em ')+rule.startMonth;if(rule.endMonth&&this.month>rule.endMonth)return translate('Encerrado');return translate('Pendente neste mês');}
+  recurringStatus(rule:RecurringExpense){if(!rule.active)return translate('Pausado');if(this.recurringPosted(rule))return translate('Lançado neste mês');if(this.month<rule.startMonth)return translate('Começa em ')+rule.startMonth;if(rule.endMonth&&this.month>rule.endMonth)return translate('Encerrado');return recurringDate(rule,this.month)>this.recurringToday()?translate('Agendado para {0}',[this.dateLabel(recurringDate(rule,this.month))]):translate('Pendente neste mês');}
   openRecurring(rule?:RecurringExpense){this.openModal('recurring');this.recurringDraft=rule?{...rule,amount:(rule.amountCents/100).toFixed(2).replace('.',','),endMonth:rule.endMonth??''}:{id:'',description:'',amount:'',accountId:defaultAccountId(this.state.accounts),category:'Moradia',day:1,startMonth:this.month,endMonth:'',active:true};}
-  async generateRecurring(){if(this.busy||!this.dataReady||!this.user)return;const due=this.dueRecurring;if(!due.length)return;const previous=this.state;this.busy=true;try{const generated:Transaction[]=due.map(rule=>({id:this.uuid(),idempotencyKey:this.uuid(),accountId:rule.accountId,description:rule.description,category:rule.category,amountCents:rule.amountCents,date:recurringDate(rule,this.month),type:'EXPENSE',recurringRuleId:rule.id,recurringMonth:this.month}));this.state={...this.state,transactions:[...this.state.transactions,...generated]};await this.persist();this.notify(generated.length+translate(' despesa(s) fixa(s) lançada(s) neste mês.'));}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:translate('Não foi possível lançar as despesas.'));}finally{this.busy=false;}}
+  async generateRecurring(){if(this.busy||!this.dataReady||!this.user)return;const due=this.readyRecurring;if(!due.length)return;const previous=this.state;this.busy=true;try{const generated:Transaction[]=due.map(rule=>({id:this.uuid(),idempotencyKey:this.uuid(),accountId:rule.accountId,description:rule.description,category:rule.category,amountCents:rule.amountCents,date:recurringDate(rule,this.month),type:'EXPENSE',recurringRuleId:rule.id,recurringMonth:this.month}));this.state={...this.state,transactions:[...this.state.transactions,...generated]};await this.persist();this.notify(generated.length+translate(' despesa(s) fixa(s) lançada(s) neste mês.'));}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:translate('Não foi possível lançar as despesas.'));}finally{this.busy=false;}}
   async toggleRecurring(rule:RecurringExpense){if(this.busy)return;const previous=this.state;this.busy=true;try{this.state={...this.state,recurringExpenses:this.recurringRules.map(r=>r.id===rule.id?{...r,active:!r.active}:r)};await this.persist();this.notify(rule.active?translate('Despesa fixa pausada.'):translate('Despesa fixa reativada.'));}catch(e){this.state=previous;this.notify(e instanceof Error?e.message:translate('Não foi possível alterar.'));}finally{this.busy=false;}}
+  recurringSyncError='';
+  private recurringSyncBusy=false;
+  private recurringTimer:ReturnType<typeof setInterval>|undefined;
+  ngOnInit(){this.zone.runOutsideAngular(()=>{this.recurringTimer=setInterval(()=>{this.zone.run(()=>{void this.syncRecurringWhenDue();});},60_000);});}
+  ngOnDestroy(){if(this.recurringTimer!==undefined)clearInterval(this.recurringTimer);}
+  recurringToday(){return recurringToday();}
+  @HostListener('window:focus') onFocus(){void this.syncRecurringWhenDue();}
+  @HostListener('document:visibilitychange') onVisibilityChange(){if(document.visibilityState==='visible')void this.syncRecurringWhenDue();}
+  async syncRecurringWhenDue(){
+    if(!this.user||!this.dataReady||this.busy||this.authBusy||this.modal||this.recurringSyncBusy)return;
+    const today=this.recurringToday();
+    if(!dueRecurringThroughDate(this.recurringRules,this.state.transactions,today.slice(0,7),today).length)return;
+    const user=this.user;this.recurringSyncBusy=true;this.busy=true;
+    try{const saved=await siteAuth.syncRecurring<State>();if(this.user!==user)return;this.state=saved.state;this.revision=saved.revision;this.recurringSyncError='';}
+    catch(error){if(this.user===user)this.recurringSyncError=error instanceof Error?error.message:translate('Não foi possível atualizar os gastos fixos. Tente novamente.');}
+    finally{this.recurringSyncBusy=false;this.busy=false;}
+  }
   private transactionKey = this.uuid();
   private returnFocus:HTMLElement|null=null;
   private toastTimer:ReturnType<typeof setTimeout>|undefined;

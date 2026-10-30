@@ -35,7 +35,7 @@ A página inicial apresenta o produto; o acesso ao painel e aos dados financeiro
 | --- | --- |
 | **Visão geral** | Saldo da carteira principal, entradas, saídas e gráficos por período. |
 | **Lançamentos** | Receitas e despesas por conta e categoria, busca, filtros, estornos e relatórios em PDF. |
-| **Gastos fixos** | Regras mensais com valor, vencimento e conta; programação dos gastos pendentes e pausa de recorrências. |
+| **Gastos fixos** | Regras mensais com valor, vencimento e conta; desconto automático no vencimento e pausa de recorrências. |
 | **Minhas contas** | Carteira principal e saldos separados para reservas ou vale-refeição, com movimentações em cada conta. |
 | **Metas e sonhos** | Objetivos financeiros e acompanhamento do progresso. |
 | **Investimentos** | Carteira, ativos listados, renda fixa, gráfico individual, índices e criptomoedas. |
@@ -45,7 +45,7 @@ A página inicial apresenta o produto; o acesso ao painel e aos dados financeiro
 
 - **Saldos separados:** uma conta pode ficar fora do saldo da carteira principal e continuar disponível para registrar gastos.
 - **Valores com centavos:** na entrada monetária em português, digitar `232323` exibe `2.323,23`. Os cálculos financeiros trabalham com valores inteiros em centavos.
-- **Gastos recorrentes sem duplicidade:** cada regra gera no máximo um lançamento por mês. O registro no saldo acontece ao confirmar **Lançar gastos deste mês**; pausar uma regra preserva o histórico.
+- **Gastos recorrentes sem duplicidade:** cada regra gera no máximo um lançamento por mês. Os vencidos do mês atual entram no saldo ao abrir ou atualizar os dados e na virada do dia com o app aberto (horário de Brasília). Meses anteriores podem ser registrados manualmente; pausar uma regra preserva o histórico.
 - **Extratos PDF com revisão:** leitura local no navegador, com prévia para conferir conta, descrição e categoria antes de salvar.
 - **Relatórios para consultar:** PDF dos lançamentos do mês com os filtros aplicados, ou PDF de todo o histórico em **Minha conta**.
 - **Três idiomas:** português, inglês e espanhol, com detecção do idioma do navegador e escolha manual. A moeda permanece **real brasileiro — BRL**.

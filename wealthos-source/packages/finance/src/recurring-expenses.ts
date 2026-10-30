@@ -55,3 +55,15 @@ export function dueRecurringExpenses<T extends RecurringTransaction>(rules: Recu
   validateDate(month + '-01');
   return rules.filter(rule => rule.active && month >= rule.startMonth && (!rule.endMonth || month <= rule.endMonth) && !transactions.some(t => t.recurringRuleId === rule.id && t.recurringMonth === month));
 }
+
+/** Recurrences use the same business date on the server and every device. */
+export function recurringToday(now: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-US', {timeZone:'America/Sao_Paulo', year:'numeric', month:'2-digit', day:'2-digit'}).formatToParts(now);
+  const part = (type:string) => parts.find(value=>value.type===type)!.value;
+  return `${part('year')}-${part('month')}-${part('day')}`;
+}
+
+export function dueRecurringThroughDate<T extends RecurringTransaction>(rules: RecurringExpense[], transactions: T[], month: string, today: string): RecurringExpense[] {
+  validateDate(today);
+  return dueRecurringExpenses(rules, transactions, month).filter(rule=>recurringDate(rule,month)<=today);
+}

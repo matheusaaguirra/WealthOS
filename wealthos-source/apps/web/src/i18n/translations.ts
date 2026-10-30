@@ -3383,5 +3383,45 @@ export const translations: Record<string, readonly [string, string]> = {
   "Categoria da linha {0}": [
     "Category for row {0}",
     "Categoría de la fila {0}"
+  ],
+  "Despesas mensais descontadas automaticamente na data do vencimento.": [
+    "Monthly expenses deducted automatically when due.",
+    "Gastos mensuales descontados automáticamente al vencer."
+  ],
+  "Você tem {0} gasto(s) fixo(s) previsto(s).": [
+    "You have {0} scheduled recurring expense(s).",
+    "Tienes {0} gasto(s) fijo(s) previsto(s)."
+  ],
+  "Valor, conta e vencimento de cada despesa. Os gastos do mês atual entram no saldo automaticamente ao vencer.": [
+    "Amount, account and due date for each expense. Current-month expenses affect the balance automatically when due.",
+    "Importe, cuenta y vencimiento de cada gasto. Los gastos del mes actual afectan al saldo automáticamente al vencer."
+  ],
+  "Os vencidos do mês atual são registrados ao abrir ou atualizar os dados e na virada do dia com o app aberto, pelo horário de Brasília. O desconto acontece na conta vinculada. Meses anteriores continuam disponíveis para lançamento manual.": [
+    "Current-month expenses due are recorded when opening or refreshing your data and after the day changes while the app is open, using Brasília time. The linked account is charged. Earlier months can still be recorded manually.",
+    "Los gastos vencidos del mes actual se registran al abrir o actualizar los datos y tras el cambio de día con la aplicación abierta, según la hora de Brasilia. Se descuenta de la cuenta vinculada. Los meses anteriores se pueden registrar manualmente."
+  ],
+  "Registre os vencidos deste período. Cada gasto entra uma única vez por mês; estornar não gera outro desconto automático.": [
+    "Record expenses due for this period. Each expense is recorded once per month; reversing it does not trigger another automatic deduction.",
+    "Registra los gastos vencidos de este período. Cada gasto se registra una vez al mes; anularlo no provoca otro descuento automático."
+  ],
+  "Registrar vencidos": [
+    "Record expenses due",
+    "Registrar vencidos"
+  ],
+  "Agendado para {0}": [
+    "Scheduled for {0}",
+    "Programado para {0}"
+  ],
+  "Gastos fixos aguardando atualização": [
+    "Recurring expenses awaiting an update",
+    "Gastos fijos pendientes de actualizar"
+  ],
+  "Não foi possível atualizar os gastos fixos. Tente novamente.": [
+    "Could not update recurring expenses. Please try again.",
+    "No se pudieron actualizar los gastos fijos. Inténtalo de nuevo."
+  ],
+  "Crie uma regra mensal. Os vencidos do mês atual entram no saldo automaticamente ao abrir ou atualizar os dados. Cada regra entra apenas uma vez por mês.": [
+    "Create a monthly rule. Current-month expenses due affect the balance automatically when you open or refresh your data. Each rule is recorded once per month.",
+    "Crea una regla mensual. Los gastos vencidos del mes actual afectan al saldo automáticamente al abrir o actualizar los datos. Cada regla se registra una vez al mes."
   ]
 };

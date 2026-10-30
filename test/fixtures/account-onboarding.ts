@@ -20,7 +20,7 @@ let deferWrite=false;
 globalThis.fetch=async(input,init)=>{
   const path=String(input);
   if(path==='/api/portfolio')return Response.json({holdings:[]});
-  assert.equal(path,'/api/finance');
+  assert.ok(['/api/finance','/api/finance/recurring'].includes(path));
   if(init?.method==='PUT'){
     saves++;
     const payload=JSON.parse(String(init.body));
