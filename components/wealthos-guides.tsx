@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { guideLocales, guideUI, guideRoots, guidePath, guides, languageNames, equivalentGuides, type GuideLocale, type Guide } from '../lib/guides/content';
+import { guidePublicationLabel, guidePublished, guideLocales, guideUI, guideRoots, guidePath, guides, languageNames, equivalentGuides, type GuideLocale, type Guide } from '../lib/guides/content';
 import { guideMetadata,guideStructuredData } from '../lib/guides/metadata';
 import MonthlyPlanner from './monthly-planner';
 import styles from './wealthos-guides.module.css';
@@ -25,16 +25,16 @@ export default function WealthOSGuides({locale,guide}:{locale:GuideLocale;guide?
   <header className={styles.header}><a href={home} className={styles.brand} aria-label="WealthOS"><BookLogo/><span>Wealth<span>OS</span></span></a><nav aria-label={c.hub}><a href={guideRoots[locale]}>{c.hub}</a><a className={styles.login} href="/login">{c.login} ↗</a></nav></header>
   <main id="guide-content" className={styles.main}>
    <nav className={styles.breadcrumb} aria-label={c.home}><a href={home}>{c.home}</a><span>/</span>{guide?<a href={guideRoots[locale]}>{c.hub}</a>:<span>{c.hub}</span>}{guide&&<><span>/</span><span>{guide.title}</span></>}</nav>
-   <header className={styles.intro}><p className={styles.eyebrow}>{c.label}</p><h1>{guide?.title??c.title}</h1><p className={styles.lead}>{guide?.summary??c.intro}</p>{guide&&<div className={styles.byline}><span>{c.by}</span><time dateTime="2026-10-29">{c.updated}</time></div>}</header>
+   <header className={styles.intro}><p className={styles.eyebrow}>{c.label}</p><h1>{guide?.title??c.title}</h1><p className={styles.lead}>{guide?.summary??c.intro}</p>{guide&&<div className={styles.byline}><span>{c.by}</span><time dateTime={guidePublished(guide)}>{guidePublicationLabel(locale,guide)}</time></div>}</header>
    {guide?<div className={styles.readingLayout}>
     <aside className={styles.toc}><p>{c.contents}</p><ol>{guide.sections.map((section,index)=><li key={section.title}><a href={`#section-${index}`}>{section.title}</a></li>)}{guide.key==='monthly'&&<li><a href="#monthly-planner">{c.tool}</a></li>}</ol></aside>
     <article className={styles.article}>{guide.sections.map((section,index)=><section key={section.title} id={`section-${index}`}><span className={styles.number}>0{index+1}</span><h2>{section.title}</h2>{section.paragraphs.map(paragraph=><p key={paragraph}>{paragraph}</p>)}{section.steps&&<ol className={styles.checklist}>{section.steps.map(step=><li key={step}>{step}</li>)}</ol>}</section>)}
      {guide.key==='monthly'&&<MonthlyPlanner locale={locale} copy={c}/>}
-     <section className={styles.sources}><h2>{c.sources}</h2><p>{c.sourceNote}</p><a href="https://www.consumerfinance.gov/consumer-tools/educator-tool/your-money-your-goals/toolkit/">CFPB · Your Money, Your Goals ↗</a><p className={styles.small}>{c.education}</p></section>
+     <section className={styles.sources}><h2>{c.sources}</h2>{guide.action?<p>Passos conferidos na aplicação WealthOS. Para revisar os valores, use o extrato e as faturas originais da sua instituição.</p>:<><p>{c.sourceNote}</p><a href="https://www.consumerfinance.gov/consumer-tools/educator-tool/your-money-your-goals/toolkit/">CFPB · Your Money, Your Goals ↗</a></>}<p className={styles.small}>{c.education}</p></section>
     </article>
    </div>:<div className={styles.list}>{related.map((item,index)=><a key={item.key} className={styles.guideLink} href={guidePath(locale,item)}><span className={styles.number}>0{index+1}</span><div><h2>{item.title}</h2><p>{item.description}</p><span className={styles.read}>{c.read} ↗</span></div></a>)}</div>}
    {guide&&related.length>0&&<section className={styles.related}><p className={styles.eyebrow}>{c.related}</p>{related.map(item=><a key={item.key} href={guidePath(locale,item)}>{item.title}<span aria-hidden="true">↗</span></a>)}</section>}
-   <aside className={styles.cta}><div><h2>{c.cta}</h2><p>{c.ctaBody}</p><a className={styles.primary} href="/login">{c.start} ↗</a></div><p className={styles.notice}>{c.notice}</p></aside>
+   <aside className={styles.cta}><div><h2>{guide?.action?.title??c.cta}</h2><p>{guide?.action?.body??c.ctaBody}</p><a className={styles.primary} href="/login">{guide?.action?.label??c.start} ↗</a></div><p className={styles.notice}>{c.notice}</p></aside>
   </main>
   <footer className={styles.footer}><a className={styles.brand} href={home}><BookLogo/><span>WealthOS</span></a><nav aria-label={c.languages}>{languages.map(item=><a key={item.locale} href={item.path} hrefLang={item.locale} lang={item.locale} aria-current={item.locale===locale?'page':undefined}>{languageNames[item.locale]}</a>)}</nav><p>© 2026 WealthOS</p></footer>
  </div>;

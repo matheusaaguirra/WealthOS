@@ -3,7 +3,7 @@ export const landingCopy = {
   pt: {
     skip:'Pular para o conteúdo', nav:'Navegação principal', login:'Entrar', feedback:'Feedbacks', language:'Idioma',
     eyebrow:'FINANÇAS PESSOAIS. SEM RODEIOS.', title:'Seu dinheiro.', italic:'Suas escolhas.',
-    intro:'O salário que entra. O café de todo dia. O plano que ainda está no papel. Dê um lugar para cada parte da sua vida financeira.',
+    intro:'Controle financeiro pessoal para acompanhar receitas, despesas e gastos fixos. Separe o dinheiro do dia a dia, o vale-refeição e a reserva sem perder o histórico de cada conta.',
     start:'Começar a organizar', explore:'Explore o WealthOS', helper:'Entre com Google ou e-mail. Comece no seu ritmo.', scroll:'CONTINUE PARA DESCOBRIR',
     workspace:'SEU ESPAÇO FINANCEIRO', overview:'Visão geral', demo:'Demonstração ilustrativa', month:'Este mês', year:'Este ano', balance:'Saldo da carteira principal', income:'Entradas', expense:'Saídas', flow:'Seu dinheiro em movimento', reserve:'Reserva', meal:'Vale-refeição', separated:'Saldo separado', period:'Visão do período',
     strip:['Contas.','Rotina.','Patrimônio.'],

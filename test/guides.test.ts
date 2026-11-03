@@ -2,14 +2,14 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import sitemap from '../app/sitemap';
 import { SITE_URL } from '../lib/seo';
-import {guideLocales, guides,guidePath,guideUI,equivalentGuides} from '../lib/guides/content';
+import {guidePublished, guideModified, guidePublicationLabel, guideLocales, guides,guidePath,guideUI,equivalentGuides} from '../lib/guides/content';
 import {guideMetadata,guideStructuredData} from '../lib/guides/metadata';
 import {plannerCents,monthlyRemainder} from '../lib/guides/calculation';
 
 test('guide alternates refer only to existing equivalent content and reciprocate',()=>{
  const pages=new Set(sitemap().map(page=>page.url));
  assert.equal(pages.size,sitemap().length);
- assert.equal(pages.size,22);
+ assert.equal(pages.size,24);
  for(const locale of guideLocales){
   for(const guide of [undefined,...guides[locale]]){
    const metadata=guideMetadata(locale,guide);
@@ -29,7 +29,7 @@ test('guide alternates refer only to existing equivalent content and reciprocate
   }
  }
  const pdf=guides.en.find(guide=>guide.key==='pdf')!;
- assert.deepEqual(Object.keys(guideMetadata('en',pdf).alternates!.languages!).sort(),['en','x-default']);
+ assert.deepEqual(Object.keys(guideMetadata('en',pdf).alternates!.languages!).sort(),['en','pt','x-default']);
 });
 
 test('article structured data describes visible editorial content without invented endorsements',()=>{
@@ -58,4 +58,23 @@ test('local calculator preserves cents and rejects ambiguous or unsafe inputs',(
  assert.equal(monthlyRemainder(['10','20','','']),-1000);
  assert.equal(monthlyRemainder(['10','letters','','']),null);
  assert.equal(monthlyRemainder(['10']),null);
+});
+
+
+test('product walkthroughs have accurate publication dates, indexable paths and first-use actions',()=>{
+ for (const key of ['recurring','pdf']) {
+  const guide=guides.pt.find(item=>item.key===key)!;
+  assert.ok(guide.action?.body.includes('conta'));
+  assert.equal(guidePublished(guide),'2026-11-03');
+  assert.equal(guideModified(guide),'2026-11-03');
+  assert.match(guidePublicationLabel('pt',guide),/3 de novembro de 2026/);
+  const article=guideStructuredData('pt',guide)['@graph'][0];
+  assert.equal(article.datePublished,guidePublished(guide));
+  assert.equal(article.dateModified,guideModified(guide));
+  assert.equal(sitemap().find(page=>page.url===article.url)?.lastModified,guideModified(guide));
+ }
+ const recurring=guides.pt.find(item=>item.key==='recurring')!;
+ assert.deepEqual(Object.keys(guideMetadata('pt',recurring).alternates!.languages!).sort(),['pt','x-default']);
+ assert.match(JSON.stringify(recurring.sections),/mês atual/);
+ assert.match(JSON.stringify(recurring.sections),/não paga boletos/);
 });

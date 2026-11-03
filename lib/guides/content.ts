@@ -1,8 +1,9 @@
+import { productGuides } from './product-guides';
 export const guideLocales = ['pt', 'en', 'es', 'fr', 'de', 'it'] as const;
 export type GuideLocale = typeof guideLocales[number];
-export type GuideKey = 'monthly' | 'separate' | 'pdf';
+export type GuideKey = 'monthly' | 'separate' | 'pdf' | 'recurring';
 export interface GuideSection { title: string; paragraphs: string[]; steps?: string[]; }
-export interface Guide { key: GuideKey; slug: string; title: string; description: string; summary: string; sections: GuideSection[]; }
+export interface Guide { key: GuideKey; slug: string; title: string; description: string; summary: string; sections: GuideSection[]; published?: string; modified?: string; action?: { title: string; body: string; label: string }; }
 export const guideRoots: Record<GuideLocale, string> = { pt:'/guias', en:'/en/guides', es:'/es/guias', fr:'/fr/guides', de:'/de/ratgeber', it:'/it/guide' };
 export const languageNames: Record<GuideLocale,string> = {pt:'Português',en:'English',es:'Español',fr:'Français',de:'Deutsch',it:'Italiano'};
 export const guideUI = {
@@ -36,6 +37,7 @@ export const guides: Record<GuideLocale, Guide[]> = {
   ]},
  ],
  pt:[
+  ...productGuides,
   {key:'monthly',slug:'como-controlar-gastos-mensais',title:'Como controlar gastos mensais sem confundir os saldos',description:'Organize receitas, categorias e vencimentos para entender o mês. Use um simulador local de fluxo mensal em BRL, USD ou EUR.',summary:'O saldo da conta mostra um momento. O controle do mês explica como você chegou até ele e o que ainda precisa pagar.',sections:[
    {title:'Comece pelo que aconteceu',paragraphs:['Escolha um mês e reúna as movimentações das contas que você usa. Para cada registro, anote data, descrição, categoria, valor e conta. Antes de definir um limite ideal, confira se os registros descrevem sua rotina de verdade.','Use poucas categorias consistentes, como moradia, alimentação, transporte e saúde. A categoria explica o motivo do gasto; a conta mostra de onde saiu o dinheiro. Essa diferença ajuda a conferir o histórico sem misturar perguntas.']},
    {title:'Não conte o mesmo gasto duas vezes',paragraphs:['Mover dinheiro da conta corrente para uma reserva não é o mesmo que comprar um produto. Da mesma forma, se as compras do cartão já foram registradas como despesas, lançar a fatura inteira novamente como gasto duplica o consumo.','Defina seu método antes de conferir os saldos. O WealthOS ainda não tem um fluxo específico de transferências: não registre os dois lados como receita e despesa comuns se você espera que esses totais representem ganhos e compras.']},
@@ -109,4 +111,12 @@ export const guides: Record<GuideLocale, Guide[]> = {
 export function guidePath(locale: GuideLocale, guide?: Guide) { return guide ? `${guideRoots[locale]}/${guide.slug}` : guideRoots[locale]; }
 export function equivalentGuides(key: GuideKey) {
  return guideLocales.flatMap(locale => { const guide = guides[locale].find(item=>item.key===key); return guide ? [{locale,guide,path:guidePath(locale,guide)}] : []; });
+}
+
+export function guidePublished(guide: Guide) { return guide.published ?? '2026-10-29'; }
+export function guideModified(guide: Guide) { return guide.modified ?? (guide.key === 'monthly' ? '2026-10-30' : guidePublished(guide)); }
+export function guidePublicationLabel(locale: GuideLocale, guide: Guide) {
+ const date = new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeZone: 'UTC' }).format(new Date(`${guidePublished(guide)}T12:00:00Z`));
+ const prefix = {pt:'Publicado em',en:'Published',es:'Publicado el',fr:'Publié le',de:'Veröffentlicht am',it:'Pubblicato il'}[locale];
+ return `${prefix} ${date}`;
 }
