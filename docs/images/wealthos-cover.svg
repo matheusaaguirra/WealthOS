@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="420" viewBox="0 0 1440 420" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">WealthOS — Seu dinheiro. Suas escolhas.</title>
+  <desc id="desc">Capa azul escura com a logo do livro e três grupos de contas: dia a dia, reservas e benefícios.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1440" y2="420" gradientUnits="userSpaceOnUse"><stop stop-color="#101f2c"/><stop offset="1" stop-color="#0d1823"/></linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1440" y2="0" gradientUnits="userSpaceOnUse"><stop stop-color="#326da0"/><stop offset=".55" stop-color="#84b9e8"/><stop offset="1" stop-color="#193f59"/></linearGradient>
+  </defs>
+  <rect width="1440" height="420" rx="20" fill="url(#bg)"/>
+  <rect x=".5" y=".5" width="1439" height="419" rx="19.5" stroke="#304858"/>
+  <path d="M34 419H1406" stroke="url(#line)" stroke-width="2"/>
+  <g transform="translate(66 54) scale(1.5)">
+    <rect width="40" height="40" rx="11" fill="#193f59"/>
+    <path d="M9 11.8c4-1.6 7.5-1.1 11 1.6v16.4c-3.5-2.7-7-3.2-11-1.6V11.8Z" fill="#f4f3e9"/>
+    <path d="M31 11.8c-4-1.6-7.5-1.1-11 1.6v16.4c3.5-2.7 7-3.2 11-1.6V11.8Z" fill="#91bdc3"/>
+    <path d="m23.5 23.2 2.1-2.8 1.7 1.3 1.5-2.1" stroke="#193f59" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g font-family="'DM Sans', 'Segoe UI', Arial, sans-serif">
+    <text x="145" y="97" fill="#e4edf5" font-size="43" font-weight="600" letter-spacing="-2">Wealth<tspan font-weight="400">OS</tspan></text>
+    <text x="68" y="196" fill="#e4edf5" font-size="52" font-weight="500" letter-spacing="-2">Seu dinheiro.</text>
+    <text x="68" y="254" fill="#84b9e8" font-size="52" font-weight="500" letter-spacing="-2">Suas escolhas.</text>
+    <text x="70" y="304" fill="#a7bac9" font-size="19">Contas, rotina e patrimônio. Cada saldo no seu lugar.</text>
+    <text x="70" y="366" fill="#84b9e8" font-size="12" font-weight="600" letter-spacing="2">CONTROLE FINANCEIRO PESSOAL</text>
+    <text x="750" y="72" fill="#a7bac9" font-size="11" letter-spacing="2">UM ESPAÇO PARA CADA PARTE DA SUA VIDA</text>
+    <g transform="translate(750 96)">
+      <rect width="618" height="76" rx="12" fill="#193f59" stroke="#3c627f"/>
+      <rect x="18" y="18" width="40" height="40" rx="10" fill="#244c68"/>
+      <path d="M29 31h18v14H29V31Zm0 0v-4h15v4m-3 6h8v5h-8v-5Z" stroke="#b5d5f0" stroke-width="1.7" stroke-linejoin="round"/>
+      <text x="76" y="34" fill="#e4edf5" font-size="17" font-weight="600">Dia a dia</text>
+      <text x="76" y="56" fill="#b5cbdc" font-size="12">Receitas e despesas da carteira principal</text>
+      <rect x="469" y="25" width="129" height="26" rx="13" fill="#244c68"/>
+      <text x="533.5" y="42" text-anchor="middle" fill="#c3def3" font-size="11">Carteira principal</text>
+    </g>
+    <g transform="translate(750 186)">
+      <rect width="618" height="76" rx="12" fill="#172633" stroke="#304858"/>
+      <rect x="18" y="18" width="40" height="40" rx="10" fill="#25354c"/>
+      <path d="m38 26 10 5v7c0 6-10 11-10 11s-10-5-10-11v-7l10-5Zm-5 11 3 3 7-7" stroke="#b7c3e0" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+      <text x="76" y="34" fill="#e4edf5" font-size="17" font-weight="600">Reservas</text>
+      <text x="76" y="56" fill="#a7bac9" font-size="12">O dinheiro que tem outro destino</text>
+      <rect x="483" y="25" width="115" height="26" rx="13" fill="#223342"/>
+      <text x="540.5" y="42" text-anchor="middle" fill="#a7bac9" font-size="11">Saldo separado</text>
+    </g>
+    <g transform="translate(750 276)">
+      <rect width="618" height="76" rx="12" fill="#172633" stroke="#304858"/>
+      <rect x="18" y="18" width="40" height="40" rx="10" fill="#203e47"/>
+      <path d="M29 28v7m4-7v7m4-7v7m-8-2c0 7 8 7 8 0m-4 5v10m12-20c-5 3-5 10 0 11v9m0-20v11" stroke="#91bdc3" stroke-width="1.7" stroke-linecap="round"/>
+      <text x="76" y="34" fill="#e4edf5" font-size="17" font-weight="600">Benefícios</text>
+      <text x="76" y="56" fill="#a7bac9" font-size="12">VR e VA sem misturar com o salário</text>
+      <rect x="483" y="25" width="115" height="26" rx="13" fill="#223342"/>
+      <text x="540.5" y="42" text-anchor="middle" fill="#a7bac9" font-size="11">Saldo separado</text>
+    </g>
+    <text x="1368" y="387" fill="#718b9f" font-size="11" letter-spacing="1" text-anchor="end">WEALTHOS.COM.BR</text>
+  </g>
+</svg>
